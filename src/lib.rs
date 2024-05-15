@@ -8,7 +8,8 @@ use syn::{Error, Ident, ItemEnum, Result};
 /// # Generated trait implementatations
 /// This macro generates some trait implementations: [`fmt::Debug`], [`ops:Not`], [`ops:BitAnd`],
 /// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
-/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`]
+/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Clone`],
+/// [`Copy`]
 ///
 /// # Example
 ///
@@ -16,7 +17,7 @@ use syn::{Error, Ident, ItemEnum, Result};
 /// use bitflag_attr::bitflag;
 ///
 /// #[bitflag(u32)]
-/// #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// #[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// pub enum Flags {
 ///     /// The value `A`, at bit position `0`.
 ///     A = 0b00000001,
@@ -107,6 +108,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
     let generated = quote! {
         #[repr(transparent)]
+        #[derive(Clone, Copy)]
         #(#attrs)*
         #vis struct #ty_name(#ty);
 

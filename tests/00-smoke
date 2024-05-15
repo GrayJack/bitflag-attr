@@ -1,7 +1,7 @@
 use bitflag_attr::bitflag;
 
 #[bitflag(u8)]
-#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum SmokeTest {
     Flag1 = 1 << 0,
     Flag2 = 1 << 1,

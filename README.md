@@ -35,8 +35,10 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] core::fmt::LowerHex
 - [X] core::fmt::Octal
 - [X] From
+- [X] Clone
+- [X] Copy
 
-The macro doesn't implement `Clone` or `Copy`, but it is often a good idea to derive them.
+Besides the `Debug`, `Clone` and `Copy` traits, all other derivable traits can be used together with the type
 
 ## Example
 

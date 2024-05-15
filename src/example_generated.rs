@@ -4,7 +4,7 @@
 //! use bitflag_attr::bitflag;
 //!
 //! #[bitflag(u32)]
-//! #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+//! #[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
 //! pub enum Flags {
 //!     /// The value `A`, at bit position `0`.
 //!     A = 0b00000001,
