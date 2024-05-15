@@ -34,9 +34,6 @@ jobs:
         RUSTDOCFLAGS: --cfg _doc
       run: cargo doc -Zrustdoc-map
 
-    - name: Build C Documentation
-      uses: mattnotmitt/doxygen-action@v1.9
-
     - name: Deploy Docs
       uses: peaceiris/actions-gh-pages@v3
       with:
@@ -44,11 +41,3 @@ jobs:
         publish_branch: gh-pages
         publish_dir: ./target/doc
         force_orphan: true
-
-    - name: Deploy External Docs
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        external_repository: oxilibc/oxilibc-docs
-        publish_branch: main  # default: gh-pages
-        publish_dir: ./target/doc
