@@ -1,0 +1,478 @@
+use proc_macro::{Span, TokenStream};
+use quote::quote;
+use syn::{Error, Ident, ItemEnum, Result};
+
+/// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
+/// similar to the `bitflags` crate, and implementing traits as listed below.
+///
+/// # Generated trait implementatations
+/// This macro generates some trait implementations: [`fmt::Debug`], [`ops:Not`], [`ops:BitAnd`],
+/// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
+/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`]
+///
+/// # Example
+///
+/// ```
+/// use bitflag_attr::bitflag;
+///
+/// #[bitflag(u32)]
+/// #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// pub enum Flags {
+///     /// The value `A`, at bit position `0`.
+///     A = 0b00000001,
+///     /// The value `B`, at bit position `1`.
+///     B = 0b00000010,
+///     /// The value `C`, at bit position `2`.
+///     C = 0b00000100,
+///
+///     /// The combination of `A`, `B`, and `C`.
+///     ABC = A | B | C,
+/// }
+/// ```
+///
+/// # Syntax
+///
+/// ```text
+/// #[bitflag($ty)]
+/// $visibility enum $StructName {
+///     FlagOne = flag1_value_expr,
+///     FlagTwo = flag2_value_expr,
+///     // ...
+///     FlagN = flagn_value_expr,
+/// }
+/// ```
+///
+/// [`fmt::Debug`]: core::fmt::Debug
+/// [`ops:Not`]: core::ops::Not
+/// [`ops:BitAnd`]: core::ops::BitAnd
+/// [`ops:BitOr`]: core::ops::BitOr
+/// [`ops:BitXor`]: core::ops::BitXor
+/// [`ops:BitAndAssign`]: core::ops::BitAndAssign
+/// [`ops:BitOrAssign`]: core::ops::BitOrAssign
+/// [`ops:BitXorAssign`]: core::ops::BitXorAssign
+/// [`fmt::Binary`]: core::fmt::Binary
+/// [`fmt::LowerHex`]: core::fmt::LowerHex
+/// [`fmt::UpperHex`]: core::fmt::UpperHex
+/// [`fmt::Octal`]: core::fmt::Octal
+/// [`From`]: From
+#[proc_macro_attribute]
+pub fn bitflag(attr: TokenStream, item: TokenStream) -> TokenStream {
+    match bitflag_impl(attr, item) {
+        Ok(ts) => ts,
+        Err(err) => err.into_compile_error().into(),
+    }
+}
+
+fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
+    let ty = parse_ty(attr)?;
+
+    let item: ItemEnum = syn::parse(item)?;
+
+    let vis = item.vis;
+    let attrs = item.attrs;
+    let ty_name = item.ident;
+
+    let number_flags = item.variants.len();
+
+    let mut all_flags = Vec::with_capacity(number_flags);
+    let mut all_flags_names = Vec::with_capacity(number_flags);
+
+    // The raw flags as private itens to allow defyning flags referencing other flag definitions
+    let mut raw_flags = Vec::with_capacity(number_flags);
+
+    let mut flags = Vec::with_capacity(number_flags); // Associated constants
+    for variant in item.variants.iter() {
+        let var_attrs = &variant.attrs;
+        let var_name = &variant.ident;
+
+        let expr = match variant.discriminant.as_ref() {
+            Some((_, expr)) => expr,
+            None => return Err(Error::new_spanned(variant, "a discrimiant must be defined")),
+        };
+
+        all_flags.push(quote!(Self::#var_name));
+        all_flags_names.push(quote!(stringify!(#var_name)));
+
+        flags.push(quote! {
+            #(#var_attrs)*
+            #vis const #var_name: #ty_name = Self(#expr);
+        });
+
+        raw_flags.push(quote! {
+            #(#var_attrs)*
+            #[allow(non_upper_case_globals)]
+            const #var_name: #ty = #expr;
+        });
+    }
+
+    let generated = quote! {
+        #[repr(transparent)]
+        #(#attrs)*
+        #vis struct #ty_name(#ty);
+
+        #(#raw_flags)*
+
+        #[allow(non_upper_case_globals)]
+        impl #ty_name {
+            #(#flags)*
+
+            /// Return the underlying bits of the bitflag
+            #[inline]
+            #vis const fn bits(&self) -> #ty {
+                self.0
+            }
+
+            /// Converts from a `bits` value. Returning [`None`] is any unknown bits are set.
+            #[inline]
+            #vis const fn from_bits(bits: #ty) -> Option<Self> {
+                let truncated = Self::from_bits_truncate(bits).0;
+
+                if truncated == bits {
+                    Some(Self(bits))
+                } else {
+                    None
+                }
+            }
+
+            /// Convert from `bits` value, unsetting any unknown bits.
+            #[inline]
+            #vis const fn from_bits_truncate(bits: #ty) -> Self {
+                Self(bits & Self::all().0)
+            }
+
+            /// Convert from `bits` value exactly.
+            #[inline]
+            #vis const fn from_bits_retain(bits: #ty) -> Self {
+                Self(bits)
+            }
+
+            /// Construct an empty bitflag.
+            #[inline]
+            #vis const fn empty() -> Self {
+                Self(0)
+            }
+
+            /// Returns `true` if the flag is empty.
+            #[inline]
+            #vis const fn is_empty(&self) -> bool {
+                self.0 == 0
+            }
+
+            /// Returns a bitflag that constains all value.
+            ///
+            /// This will include bits that do not have any flags/meaning.
+            /// Use [`all`](Self::all) if you want only the specified flags set.
+            #[inline]
+            #vis const fn all_bits() -> Self {
+                Self(!0)
+            }
+
+            /// Returns `true` if the bitflag constains all value bits set.
+            ///
+            /// This will check for all bits.
+            /// Use [`is_all`](Self::is_all) if you want to check for all specified flags.
+            #[inline]
+            #vis const fn is_all_bits(&self) -> bool {
+                self.0 == !0
+            }
+
+            /// Construct a bitflag with all flags set.
+            ///
+            /// This will only set the flags specified as associated constant.
+            #[inline]
+            #vis const fn all() -> Self {
+                Self(#(#all_flags.0 |)* 0)
+            }
+
+            /// Returns `true` if the bitflag contais all flags.
+            ///
+            #[inline]
+            #vis const fn is_all(&self) -> bool {
+                self.0 == Self::all().0
+            }
+
+            /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
+            #[inline]
+            #vis const fn truncate(&self) -> Self {
+                Self(self.0 & Self::all().0)
+            }
+
+            /// Returns `true` if this bitflag intersects with any value in `other`.
+            ///
+            /// This is equivalent to `(self & other) != Self::empty()`
+            #[inline]
+            #vis const fn intersects(&self, other: Self) -> bool {
+                (self.0 & other.0) != Self::empty().0
+            }
+
+            /// Returns `true` if this bitflag contains all values of `other`.
+            ///
+            /// This is equivalent to `(self & other) == other`
+            #[inline]
+            #vis const fn contains(&self, other: Self) -> bool {
+                (self.0 & other.0) == other.0
+            }
+
+            /// Returns the bitwise NOT of the flag.
+            #[inline]
+            #[doc(alias = "complement")]
+            #vis const fn not(self) -> Self {
+                Self(!self.0)
+            }
+
+            /// Returns the bitwise AND of the flag.
+            #[inline]
+            #[doc(alias = "intersection")]
+            #vis const fn and(self, other: Self) -> Self {
+                Self(self.0 & other.0)
+            }
+
+            /// Returns the bitwise OR of the flag with `other`.
+            #[inline]
+            #[doc(alias = "union")]
+            #vis const fn or(self, other: Self) -> Self {
+                Self(self.0 | other.0)
+            }
+
+            /// Returns the bitwise XOR of the flag with `other`.
+            #[inline]
+            #[doc(alias = "symmetric_difference")]
+            #vis const fn xor(self, other: Self) -> Self {
+                Self(self.0 ^ other.0)
+            }
+
+            /// Returns the intersection from this value with `other`.
+            #[inline]
+            #[doc(alias = "and")]
+            #vis const fn intersection(self, other: Self) -> Self {
+                self.and(other)
+            }
+
+            /// Returns the union from this value with `other`
+            #[inline]
+            #[doc(alias = "or")]
+            #vis const fn union(self, other: Self) -> Self {
+                self.or(other)
+            }
+
+            /// Returns the difference from this value with `other`.
+            #[inline]
+            #vis const fn difference(self, other: Self) -> Self {
+                self.and(other.not())
+            }
+
+            /// Returns the symmetric difference from this value with `other`.
+            #[inline]
+            #[doc(alias = "xor")]
+            #vis const fn symmetric_difference(self, other: Self) -> Self {
+                self.xor(other)
+            }
+
+            /// Returns the complement of the value.
+            ///
+            /// This is very similar to the [`not`](Self::not), but truncates non used bits
+            #[inline]
+            #[doc(alias = "not")]
+            #vis const fn complement(self) -> Self {
+                self.not().truncate()
+            }
+
+            /// Set the flags in `other` in the value.
+            #[inline]
+            #vis fn set(&mut self, other: Self) {
+                self.0 = self.and(other).0
+            }
+
+            /// Unset the flags in `other` in the value.
+            #[inline]
+            #vis fn unset(&mut self, other: Self) {
+                self.0 = self.difference(other).0
+            }
+
+            /// Toggle the flags in `other` in the value.
+            #[inline]
+            #vis fn toggle(&mut self, other: Self) {
+                self.0 = self.xor(other).0
+            }
+        }
+
+        impl core::ops::Not for #ty_name {
+            type Output = Self;
+
+            #[inline]
+            fn not(self) -> Self::Output {
+                self.complement()
+            }
+        }
+
+        impl core::ops::BitAnd for #ty_name {
+            type Output = Self;
+
+            #[inline]
+            fn bitand(self, rhs: Self) -> Self::Output {
+                self.and(rhs)
+            }
+        }
+
+        impl core::ops::BitOr for #ty_name {
+            type Output = Self;
+
+            #[inline]
+            fn bitor(self, rhs: Self) -> Self::Output {
+                self.or(rhs)
+            }
+        }
+
+        impl core::ops::BitXor for #ty_name {
+            type Output = Self;
+
+            #[inline]
+            fn bitxor(self, rhs: Self) -> Self::Output {
+                self.xor(rhs)
+            }
+        }
+
+        impl core::ops::BitAndAssign for #ty_name {
+            #[inline]
+            fn bitand_assign(&mut self, rhs: Self) {
+                core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
+            }
+        }
+
+        impl core::ops::BitOrAssign for #ty_name {
+            #[inline]
+            fn bitor_assign(&mut self, rhs: Self) {
+                core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
+            }
+        }
+
+        impl core::ops::BitXorAssign for #ty_name {
+            #[inline]
+            fn bitxor_assign(&mut self, rhs: Self) {
+                core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
+            }
+        }
+
+        impl core::ops::Sub for #ty_name {
+            type Output = Self;
+
+            /// The intersection of a source flag with the complement of a target flags value
+            #[inline]
+            fn sub(self, rhs: Self) -> Self::Output {
+                self.difference(rhs)
+            }
+        }
+
+        impl core::ops::SubAssign for #ty_name {
+            /// The intersection of a source flag with the complement of a target flags value
+            #[inline]
+            fn sub_assign(&mut self, rhs: Self) {
+                self.unset(rhs)
+            }
+        }
+
+        impl From<#ty> for #ty_name {
+            #[inline]
+            fn from(val: #ty) -> Self {
+                Self::from_bits_truncate(val)
+            }
+        }
+
+        impl From<#ty_name> for #ty {
+            #[inline]
+            fn from(val: #ty_name) -> Self {
+                val.0
+            }
+        }
+
+        impl core::fmt::Binary for #ty_name {
+            #[inline]
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::Binary::fmt(&self.0, f)
+            }
+        }
+
+        impl core::fmt::LowerHex for #ty_name {
+            #[inline]
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::LowerHex::fmt(&self.0, f)
+            }
+        }
+
+        impl core::fmt::UpperHex for #ty_name {
+            #[inline]
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::UpperHex::fmt(&self.0, f)
+            }
+        }
+
+        impl core::fmt::Octal for #ty_name {
+            #[inline]
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::Octal::fmt(&self.0, f)
+            }
+        }
+
+        impl core::fmt::Debug for #ty_name {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let name = stringify!(#ty_name);
+                if f.alternate() {
+                    write!(f, "{} ", &name)?;
+                    let mut tmp = f.debug_map();
+
+                    #(if self.contains(#all_flags) {
+                        tmp.entry(&#all_flags_names, &"set");
+                    } else {
+                        tmp.entry(&#all_flags_names, &"unset");
+                    })*
+
+                    tmp.finish()
+                } else {
+                    f.debug_tuple(&name).field(&self.0).finish()
+                }
+            }
+        }
+    };
+
+    Ok(generated.into())
+}
+
+static VALID_TYPES: [&str; 21] = [
+    "i8",
+    "u8",
+    "i16",
+    "u16",
+    "i32",
+    "u32",
+    "i64",
+    "u64",
+    "isize",
+    "usize",
+    "c_char",
+    "c_schar",
+    "c_uchar",
+    "c_short",
+    "c_ushort",
+    "c_int",
+    "c_uint",
+    "c_long",
+    "c_ulong",
+    "c_longlong",
+    "c_longlong",
+];
+
+fn parse_ty(attr: TokenStream) -> syn::Result<Ident> {
+    if attr.is_empty() {
+        Ok(Ident::new("u32", Span::call_site().into()))
+    } else {
+        let ident: Ident = syn::parse::<Ident>(attr)?;
+        if VALID_TYPES.contains(&ident.to_string().as_str()) {
+            Ok(ident)
+        } else {
+            Err(Error::new_spanned(ident, "type must be a integer"))
+        }
+    }
+}
+
+#[cfg(doc)]
+mod example_generated;

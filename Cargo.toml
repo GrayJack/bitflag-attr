@@ -1,0 +1,27 @@
+[package]
+name = "bitflag-attr"
+authors = ["GrayJack <gr41.j4ck@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A macro to generate bitflags structures from C-like enums"
+keywords = ["bit", "bitmask", "bitflags", "flags"]
+categories = ["no-std"]
+repository = "https://github.com/GrayJack/bitflag-attr"
+homepage = "https://github.com/GrayJack/bitflag-attr"
+rust-version = "1.56.0"
+exclude = ["/tests", "/.github"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+
+[[test]]
+name = "tests"
+path = "tests/progress.rs"
+
+[dev-dependencies]
+trybuild = { version = "1.0", features = ["diff"] }

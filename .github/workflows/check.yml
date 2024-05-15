@@ -1,0 +1,55 @@
+name: Check
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+    paths-ignore:
+      - "**.md"
+      - LICENSE
+      - .github/FUNDING.yml
+      - .gitignore
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "**/LICENSE"
+      - .github/FUNDING.yml
+      - .editorconfig
+      - .gitignore
+
+jobs:
+  check:
+    name: Check and Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: ["1.56.0", "stable", "nightly"]
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.toolchain }}
+    - name: Cache cargo output
+      uses: Swatinem/rust-cache@v2
+    - name: Check
+      run: cargo check
+    - name: Run tests
+      run: cargo test
+
+  # miri:
+  #   name: Miri
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v4
+  #     - name: Install Rust toolchain
+  #       uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: nightly
+  #         components: miri
+  #     - name: Setup miri
+  #       run: cargo miri setup
+  #     - name: Run miri
+  #       run: cargo miri test

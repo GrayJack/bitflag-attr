@@ -1,0 +1,5 @@
+error: type must be a integer
+ --> tests/01-invalid_type:3:11
+  |
+3 | #[bitflag(str)]
+  |           ^^^
