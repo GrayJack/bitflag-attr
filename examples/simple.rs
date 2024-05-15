@@ -13,11 +13,11 @@ fn main() {
 
     assert_eq!(flag, SimpleFlag::Flag3);
 
-    println!("Binary: {flag:b}");
+    println!("Binary: 0b{flag:b}");
     println!();
-    println!("Octal: {flag:o}");
+    println!("Octal: 0o{flag:o}");
     println!();
-    println!("Hex: {flag:X}");
+    println!("Hex: 0x{flag:X}");
     println!();
     println!("Debug: {flag:?}");
     println!();

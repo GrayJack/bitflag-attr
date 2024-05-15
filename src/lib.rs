@@ -1,6 +1,6 @@
 use proc_macro::{Span, TokenStream};
 use quote::quote;
-use syn::{Error, Ident, ItemEnum, Result};
+use syn::{spanned::Spanned, Error, Ident, ItemEnum, Result};
 
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
@@ -74,6 +74,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let ty_name = item.ident;
 
     let number_flags = item.variants.len();
+    let num_flags = syn::LitInt::new(number_flags.to_string().as_str(), ty_name.span());
 
     let mut all_flags = Vec::with_capacity(number_flags);
     let mut all_flags_names = Vec::with_capacity(number_flags);
@@ -92,16 +93,19 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         };
 
         all_flags.push(quote!(Self::#var_name));
-        all_flags_names.push(quote!(stringify!(#var_name)));
+
+        let span = vis.span();
+
+        all_flags_names.push(quote::quote_spanned!(span=> #var_name));
 
         flags.push(quote! {
             #(#var_attrs)*
-            #vis const #var_name: #ty_name = Self(#expr);
+            #vis const #var_name: Self = Self(#expr);
         });
 
         raw_flags.push(quote! {
             #(#var_attrs)*
-            #[allow(non_upper_case_globals)]
+            #[allow(non_upper_case_globals, dead_code, unused)]
             const #var_name: #ty = #expr;
         });
     }
@@ -417,21 +421,49 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         impl core::fmt::Debug for #ty_name {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                let name = stringify!(#ty_name);
-                if f.alternate() {
-                    write!(f, "{} ", &name)?;
-                    let mut tmp = f.debug_map();
-
-                    #(if self.contains(#all_flags) {
-                        tmp.entry(&#all_flags_names, &"set");
-                    } else {
-                        tmp.entry(&#all_flags_names, &"unset");
-                    })*
-
-                    tmp.finish()
-                } else {
-                    f.debug_tuple(&name).field(&self.0).finish()
+                #[derive(Debug, Clone, Copy)]
+                #[allow(clippy::upper_case_acronyms)]
+                enum AuxEnum {
+                    #(#all_flags_names, )*
                 }
+
+                struct Set([Option<AuxEnum>; #num_flags]);
+
+                impl Set {
+                    fn insert(&mut self, val: AuxEnum) {
+                        for i in self.0.iter_mut() {
+                            if i.is_none() {
+                                *i = Some(val);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                impl core::fmt::Debug for Set {
+                    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                        let mut dbg = f.debug_set();
+
+                        for i in self.0.iter().flatten() {
+                            dbg.entry(i);
+                        }
+
+                        dbg.finish()
+                    }
+                }
+
+                let name = stringify!(#ty_name);
+
+                let mut set = Set([None; #num_flags]);
+                {
+                #(if self.contains(#all_flags) {
+                    set.insert(AuxEnum::#all_flags_names);
+                })*
+                }
+                f.debug_tuple(name)
+                    .field(&format_args!("0b{:b}", self.0))
+                    .field(&set)
+                    .finish()
             }
         }
     };

@@ -23,27 +23,27 @@
 pub struct Flags(u32);
 
 #[doc = " The value `A`, at bit position `0`."]
-#[allow(non_upper_case_globals)]
+#[allow(non_upper_case_globals, dead_code, unused)]
 const A: u32 = 0b00000001;
 #[doc = " The value `B`, at bit position `1`."]
-#[allow(non_upper_case_globals)]
+#[allow(non_upper_case_globals, dead_code, unused)]
 const B: u32 = 0b00000010;
 #[doc = " The value `C`, at bit position `2`."]
-#[allow(non_upper_case_globals)]
+#[allow(non_upper_case_globals, dead_code, unused)]
 const C: u32 = 0b00000100;
 #[doc = " The combination of `A`, `B`, and `C`."]
-#[allow(non_upper_case_globals)]
+#[allow(non_upper_case_globals, dead_code, unused)]
 const ABC: u32 = A | B | C;
 #[allow(non_upper_case_globals)]
 impl Flags {
     #[doc = " The value `A`, at bit position `0`."]
-    pub const A: Flags = Self(0b00000001);
+    pub const A: Self = Self(0b00000001);
     #[doc = " The value `B`, at bit position `1`."]
-    pub const B: Flags = Self(0b00000010);
+    pub const B: Self = Self(0b00000010);
     #[doc = " The value `C`, at bit position `2`."]
-    pub const C: Flags = Self(0b00000100);
+    pub const C: Self = Self(0b00000100);
     #[doc = " The combination of `A`, `B`, and `C`."]
-    pub const ABC: Flags = Self(A | B | C);
+    pub const ABC: Self = Self(A | B | C);
     #[doc = r" Return the underlying bits of the bitflag"]
     #[inline]
     pub const fn bits(&self) -> u32 {
@@ -297,33 +297,52 @@ impl core::fmt::Octal for Flags {
 }
 impl core::fmt::Debug for Flags {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let name = "Flags";
-        if f.alternate() {
-            f.write_fmt(format_args!("{} ", &name))?;
-            let mut tmp = f.debug_map();
-            if self.contains(Self::A) {
-                tmp.entry(&"A", &"set");
-            } else {
-                tmp.entry(&"A", &"unset");
-            }
-            if self.contains(Self::B) {
-                tmp.entry(&"B", &"set");
-            } else {
-                tmp.entry(&"B", &"unset");
-            }
-            if self.contains(Self::C) {
-                tmp.entry(&"C", &"set");
-            } else {
-                tmp.entry(&"C", &"unset");
-            }
-            if self.contains(Self::ABC) {
-                tmp.entry(&"ABC", &"set");
-            } else {
-                tmp.entry(&"ABC", &"unset");
-            }
-            tmp.finish()
-        } else {
-            f.debug_tuple(&name).field(&self.0).finish()
+        #[derive(Debug, Clone, Copy)]
+        #[allow(clippy::upper_case_acronyms)]
+        enum AuxEnum {
+            A,
+            B,
+            C,
+            ABC,
         }
+        struct Set([Option<AuxEnum>; 4]);
+
+        impl Set {
+            fn insert(&mut self, val: AuxEnum) {
+                for i in self.0.iter_mut() {
+                    if i.is_none() {
+                        *i = Some(val);
+                        break;
+                    }
+                }
+            }
+        }
+        impl core::fmt::Debug for Set {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                let mut dbg = f.debug_set();
+                for i in self.0.iter().flatten() {
+                    dbg.entry(i);
+                }
+                dbg.finish()
+            }
+        }
+        let name = "Flags";
+        let mut set = Set([None; 4]);
+        if self.contains(Self::A) {
+            set.insert(AuxEnum::A);
+        }
+        if self.contains(Self::B) {
+            set.insert(AuxEnum::B);
+        }
+        if self.contains(Self::C) {
+            set.insert(AuxEnum::C);
+        }
+        if self.contains(Self::ABC) {
+            set.insert(AuxEnum::ABC);
+        }
+        f.debug_tuple(name)
+            .field(&format_args!("0b{:b}", self.0))
+            .field(&set)
+            .finish()
     }
 }
