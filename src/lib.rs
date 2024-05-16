@@ -1,6 +1,6 @@
 use proc_macro::{Span, TokenStream};
 use quote::quote;
-use syn::{spanned::Spanned, Error, Ident, ItemEnum, Result};
+use syn::{Error, Ident, ItemEnum, Result};
 
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
@@ -93,10 +93,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         };
 
         all_flags.push(quote!(Self::#var_name));
-
-        let span = vis.span();
-
-        all_flags_names.push(quote::quote_spanned!(span=> #var_name));
+        all_flags_names.push(quote!(stringify!(#var_name)));
 
         flags.push(quote! {
             #(#var_attrs)*
@@ -421,16 +418,26 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         impl core::fmt::Debug for #ty_name {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                #[derive(Debug, Clone, Copy)]
-                #[allow(clippy::upper_case_acronyms)]
-                enum AuxEnum {
-                    #(#all_flags_names, )*
+                // #[derive(Debug, Clone, Copy)]
+                // #[allow(clippy::upper_case_acronyms)]
+                // enum AuxEnum {
+                //     #(#all_flags_names, )*
+                // }
+
+                #[derive(Clone, Copy)]
+                struct AuxItem(&'static str);
+
+                impl core::fmt::Debug for AuxItem {
+                    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                        f.pad(self.0)
+                    }
                 }
 
-                struct Set([Option<AuxEnum>; #num_flags]);
+                // struct Set([Option<AuxEnum>; #num_flags]);
+                struct Set([Option<AuxItem>; #num_flags]);
 
                 impl Set {
-                    fn insert(&mut self, val: AuxEnum) {
+                    fn insert(&mut self, val: AuxItem) {
                         for i in self.0.iter_mut() {
                             if i.is_none() {
                                 *i = Some(val);
@@ -455,11 +462,11 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 let name = stringify!(#ty_name);
 
                 let mut set = Set([None; #num_flags]);
-                {
+
                 #(if self.contains(#all_flags) {
-                    set.insert(AuxEnum::#all_flags_names);
+                    set.insert(AuxItem(#all_flags_names));
                 })*
-                }
+
                 f.debug_tuple(name)
                     .field(&format_args!("0b{:b}", self.0))
                     .field(&set)

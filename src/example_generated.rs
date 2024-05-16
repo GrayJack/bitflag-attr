@@ -297,18 +297,18 @@ impl core::fmt::Octal for Flags {
 }
 impl core::fmt::Debug for Flags {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        #[derive(Debug, Clone, Copy)]
-        #[allow(clippy::upper_case_acronyms)]
-        enum AuxEnum {
-            A,
-            B,
-            C,
-            ABC,
+        #[derive(Clone, Copy)]
+        struct AuxItem(&'static str);
+
+        impl core::fmt::Debug for AuxItem {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                f.pad(self.0)
+            }
         }
-        struct Set([Option<AuxEnum>; 4]);
+        struct Set([Option<AuxItem>; 4]);
 
         impl Set {
-            fn insert(&mut self, val: AuxEnum) {
+            fn insert(&mut self, val: AuxItem) {
                 for i in self.0.iter_mut() {
                     if i.is_none() {
                         *i = Some(val);
@@ -328,17 +328,19 @@ impl core::fmt::Debug for Flags {
         }
         let name = "Flags";
         let mut set = Set([None; 4]);
-        if self.contains(Self::A) {
-            set.insert(AuxEnum::A);
-        }
-        if self.contains(Self::B) {
-            set.insert(AuxEnum::B);
-        }
-        if self.contains(Self::C) {
-            set.insert(AuxEnum::C);
-        }
-        if self.contains(Self::ABC) {
-            set.insert(AuxEnum::ABC);
+        {
+            if self.contains(Self::A) {
+                set.insert(AuxItem("A"));
+            }
+            if self.contains(Self::B) {
+                set.insert(AuxItem("B"));
+            }
+            if self.contains(Self::C) {
+                set.insert(AuxItem("C"));
+            }
+            if self.contains(Self::ABC) {
+                set.insert(AuxItem("ABC"));
+            }
         }
         f.debug_tuple(name)
             .field(&format_args!("0b{:b}", self.0))
