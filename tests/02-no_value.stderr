@@ -1,4 +1,4 @@
-error: a discrimiant must be defined
+error: a discriminant must be defined
  --> tests/02-no_value:7:5
   |
 7 |     Flag2,

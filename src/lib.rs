@@ -83,22 +83,21 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let mut raw_flags = Vec::with_capacity(number_flags);
 
     let mut flags = Vec::with_capacity(number_flags); // Associated constants
+
+    // First generate the raw_flags
     for variant in item.variants.iter() {
         let var_attrs = &variant.attrs;
         let var_name = &variant.ident;
 
         let expr = match variant.discriminant.as_ref() {
             Some((_, expr)) => expr,
-            None => return Err(Error::new_spanned(variant, "a discrimiant must be defined")),
+            None => {
+                return Err(Error::new_spanned(
+                    variant,
+                    "a discriminant must be defined",
+                ))
+            }
         };
-
-        all_flags.push(quote!(Self::#var_name));
-        all_flags_names.push(quote!(stringify!(#var_name)));
-
-        flags.push(quote! {
-            #(#var_attrs)*
-            #vis const #var_name: Self = Self(#expr);
-        });
 
         raw_flags.push(quote! {
             #(#var_attrs)*
@@ -107,13 +106,38 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         });
     }
 
+    for variant in item.variants.iter() {
+        let var_attrs = &variant.attrs;
+        let var_name = &variant.ident;
+
+        let expr = match variant.discriminant.as_ref() {
+            Some((_, expr)) => expr,
+            None => {
+                return Err(Error::new_spanned(
+                    variant,
+                    "a discriminant must be defined",
+                ))
+            }
+        };
+
+        all_flags.push(quote!(Self::#var_name));
+        all_flags_names.push(quote!(stringify!(#var_name)));
+
+        flags.push(quote! {
+            #(#var_attrs)*
+            #vis const #var_name: Self = {
+                #(#raw_flags)*
+
+                Self(#expr)
+            };
+        });
+    }
+
     let generated = quote! {
         #[repr(transparent)]
         #[derive(Clone, Copy)]
         #(#attrs)*
         #vis struct #ty_name(#ty);
-
-        #(#raw_flags)*
 
         #[allow(non_upper_case_globals)]
         impl #ty_name {
