@@ -1,15 +1,17 @@
 use proc_macro::{Span, TokenStream};
 use quote::quote;
-use syn::{Error, Ident, ItemEnum, Result};
+use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, Token};
 
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
 ///
-/// # Generated trait implementatations
+/// # Generated trait implementations
 /// This macro generates some trait implementations: [`fmt::Debug`], [`ops:Not`], [`ops:BitAnd`],
 /// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
 /// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Clone`],
 /// [`Copy`]
+///
+/// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated.
 ///
 /// # Example
 ///
@@ -31,10 +33,30 @@ use syn::{Error, Ident, ItemEnum, Result};
 /// }
 /// ```
 ///
+/// Without generating [`fmt::Debug`]:
+///
+/// ```
+/// use bitflag_attr::bitflag;
+///
+/// #[bitflag(u32, no_auto_debug)]
+/// #[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// pub enum Flags {
+///     /// The value `A`, at bit position `0`.
+///     A = 0b00000001,
+///     /// The value `B`, at bit position `1`.
+///     B = 0b00000010,
+///     /// The value `C`, at bit position `2`.
+///     C = 0b00000100,
+///
+///     /// The combination of `A`, `B`, and `C`.
+///     ABC = A | B | C,
+/// }
+/// ```
+///
 /// # Syntax
 ///
 /// ```text
-/// #[bitflag($ty)]
+/// #[bitflag($ty[, no_auto_debug])]
 /// $visibility enum $StructName {
 ///     FlagOne = flag1_value_expr,
 ///     FlagTwo = flag2_value_expr,
@@ -65,7 +87,9 @@ pub fn bitflag(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
-    let ty = parse_ty(attr)?;
+    let args: Args = syn::parse(attr)?;
+    let ty = args.ty;
+    // let ty = parse_ty(attr)?;
 
     let item: ItemEnum = syn::parse(item)?;
 
@@ -79,7 +103,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let mut all_flags = Vec::with_capacity(number_flags);
     let mut all_flags_names = Vec::with_capacity(number_flags);
 
-    // The raw flags as private itens to allow defyning flags referencing other flag definitions
+    // The raw flags as private itens to allow defining flags referencing other flag definitions
     let mut raw_flags = Vec::with_capacity(number_flags);
 
     let mut flags = Vec::with_capacity(number_flags); // Associated constants
@@ -132,6 +156,71 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             };
         });
     }
+
+    let debug_impl = if args.no_auto_debug {
+        quote! {}
+    } else {
+        quote! {
+            #[automatically_derived]
+            impl core::fmt::Debug for #ty_name {
+                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                    // #[derive(Debug, Clone, Copy)]
+                    // #[allow(clippy::upper_case_acronyms)]
+                    // enum AuxEnum {
+                    //     #(#all_flags_names, )*
+                    // }
+
+                    #[derive(Clone, Copy)]
+                    struct AuxItem(&'static str);
+
+                    impl core::fmt::Debug for AuxItem {
+                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                            f.pad(self.0)
+                        }
+                    }
+
+                    // struct Set([Option<AuxEnum>; #num_flags]);
+                    struct Set([Option<AuxItem>; #num_flags]);
+
+                    impl Set {
+                        fn insert(&mut self, val: AuxItem) {
+                            for i in self.0.iter_mut() {
+                                if i.is_none() {
+                                    *i = Some(val);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    impl core::fmt::Debug for Set {
+                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                            let mut dbg = f.debug_set();
+
+                            for i in self.0.iter().flatten() {
+                                dbg.entry(i);
+                            }
+
+                            dbg.finish()
+                        }
+                    }
+
+                    let name = stringify!(#ty_name);
+
+                    let mut set = Set([None; #num_flags]);
+
+                    #(if self.contains(#all_flags) {
+                        set.insert(AuxItem(#all_flags_names));
+                    })*
+
+                    f.debug_tuple(name)
+                        .field(&format_args!("0b{:b}", self.0))
+                        .field(&set)
+                        .finish()
+                }
+            }
+        }
+    };
 
     let generated = quote! {
         #[repr(transparent)]
@@ -455,64 +544,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
         }
 
-        #[automatically_derived]
-        impl core::fmt::Debug for #ty_name {
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                // #[derive(Debug, Clone, Copy)]
-                // #[allow(clippy::upper_case_acronyms)]
-                // enum AuxEnum {
-                //     #(#all_flags_names, )*
-                // }
-
-                #[derive(Clone, Copy)]
-                struct AuxItem(&'static str);
-
-                impl core::fmt::Debug for AuxItem {
-                    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                        f.pad(self.0)
-                    }
-                }
-
-                // struct Set([Option<AuxEnum>; #num_flags]);
-                struct Set([Option<AuxItem>; #num_flags]);
-
-                impl Set {
-                    fn insert(&mut self, val: AuxItem) {
-                        for i in self.0.iter_mut() {
-                            if i.is_none() {
-                                *i = Some(val);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                impl core::fmt::Debug for Set {
-                    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                        let mut dbg = f.debug_set();
-
-                        for i in self.0.iter().flatten() {
-                            dbg.entry(i);
-                        }
-
-                        dbg.finish()
-                    }
-                }
-
-                let name = stringify!(#ty_name);
-
-                let mut set = Set([None; #num_flags]);
-
-                #(if self.contains(#all_flags) {
-                    set.insert(AuxItem(#all_flags_names));
-                })*
-
-                f.debug_tuple(name)
-                    .field(&format_args!("0b{:b}", self.0))
-                    .field(&set)
-                    .finish()
-            }
-        }
+        #debug_impl
     };
 
     Ok(generated.into())
@@ -542,18 +574,61 @@ static VALID_TYPES: [&str; 21] = [
     "c_longlong",
 ];
 
-fn parse_ty(attr: TokenStream) -> syn::Result<Ident> {
-    if attr.is_empty() {
-        Ok(Ident::new("u32", Span::call_site().into()))
-    } else {
-        let ident: Ident = syn::parse::<Ident>(attr)?;
-        if VALID_TYPES.contains(&ident.to_string().as_str()) {
-            Ok(ident)
-        } else {
-            Err(Error::new_spanned(ident, "type must be a integer"))
+struct Args {
+    ty: Ident,
+    no_auto_debug: bool,
+}
+
+impl Parse for Args {
+    fn parse(input: syn::parse::ParseStream) -> Result<Self> {
+        let content: Punctuated<_, _> = input.parse_terminated(Ident::parse, Token![,])?;
+
+        if content.empty_or_trailing() {
+            return Ok(Args {
+                ty: Ident::new("u32", Span::call_site().into()),
+                no_auto_debug: false,
+            });
         }
+
+        if content.len() > 2 {
+            return Err(Error::new_spanned(
+                content.last().unwrap(),
+                "more arguments than expected. Expected a max of one integer type and one `no_auto_debug` flag",
+            ));
+        }
+
+        let mut no_auto_debug = false;
+        let mut ty = Ident::new("u32", Span::call_site().into());
+
+        for i in content {
+            if i == "no_auto_debug" {
+                no_auto_debug = true;
+                continue;
+            }
+            if VALID_TYPES.contains(&i.to_string().as_str()) {
+                ty = i;
+                continue;
+            } else {
+                return Err(Error::new_spanned(i, "type must be a integer"));
+            }
+        }
+
+        Ok(Args { ty, no_auto_debug })
     }
 }
 
-#[cfg(doc)]
-mod example_generated;
+// fn parse_ty(attr: TokenStream) -> syn::Result<Ident> {
+//     if attr.is_empty() {
+//         Ok(Ident::new("u32", Span::call_site().into()))
+//     } else {
+//         let ident: Ident = syn::parse::<Ident>(attr)?;
+//         if VALID_TYPES.contains(&ident.to_string().as_str()) {
+//             Ok(ident)
+//         } else {
+//             Err(Error::new_spanned(ident, "type must be a integer"))
+//         }
+//     }
+// }
+
+// #[cfg(doc)]
+// mod example_generated;

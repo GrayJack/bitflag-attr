@@ -8,4 +8,12 @@ pub enum SmokeTest {
     Flag3 = Flag1 | Flag2,
 }
 
+#[bitflag(u8, no_auto_debug)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum SmokeTest2 {
+    Flag1 = 1 << 0,
+    Flag2 = 1 << 1,
+    Flag3 = Flag1 | Flag2,
+}
+
 fn main() {}
