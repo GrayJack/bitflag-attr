@@ -12,7 +12,7 @@ use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, 
 /// [`Copy`]
 ///
 /// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated. Use this
-/// flag when you want to implement [`fmt::Debug`] manually.
+/// flag when you want to implement [`fmt::Debug`] manually or use the standard derive.
 ///
 /// # Example
 ///
