@@ -11,7 +11,8 @@ use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, 
 /// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Clone`],
 /// [`Copy`]
 ///
-/// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated.
+/// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated. Use this
+/// flag when you want to implement [`fmt::Debug`] manually.
 ///
 /// # Example
 ///
@@ -597,16 +598,33 @@ impl Parse for Args {
             ));
         }
 
+        let mut no_debug_set = false;
+        let mut ty_set = false;
+
         let mut no_auto_debug = false;
         let mut ty = Ident::new("u32", Span::call_site().into());
 
         for i in content {
             if i == "no_auto_debug" {
+                if no_debug_set {
+                    return Err(Error::new_spanned(
+                        i,
+                        "there must be only one instance of `no_auto_debug` flag",
+                    ));
+                }
                 no_auto_debug = true;
+                no_debug_set = true;
                 continue;
             }
             if VALID_TYPES.contains(&i.to_string().as_str()) {
+                if ty_set {
+                    return Err(Error::new_spanned(
+                        i,
+                        "there must be only one instance of `{integer}` type specified",
+                    ));
+                }
                 ty = i;
+                ty_set = true;
                 continue;
             } else {
                 return Err(Error::new_spanned(i, "type must be a integer"));
