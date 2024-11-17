@@ -28,5 +28,14 @@ quote = { version = "1", default-features = false }
 name = "tests"
 path = "tests/progress.rs"
 
+[[example]]
+name = "iter"
+required-features = ["iter"]
+
 [dev-dependencies]
 trybuild = "1.0"
+
+[features]
+default = []
+# Generate iterators for the bitflag type
+iter = []
