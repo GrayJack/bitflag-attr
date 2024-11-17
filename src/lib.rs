@@ -240,197 +240,35 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
     };
 
-    let iter_impl = if cfg!(feature = "iter") {
-        let iter_name_ty = {
-            let span = ty_name.span();
-            let mut ty_name = ty_name.to_string();
-            ty_name.push_str("IterNames");
-            Ident::new(&ty_name, span)
-        };
-        let iter_ty = {
-            let span = ty_name.span();
-            let mut ty_name = ty_name.to_string();
-            ty_name.push_str("Iter");
-            Ident::new(&ty_name, span)
-        };
+    let serde_impl = if cfg!(feature = "serde") {
         quote! {
-            impl #ty_name {
-                const FLAGS: &[(&str, #ty_name)] = &[#((::core::stringify!(#all_flags_names) , #all_flags) ,)*];
-
-                /// Yield a set of contained flags values.
-                ///
-                /// Each yielded flags value will correspond to a defined named flag. Any unknown bits
-                /// will be yielded together as a final flags value.
-                #[inline]
-                pub const fn iter(&self) -> #iter_ty {
-                    #iter_ty::new(self)
-                }
-
-                /// Yield a set of contained named flags values.
-                ///
-                /// This method is like [`iter`](#method.iter), except only yields bits in contained named flags.
-                /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
-                #[inline]
-                pub const fn iter_names(&self) -> #iter_name_ty {
-                    #iter_name_ty::new(self)
-                }
-            }
-
             #[automatically_derived]
-            impl ::core::iter::Extend<#ty_name> for #ty_name {
-                /// Set all flags of `iter` to self
-                fn extend<T: ::core::iter::IntoIterator<Item = Self>>(&mut self, iter: T) {
-                    for item in iter {
-                        self.set(item);
-                    }
-                }
-            }
+            impl ::serde::Serialize for #ty_name {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: ::serde::Serializer;
+                {
+                    struct AsDisplay<'a>(&'a #ty_name);
 
-            #[automatically_derived]
-            impl ::core::iter::FromIterator<#ty_name> for #ty_name {
-                /// Create a `#ty_name` from a iterator of flags.
-                fn from_iter<T: ::core::iter::IntoIterator<Item = Self>>(iter: T) -> Self {
-                    use ::core::iter::Extend;
-
-                    let mut res = Self::empty();
-                    res.extend(iter);
-                    res
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::IntoIterator for #ty_name {
-                type Item = Self;
-                type IntoIter = #iter_ty;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    self.iter()
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::IntoIterator for &#ty_name {
-                type Item = #ty_name;
-                type IntoIter = #iter_ty;
-
-                fn into_iter(self) -> Self::IntoIter {
-                    self.iter()
-                }
-            }
-
-            /// An iterator over flags values.
-            ///
-            /// This iterator only yields flags values for contained, defined, named flags. Any remaining bits
-            /// won't be yielded, but can be found with the [`#iter_name_ty::remaining`] method.
-            #vis struct #iter_name_ty {
-                flags: &'static [(&'static str, #ty_name)],
-                index: usize,
-                source: #ty_name,
-                remaining: #ty_name,
-            }
-
-            impl #iter_name_ty {
-                pub(crate) const fn new(flags: &#ty_name) -> Self {
-                    Self {
-                        flags: #ty_name::FLAGS,
-                        index: 0,
-                        remaining: *flags,
-                        source: *flags,
-                    }
-                }
-
-                /// Get a flags value of any remaining bits that haven't been yielded yet.
-                ///
-                /// Once the iterator has finished, this method can be used to
-                /// check whether or not there are any bits that didn't correspond
-                /// to a contained, defined, named flag remaining.
-                pub const fn remaining(&self) -> #ty_name {
-                    self.remaining
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::Iterator for #iter_name_ty {
-                type Item = (&'static str, #ty_name);
-
-                fn next(&mut self) -> ::core::option::Option<Self::Item> {
-                    while let Some((name, flag)) = self.flags.get(self.index) {
-                        // Short-circuit if our state is empty
-                        if self.remaining.is_empty() {
-                            return None;
-                        }
-
-                        self.index += 1;
-
-                        // If the flag is set in the original source _and_ it has bits that haven't
-                        // been covered by a previous flag yet then yield it. These conditions cover
-                        // two cases for multi-bit flags:
-                        //
-                        // 1. When flags partially overlap, such as `0b00000001` and `0b00000101`, we'll
-                        // yield both flags.
-                        // 2. When flags fully overlap, such as in convenience flags that are a shorthand for others,
-                        // we won't yield both flags.
-                        if self.source.contains(*flag) && self.remaining.intersects(*flag) {
-                            self.remaining.unset(*flag);
-
-                            return Some((name, *flag))
+                    impl<'a> ::core::fmt::Display for AsDisplay<'a> {
+                        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                            self.0.to_writer(f)
                         }
                     }
 
-                    None
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::FusedIterator for #iter_name_ty {}
-
-            /// An iterator over flags values.
-            ///
-            /// This iterator will yield flags values for contained, defined flags first, with any remaining bits yielded
-            /// as a final flags value.
-            #vis struct #iter_ty {
-                inner: #iter_name_ty,
-                done: bool,
-            }
-
-            impl #iter_ty {
-                pub(crate) const fn new(flags: &#ty_name) -> Self  {
-                    Self {
-                        inner: #iter_name_ty::new(flags),
-                        done: false,
+                    // Serialize human-readable flags as a string like `"A | B"`
+                    if serializer.is_human_readable() {
+                        serializer.collect_str(&AsDisplay(flags))
+                    }
+                    // Serialize non-human-readable flags directly as the underlying bits
+                    else {
+                        flags.bits().serialize(serializer)
                     }
                 }
             }
-
-            #[automatically_derived]
-            impl ::core::iter::Iterator for #iter_ty {
-                type Item = #ty_name;
-
-                fn next(&mut self) -> ::core::option::Option<Self::Item> {
-                    match self.inner.next() {
-                        Some((_, flag)) => Some(flag),
-                        None if !self.done => {
-                            self.done = true;
-
-                            // After iterating through valid names, if there are any bits left over
-                            // then return one final value that includes them. This makes `into_iter`
-                            // and `from_iter` roundtrip
-                            if !self.inner.remaining().is_empty() {
-                                Some(self.inner.remaining)
-                            } else {
-                                None
-                            }
-                        }
-                        None => None
-                    }
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::FusedIterator for #iter_ty {}
         }
     } else {
-        quote! {}
+        quote!()
     };
 
     let generated = quote! {
@@ -613,7 +451,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             #[inline]
             #[doc(alias = "insert")]
             pub fn set(&mut self, other: Self) {
-                self.0 = self.and(other).0
+                self.0 = self.or(other).0
             }
 
             /// Unset the flags in `other` in the value.
