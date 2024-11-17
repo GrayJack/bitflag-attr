@@ -239,13 +239,13 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
             /// Return the underlying bits of the bitflag
             #[inline]
-            #vis const fn bits(&self) -> #ty {
+            pub const fn bits(&self) -> #ty {
                 self.0
             }
 
             /// Converts from a `bits` value. Returning [`None`] is any unknown bits are set.
             #[inline]
-            #vis const fn from_bits(bits: #ty) -> Option<Self> {
+            pub const fn from_bits(bits: #ty) -> Option<Self> {
                 let truncated = Self::from_bits_truncate(bits).0;
 
                 if truncated == bits {
@@ -257,25 +257,25 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
             /// Convert from `bits` value, unsetting any unknown bits.
             #[inline]
-            #vis const fn from_bits_truncate(bits: #ty) -> Self {
+            pub const fn from_bits_truncate(bits: #ty) -> Self {
                 Self(bits & Self::all().0)
             }
 
             /// Convert from `bits` value exactly.
             #[inline]
-            #vis const fn from_bits_retain(bits: #ty) -> Self {
+            pub const fn from_bits_retain(bits: #ty) -> Self {
                 Self(bits)
             }
 
             /// Construct an empty bitflag.
             #[inline]
-            #vis const fn empty() -> Self {
+            pub const fn empty() -> Self {
                 Self(0)
             }
 
             /// Returns `true` if the flag is empty.
             #[inline]
-            #vis const fn is_empty(&self) -> bool {
+            pub const fn is_empty(&self) -> bool {
                 self.0 == 0
             }
 
@@ -284,7 +284,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// This will include bits that do not have any flags/meaning.
             /// Use [`all`](Self::all) if you want only the specified flags set.
             #[inline]
-            #vis const fn all_bits() -> Self {
+            pub const fn all_bits() -> Self {
                 Self(!0)
             }
 
@@ -293,7 +293,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// This will check for all bits.
             /// Use [`is_all`](Self::is_all) if you want to check for all specified flags.
             #[inline]
-            #vis const fn is_all_bits(&self) -> bool {
+            pub const fn is_all_bits(&self) -> bool {
                 self.0 == !0
             }
 
@@ -301,20 +301,20 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             ///
             /// This will only set the flags specified as associated constant.
             #[inline]
-            #vis const fn all() -> Self {
+            pub const fn all() -> Self {
                 Self(#(#all_flags.0 |)* 0)
             }
 
             /// Returns `true` if the bitflag contais all known flags.
             ///
             #[inline]
-            #vis const fn is_all(&self) -> bool {
+            pub const fn is_all(&self) -> bool {
                 self.0 == Self::all().0
             }
 
             /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
             #[inline]
-            #vis const fn truncate(&self) -> Self {
+            pub const fn truncate(&self) -> Self {
                 Self(self.0 & Self::all().0)
             }
 
@@ -322,7 +322,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             ///
             /// This is equivalent to `(self & other) != Self::empty()`
             #[inline]
-            #vis const fn intersects(&self, other: Self) -> bool {
+            pub const fn intersects(&self, other: Self) -> bool {
                 (self.0 & other.0) != Self::empty().0
             }
 
@@ -330,7 +330,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             ///
             /// This is equivalent to `(self & other) == other`
             #[inline]
-            #vis const fn contains(&self, other: Self) -> bool {
+            pub const fn contains(&self, other: Self) -> bool {
                 (self.0 & other.0) == other.0
             }
 
@@ -340,42 +340,42 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// Use [`complement`](Self::complement) if you want that the result to be truncated in one call.
             #[inline]
             #[doc(alias = "complement")]
-            #vis const fn not(self) -> Self {
+            pub const fn not(self) -> Self {
                 Self(!self.0)
             }
 
             /// Returns the bitwise AND of the flag.
             #[inline]
             #[doc(alias = "intersection")]
-            #vis const fn and(self, other: Self) -> Self {
+            pub const fn and(self, other: Self) -> Self {
                 Self(self.0 & other.0)
             }
 
             /// Returns the bitwise OR of the flag with `other`.
             #[inline]
             #[doc(alias = "union")]
-            #vis const fn or(self, other: Self) -> Self {
+            pub const fn or(self, other: Self) -> Self {
                 Self(self.0 | other.0)
             }
 
             /// Returns the bitwise XOR of the flag with `other`.
             #[inline]
             #[doc(alias = "symmetric_difference")]
-            #vis const fn xor(self, other: Self) -> Self {
+            pub const fn xor(self, other: Self) -> Self {
                 Self(self.0 ^ other.0)
             }
 
             /// Returns the intersection from this value with `other`.
             #[inline]
             #[doc(alias = "and")]
-            #vis const fn intersection(self, other: Self) -> Self {
+            pub const fn intersection(self, other: Self) -> Self {
                 self.and(other)
             }
 
             /// Returns the union from this value with `other`
             #[inline]
             #[doc(alias = "or")]
-            #vis const fn union(self, other: Self) -> Self {
+            pub const fn union(self, other: Self) -> Self {
                 self.or(other)
             }
 
@@ -383,14 +383,14 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             ///
             /// In other words, returns the intersection of this value with the negation of `other`.
             #[inline]
-            #vis const fn difference(self, other: Self) -> Self {
+            pub const fn difference(self, other: Self) -> Self {
                 self.and(other.not())
             }
 
             /// Returns the symmetric difference from this value with `other`.
             #[inline]
             #[doc(alias = "xor")]
-            #vis const fn symmetric_difference(self, other: Self) -> Self {
+            pub const fn symmetric_difference(self, other: Self) -> Self {
                 self.xor(other)
             }
 
@@ -399,27 +399,27 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// This is very similar to the [`not`](Self::not), but truncates non used bits
             #[inline]
             #[doc(alias = "not")]
-            #vis const fn complement(self) -> Self {
+            pub const fn complement(self) -> Self {
                 self.not().truncate()
             }
 
             /// Set the flags in `other` in the value.
             #[inline]
             #[doc(alias = "insert")]
-            #vis fn set(&mut self, other: Self) {
+            pub fn set(&mut self, other: Self) {
                 self.0 = self.and(other).0
             }
 
             /// Unset the flags in `other` in the value.
             #[inline]
             #[doc(alias = "remove")]
-            #vis fn unset(&mut self, other: Self) {
+            pub fn unset(&mut self, other: Self) {
                 self.0 = self.difference(other).0
             }
 
             /// Toggle the flags in `other` in the value.
             #[inline]
-            #vis fn toggle(&mut self, other: Self) {
+            pub fn toggle(&mut self, other: Self) {
                 self.0 = self.xor(other).0
             }
         }
