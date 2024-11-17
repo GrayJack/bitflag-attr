@@ -788,7 +788,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// Helper for formatting. Write a flags value as text.
             ///
             /// Any bits that aren't part of a contained flag will be formatted as a hex number.
-            pub(crate) fn to_writer<W>(&self, mut writer: W) -> ::core::fmt::Result<()>
+            pub(crate) fn to_writer<W>(&self, mut writer: W) -> ::core::fmt::Result
             where
                 W: ::core::fmt::Write,
             {
@@ -826,7 +826,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
 
             /// Helper for formatting. Write only the contained, defined, named flags in a flags value as text.
-            pub(crate) fn to_writer_strict<W>(&self, mut writer: W) -> ::core::fmt::Result<()>
+            pub(crate) fn to_writer_strict<W>(&self, mut writer: W) -> ::core::fmt::Result
             where
                 W: ::core::fmt::Write
             {
@@ -834,7 +834,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 // any bits not corresponding to a named flag
 
                 let mut first = true;
-                let mut iter = flags.iter_names();
+                let mut iter = self.iter_names();
                 for (name, _) in &mut iter {
                     if !first {
                         writer.write_str(" | ")?;
