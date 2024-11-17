@@ -29,7 +29,7 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] core::ops::BitXorAssign
 - [X] core::ops::Sub
 - [X] core::ops::SubAssign
-- [X] core::fmt::Debug
+- [X] core::fmt::Debug (This can be opt-out with the `no_auto_debug`)
 - [X] core::fmt::Binary
 - [X] core::fmt::UpperHex
 - [X] core::fmt::LowerHex
@@ -38,17 +38,17 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] Clone
 - [X] Copy
 
-Besides the `Debug`, `Clone` and `Copy` traits, all other derivable traits can be used together with the type
+Besides the `Debug`, `Clone` and `Copy` traits, all other derivable traits can be used together with the type.
 
 ## Example
 
-Generate a flags structure
+Generate a flags structure:
 
 ```rust
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
-#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
 enum Flags {
     /// The value `A`, at bit position `0`.
     A = 0b00000001,
@@ -70,6 +70,27 @@ fn main() {
     assert_eq!(!e2, Flags::A);           // set complement
 }
 ```
+
+If you don't want `Debug` trait to be generated, you can pass `no_auto_debug` to the attribute.
+
+```rust
+use bitflag_attr::bitflag;
+
+#[bitflag(u32, no_auto_debug)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+enum Flags {
+    /// The value `A`, at bit position `0`.
+    A = 0b00000001,
+    /// The value `B`, at bit position `1`.
+    B = 0b00000010,
+    /// The value `C`, at bit position `2`.
+    C = 0b00000100,
+
+    /// The combination of `A`, `B`, and `C`.
+    ABC = A | B | C,
+}
+```
+
 
 ## Rust Version Support
 
