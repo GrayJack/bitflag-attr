@@ -551,7 +551,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     Ok(generated.into())
 }
 
-static VALID_TYPES: [&str; 21] = [
+static VALID_TYPES: [&str; 23] = [
     "i8",
     "u8",
     "i16",
@@ -560,6 +560,8 @@ static VALID_TYPES: [&str; 21] = [
     "u32",
     "i64",
     "u64",
+    "i128",
+    "u128",
     "isize",
     "usize",
     "c_char",
