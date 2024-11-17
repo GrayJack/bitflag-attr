@@ -277,7 +277,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 self.0 == 0
             }
 
-            /// Returns a bitflag that constains all value.
+            /// Returns a bitflag that contains all value.
             ///
             /// This will include bits that do not have any flags/meaning.
             /// Use [`all`](Self::all) if you want only the specified flags set.
@@ -286,7 +286,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 Self(!0)
             }
 
-            /// Returns `true` if the bitflag constains all value bits set.
+            /// Returns `true` if the bitflag contains all value bits set.
             ///
             /// This will check for all bits.
             /// Use [`is_all`](Self::is_all) if you want to check for all specified flags.
@@ -295,7 +295,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 self.0 == !0
             }
 
-            /// Construct a bitflag with all flags set.
+            /// Construct a bitflag with all known flags set.
             ///
             /// This will only set the flags specified as associated constant.
             #[inline]
@@ -303,7 +303,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 Self(#(#all_flags.0 |)* 0)
             }
 
-            /// Returns `true` if the bitflag contais all flags.
+            /// Returns `true` if the bitflag contais all known flags.
             ///
             #[inline]
             #vis const fn is_all(&self) -> bool {
@@ -333,6 +333,9 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
 
             /// Returns the bitwise NOT of the flag.
+            ///
+            /// This function does not truncate unused bits (bits that do not have any flags/meaning).
+            /// Use [`complement`](Self::complement) if you want that the result to be truncated in one call.
             #[inline]
             #[doc(alias = "complement")]
             #vis const fn not(self) -> Self {
@@ -375,6 +378,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
 
             /// Returns the difference from this value with `other`.
+            ///
+            /// In other words, returns the intersection of this value with the negation of `other`.
             #[inline]
             #vis const fn difference(self, other: Self) -> Self {
                 self.and(other.not())
