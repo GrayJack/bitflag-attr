@@ -784,6 +784,68 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             pub const fn iter_names(&self) -> #iter_name_ty {
                 #iter_name_ty::new(self)
             }
+
+            /// Helper for formatting. Write a flags value as text.
+            ///
+            /// Any bits that aren't part of a contained flag will be formatted as a hex number.
+            pub(crate) fn to_writer<W>(&self, mut writer: W) -> ::core::fmt::Result<()>
+            where
+                W: ::core::fmt::Write,
+            {
+                // A formatter for bitflags that produces text output like:
+                //
+                // A | B | 0xf6
+                //
+                // The names of set flags are written in a bar-separated-format,
+                // followed by a hex number of any remaining bits that are set
+                // but don't correspond to any flags.
+
+                // Iterate over known flag values
+                let mut first = true;
+                let mut iter = self.iter_names();
+                for (name, _) in &mut iter {
+                    if !first {
+                        writer.write_str(" | ")?;
+                    }
+
+                    first = false;
+                    writer.write_str(name)?;
+                }
+
+                // Append any extra bits that correspond to flags to the end of the format
+                let remaining = iter.remaining();
+                if !remaining.is_empty() {
+                    if !first {
+                        writer.write_str(" | ")?;
+                    }
+
+                    ::core::write!(writer, "{:#X}", remaining.bits())?;
+                }
+
+                ::core::fmt::Result::Ok(())
+            }
+
+            /// Helper for formatting. Write only the contained, defined, named flags in a flags value as text.
+            pub(crate) fn to_writer_strict<W>(&self, mut writer: W) -> ::core::fmt::Result<()>
+            where
+                W: ::core::fmt::Write
+            {
+                // This is a simplified version of `to_writer` that ignores
+                // any bits not corresponding to a named flag
+
+                let mut first = true;
+                let mut iter = flags.iter_names();
+                for (name, _) in &mut iter {
+                    if !first {
+                        writer.write_str(" | ")?;
+                    }
+
+                    first = false;
+                    writer.write_str(name)?;
+                }
+
+                ::core::fmt::Result::Ok(())
+            }
         }
 
         #[automatically_derived]
