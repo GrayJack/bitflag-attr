@@ -211,8 +211,10 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     let name = stringify!(#ty_name);
 
                     let mut set = Set([None; #num_flags]);
+                    let mut remaining = *self;
 
-                    #(if self.contains(#all_flags) {
+                    #(if self.contains(#all_flags) && remaining.intersects(#all_flags) {
+                        remaining.unset(#all_flags);
                         set.insert(AuxItem(#all_flags_names));
                     })*
 
