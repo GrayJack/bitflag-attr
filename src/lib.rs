@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use proc_macro::{Span, TokenStream};
 use quote::quote;
 use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, Token};
