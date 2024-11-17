@@ -403,12 +403,14 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
             /// Set the flags in `other` in the value.
             #[inline]
+            #[doc(alias = "insert")]
             #vis fn set(&mut self, other: Self) {
                 self.0 = self.and(other).0
             }
 
             /// Unset the flags in `other` in the value.
             #[inline]
+            #[doc(alias = "remove")]
             #vis fn unset(&mut self, other: Self) {
                 self.0 = self.difference(other).0
             }
