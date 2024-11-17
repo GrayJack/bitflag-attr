@@ -163,8 +163,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     } else {
         quote! {
             #[automatically_derived]
-            impl core::fmt::Debug for #ty_name {
-                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            impl ::core::fmt::Debug for #ty_name {
+                fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                     // #[derive(Debug, Clone, Copy)]
                     // #[allow(clippy::upper_case_acronyms)]
                     // enum AuxEnum {
@@ -174,8 +174,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     #[derive(Clone, Copy)]
                     struct AuxItem(&'static str);
 
-                    impl core::fmt::Debug for AuxItem {
-                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                    impl ::core::fmt::Debug for AuxItem {
+                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                             f.pad(self.0)
                         }
                     }
@@ -194,8 +194,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                         }
                     }
 
-                    impl core::fmt::Debug for Set {
-                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                    impl ::core::fmt::Debug for Set {
+                        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                             let mut dbg = f.debug_set();
 
                             for i in self.0.iter().flatten() {
@@ -414,7 +414,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::Not for #ty_name {
+        impl ::core::ops::Not for #ty_name {
             type Output = Self;
 
             #[inline]
@@ -424,7 +424,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::BitAnd for #ty_name {
+        impl ::core::ops::BitAnd for #ty_name {
             type Output = Self;
 
             #[inline]
@@ -434,7 +434,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::BitOr for #ty_name {
+        impl ::core::ops::BitOr for #ty_name {
             type Output = Self;
 
             #[inline]
@@ -444,7 +444,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::BitXor for #ty_name {
+        impl ::core::ops::BitXor for #ty_name {
             type Output = Self;
 
             #[inline]
@@ -454,31 +454,31 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::BitAndAssign for #ty_name {
+        impl ::core::ops::BitAndAssign for #ty_name {
             #[inline]
             fn bitand_assign(&mut self, rhs: Self) {
-                core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
+                ::core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
             }
         }
 
         #[automatically_derived]
-        impl core::ops::BitOrAssign for #ty_name {
+        impl ::core::ops::BitOrAssign for #ty_name {
             #[inline]
             fn bitor_assign(&mut self, rhs: Self) {
-                core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
+                ::core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
             }
         }
 
         #[automatically_derived]
-        impl core::ops::BitXorAssign for #ty_name {
+        impl ::core::ops::BitXorAssign for #ty_name {
             #[inline]
             fn bitxor_assign(&mut self, rhs: Self) {
-                core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
+                ::core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
             }
         }
 
         #[automatically_derived]
-        impl core::ops::Sub for #ty_name {
+        impl ::core::ops::Sub for #ty_name {
             type Output = Self;
 
             /// The intersection of a source flag with the complement of a target flags value
@@ -489,7 +489,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::ops::SubAssign for #ty_name {
+        impl ::core::ops::SubAssign for #ty_name {
             /// The intersection of a source flag with the complement of a target flags value
             #[inline]
             fn sub_assign(&mut self, rhs: Self) {
@@ -498,7 +498,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl From<#ty> for #ty_name {
+        impl ::core::convert::From<#ty> for #ty_name {
             #[inline]
             fn from(val: #ty) -> Self {
                 Self::from_bits_truncate(val)
@@ -506,7 +506,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl From<#ty_name> for #ty {
+        impl ::core::convert::From<#ty_name> for #ty {
             #[inline]
             fn from(val: #ty_name) -> Self {
                 val.0
@@ -514,34 +514,34 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
 
         #[automatically_derived]
-        impl core::fmt::Binary for #ty_name {
+        impl ::core::fmt::Binary for #ty_name {
             #[inline]
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                core::fmt::Binary::fmt(&self.0, f)
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::Binary::fmt(&self.0, f)
             }
         }
 
         #[automatically_derived]
-        impl core::fmt::LowerHex for #ty_name {
+        impl ::core::fmt::LowerHex for #ty_name {
             #[inline]
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                core::fmt::LowerHex::fmt(&self.0, f)
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::LowerHex::fmt(&self.0, f)
             }
         }
 
         #[automatically_derived]
-        impl core::fmt::UpperHex for #ty_name {
+        impl ::core::fmt::UpperHex for #ty_name {
             #[inline]
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                core::fmt::UpperHex::fmt(&self.0, f)
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::UpperHex::fmt(&self.0, f)
             }
         }
 
         #[automatically_derived]
-        impl core::fmt::Octal for #ty_name {
+        impl ::core::fmt::Octal for #ty_name {
             #[inline]
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                core::fmt::Octal::fmt(&self.0, f)
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::Octal::fmt(&self.0, f)
             }
         }
 
@@ -572,7 +572,7 @@ static VALID_TYPES: [&str; 21] = [
     "c_long",
     "c_ulong",
     "c_longlong",
-    "c_longlong",
+    "c_ulonglong",
 ];
 
 struct Args {
@@ -635,18 +635,5 @@ impl Parse for Args {
     }
 }
 
-// fn parse_ty(attr: TokenStream) -> syn::Result<Ident> {
-//     if attr.is_empty() {
-//         Ok(Ident::new("u32", Span::call_site().into()))
-//     } else {
-//         let ident: Ident = syn::parse::<Ident>(attr)?;
-//         if VALID_TYPES.contains(&ident.to_string().as_str()) {
-//             Ok(ident)
-//         } else {
-//             Err(Error::new_spanned(ident, "type must be a integer"))
-//         }
-//     }
-// }
-
-// #[cfg(doc)]
-// mod example_generated;
+#[cfg(doc)]
+mod example_generated;
