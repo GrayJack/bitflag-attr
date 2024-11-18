@@ -28,9 +28,16 @@ quote = { version = "1", default-features = false }
 name = "tests"
 path = "tests/progress.rs"
 
+[[example]]
+name = "serde"
+required-features = ["serde"]
+
 [dev-dependencies]
 trybuild = "1.0"
+serde = "1.0"
 
 [features]
 default = []
-
+# Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
+# This do not add `serde` in your dependency tree
+serde = []

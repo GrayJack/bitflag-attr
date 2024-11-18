@@ -7,6 +7,7 @@ name = "bitflag-attr"
 version = "0.5.0"
 dependencies = [
  "quote",
+ "serde",
  "syn",
  "trybuild",
 ]
