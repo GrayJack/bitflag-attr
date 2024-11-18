@@ -10,7 +10,11 @@ pub enum SimpleFlag {
 }
 
 fn main() {
-    let flag = SimpleFlag::Flag1 | SimpleFlag::Flag2 | SimpleFlag::Flag3;
+    let mut flag = SimpleFlag::Flag1 | SimpleFlag::Flag2 | SimpleFlag::Flag3;
+
+    flag.set(SimpleFlag::from_bits_retain(1 << 5));
+
+    println!("{:#?}", flag);
 
     for i in flag.iter_names() {
         println!("{i:?}");
