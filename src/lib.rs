@@ -114,7 +114,6 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     };
 
     let number_flags = item.variants.len();
-    let num_flags = syn::LitInt::new(number_flags.to_string().as_str(), ty_name.span());
 
     let mut all_flags = Vec::with_capacity(number_flags);
     let mut all_flags_names = Vec::with_capacity(number_flags);
@@ -162,7 +161,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         };
 
         all_flags.push(quote!(Self::#var_name));
-        all_flags_names.push(quote!(stringify!(#var_name)));
+        // all_flags_names.push(quote!(stringify!(#var_name)));
+        all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
         all_variants.push(quote!(#var_name));
 
         flags.push(quote! {
@@ -202,12 +202,18 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     };
 
     let serde_impl = if cfg!(feature = "serde") {
+        let parser_error_ty = {
+            let span = ty_name.span();
+            let mut ty = ty_name.to_string();
+            ty.push_str("ParserError");
+            Ident::new(&ty, span)
+        };
         quote! {
             #[automatically_derived]
             impl ::serde::Serialize for #ty_name {
-                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                 where
-                    S: ::serde::Serializer;
+                    S: ::serde::Serializer
                 {
                     struct AsDisplay<'a>(&'a #ty_name);
 
@@ -219,12 +225,158 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
                     // Serialize human-readable flags as a string like `"A | B"`
                     if serializer.is_human_readable() {
-                        serializer.collect_str(&AsDisplay(flags))
+                        serializer.collect_str(&AsDisplay(self))
                     }
                     // Serialize non-human-readable flags directly as the underlying bits
                     else {
-                        flags.bits().serialize(serializer)
+                        self.bits().serialize(serializer)
                     }
+                }
+            }
+
+            #[automatically_derived]
+            impl<'de> ::serde::Deserialize<'de> for #ty_name {
+                fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                where
+                    D: ::serde::Deserializer<'de>
+                {
+                    if deserializer.is_human_readable() {
+                        struct HelperVisitor(::core::marker::PhantomData<#ty_name>);
+
+                        impl<'de> ::serde::de::Visitor<'de> for HelperVisitor {
+                            type Value = #ty_name;
+
+                            fn expecting(&self,  f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                                f.write_str("a string value of `|` separated flags")
+                            }
+
+                            fn visit_str<E>(self, flags: &str) -> ::core::result::Result<Self::Value, E>
+                            where
+                                E: ::serde::de::Error,
+                            {
+                                Self::Value::from_text(flags).map_err(|e| E::custom(e))
+                            }
+                        }
+
+                        deserializer.deserialize_str(HelperVisitor(::core::marker::PhantomData))
+                    } else {
+                        let bits = #ty::deserialize(deserializer)?;
+
+                        Ok(#ty_name::from_bits_retain(bits))
+                    }
+                }
+            }
+
+            #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+            pub enum #parser_error_ty {
+                EmptyFlag,
+                InvalidNamedFlag,
+                InvalidHexFlag,
+            }
+
+            #[automatically_derived]
+            impl ::core::error::Error for #parser_error_ty {}
+
+            #[automatically_derived]
+            impl ::core::fmt::Display for #parser_error_ty {
+                fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                    match self {
+                        Self::EmptyFlag => write!(f, "encountered empty flag"),
+                        Self::InvalidNamedFlag => write!(f, "unrecognized named flag"),
+                        Self::InvalidHexFlag => write!(f, "invalid hex flag"),
+                    }
+                }
+            }
+
+            impl #ty_name {
+                /// Helper to parse flags from human readable format. Parse a flags value from text.
+                ///
+                /// This function will fail on any names that don't correspond to defined flags.
+                /// Unknown bits will be retained.
+                pub(crate) fn from_text(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
+                    let mut parsed_flags = Self::empty();
+
+                    // If the input is empty, then return an empty set of flags
+                    if input.trim().is_empty() {
+                        return Ok(parsed_flags);
+                    }
+
+                    for flag in input.split('|') {
+                        let flag = flag.trim();
+
+                        // If the flag is empty, then we've got a missing input
+                        if flag.is_empty() {
+                            return Err(#parser_error_ty::EmptyFlag);
+                        }
+
+                        // If the flag starts with `0x` ten it's a hex number
+                        // Parse it directly to the underlying bits
+                        let parsed_flag =  if let Some(flag) = flag.strip_prefix("0x") {
+                            let bits = #ty::from_str_radix(flag, 16).map_err(|_| #parser_error_ty::InvalidHexFlag)?;
+
+                            Self::from_bits_retain(bits)
+                        } else {
+                            // Otherwise, the flag is a name
+                            // The generated flags type will determine whether or not it is a valid
+                            // identifier
+                            Self::from_flag_name(flag).ok_or_else(|| #parser_error_ty::InvalidNamedFlag)?
+                        };
+
+                        parsed_flags.set(parsed_flag);
+                    }
+
+                    Ok(parsed_flags)
+                }
+
+                /// Helper to parse flags from human readable format. Parse a flags value from text.
+                ///
+                /// This function will fail on any names that don't correspond to defined flags.
+                /// Unknown bits will be ignored.
+                pub(crate) fn from_text_truncate(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
+                    Ok(Self::from_text(input)?.truncate())
+                }
+
+                /// Helper to parse flags from human readable format. Parse a flags value from text.
+                ///
+                /// This function will fail on any names that don't correspond to defined flags.
+                /// This function will fail to parse hex values.
+                pub(crate) fn from_text_strict(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
+                    let mut parsed_flags = Self::empty();
+
+                    // If the input is empty, then return an empty set of flags
+                    if input.trim().is_empty() {
+                        return Ok(parsed_flags);
+                    }
+
+                    for flag in input.split('|') {
+                        let flag =  flag.trim();
+
+                        // If the flag is empty, then we've got a missing input
+                        if flag.is_empty() {
+                            return Err(#parser_error_ty::EmptyFlag);
+                        }
+
+                        // If the flag starts with `0x` then it is a hex number
+                        // There aren't supported in the strict parser
+                        if flag.starts_with("0x") {
+                            return Err(#parser_error_ty::InvalidHexFlag);
+                        }
+
+                        let parsed_flag = Self::from_flag_name(flag).ok_or_else(|| #parser_error_ty::InvalidNamedFlag)?;
+
+                        parsed_flags.set(parsed_flag);
+                    }
+
+                    Ok(parsed_flags)
+                }
+            }
+
+            #[automatically_derived]
+            impl ::core::str::FromStr for #ty_name {
+                type Err = #parser_error_ty;
+
+                fn from_str(input: &str) -> ::core::result::Result<Self, Self::Err> {
+                    Self::from_text(input)
                 }
             }
         }
@@ -241,6 +393,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         #[allow(non_upper_case_globals)]
         impl #ty_name {
             #[doc(hidden)]
+            #[allow(clippy::unused_unit)]
             const __OG: () = {
                 {
                     // Original enum
@@ -282,6 +435,15 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             #[inline]
             pub const fn from_bits_retain(bits: #ty) -> Self {
                 Self(bits)
+            }
+
+            /// Convert from a flag `name`.
+            #[inline]
+            pub fn from_flag_name(name: &str) -> Option<Self> {
+                match name {
+                    #(#all_flags_names => Some(#all_flags),)*
+                    _ => None
+                }
             }
 
             /// Construct an empty bitflag.
@@ -596,7 +758,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 #iter_name_ty::new(self)
             }
 
-            /// Helper for formatting. Write a flags value as text.
+            /// Helper for formatting in human readable format. Write a flags value as text.
             ///
             /// Any bits that aren't part of a contained flag will be formatted as a hex number.
             pub(crate) fn to_writer<W>(&self, mut writer: W) -> ::core::fmt::Result
@@ -636,7 +798,17 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 ::core::fmt::Result::Ok(())
             }
 
-            /// Helper for formatting. Write only the contained, defined, named flags in a flags value as text.
+            /// Helper for formatting in human readable format. Write a flags value as text,
+            /// ignoring any unknown bits.
+            pub(crate) fn to_writer_truncate<W>(&self, mut writer: W) -> ::core::fmt::Result
+            where
+                W: ::core::fmt::Write
+            {
+                self.truncate().to_writer(writer)
+            }
+
+            /// Helper for formatting in human readable format. Write only the contained, defined,
+            /// named flags in a flags value as text.
             pub(crate) fn to_writer_strict<W>(&self, mut writer: W) -> ::core::fmt::Result
             where
                 W: ::core::fmt::Write
@@ -811,6 +983,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         #[automatically_derived]
         impl ::core::iter::FusedIterator for #iter_ty {}
+
+        #serde_impl
     };
 
     Ok(generated.into())
