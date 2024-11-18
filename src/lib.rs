@@ -118,6 +118,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
     let mut all_flags = Vec::with_capacity(number_flags);
     let mut all_flags_names = Vec::with_capacity(number_flags);
+    let mut all_variants = Vec::with_capacity(number_flags);
 
     // The raw flags as private itens to allow defining flags referencing other flag definitions
     let mut raw_flags = Vec::with_capacity(number_flags);
@@ -162,6 +163,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         all_flags.push(quote!(Self::#var_name));
         all_flags_names.push(quote!(stringify!(#var_name)));
+        all_variants.push(quote!(#var_name));
 
         flags.push(quote! {
             #(#var_attrs)*
@@ -238,6 +240,18 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         #[allow(non_upper_case_globals)]
         impl #ty_name {
+            #[doc(hidden)]
+            const __OG: () = {
+                {
+                    // Original enum
+                    // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant.
+                    enum Original {
+                        #(#all_variants, )*
+                    }
+                }
+                ()
+            };
+
             #(#flags)*
 
             /// Return the underlying bits of the bitflag
