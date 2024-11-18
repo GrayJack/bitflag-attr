@@ -749,7 +749,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         #debug_impl
 
         impl #ty_name {
-            const FLAGS: &[(&str, #ty_name)] = &[#((#all_flags_names , #all_flags) ,)*];
+            const FLAGS: &'static [(&'static str, #ty_name)] = &[#((#all_flags_names , #all_flags) ,)*];
 
             /// Yield a set of contained flags values.
             ///
@@ -811,7 +811,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
             /// Helper for formatting in human readable format. Write a flags value as text,
             /// ignoring any unknown bits.
-            pub(crate) fn to_writer_truncate<W>(&self, mut writer: W) -> ::core::fmt::Result
+            pub(crate) fn to_writer_truncate<W>(&self, writer: W) -> ::core::fmt::Result
             where
                 W: ::core::fmt::Write
             {

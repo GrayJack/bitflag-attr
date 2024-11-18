@@ -9,7 +9,7 @@ keywords = ["bit", "bitmask", "bitflags", "flags"]
 categories = ["no-std"]
 repository = "https://github.com/GrayJack/bitflag-attr"
 homepage = "https://github.com/GrayJack/bitflag-attr"
-rust-version = "1.70.0"
+rust-version = "1.75.0"
 exclude = ["/tests", "/.github"]
 
 [lib]
