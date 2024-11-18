@@ -11,10 +11,20 @@ use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, 
 /// This macro generates some trait implementations: [`fmt::Debug`], [`ops:Not`], [`ops:BitAnd`],
 /// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
 /// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Clone`],
-/// [`Copy`]
+/// [`Copy`], [`Extend`], [`FromIterator`], [`IntoIterator`]
 ///
 /// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated. Use this
 /// flag when you want to implement [`fmt::Debug`] manually or use the standard derive.
+///
+/// ## Serde feature
+///
+/// If the crate is compiled with the `serde` feature, this crate will generate implementations for
+/// the `serde::{Serialize, Deserialize}` traits, but it will not import/re-export these traits,
+/// your project must have `serde` as dependency.
+///
+/// Having this feature enabled will also generate a type to represent the parsing error and helper
+/// functions to do parsing the generated type from strings. And will generate the implementation
+/// for the [`FromStr`] trait.
 ///
 /// # Example
 ///
@@ -81,6 +91,7 @@ use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, 
 /// [`fmt::UpperHex`]: core::fmt::UpperHex
 /// [`fmt::Octal`]: core::fmt::Octal
 /// [`From`]: From
+/// [`FromStr`]: core::str::FromStr
 #[proc_macro_attribute]
 pub fn bitflag(attr: TokenStream, item: TokenStream) -> TokenStream {
     match bitflag_impl(attr, item) {

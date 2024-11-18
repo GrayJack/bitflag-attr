@@ -38,7 +38,21 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] Clone
 - [X] Copy
 
-Besides the `Debug`, `Clone` and `Copy` traits, all other derivable traits can be used together with the type.
+Besides the `Debug`, `Clone` and `Copy` traits, all other standard derivable traits can be used together with the type.
+
+The macro also generate iterator types to iterate over the set flags, and for convenience also implement the following traits:
+
+- [X] core::iter::Extend
+- [X] core::iter::FromIterator
+- [X] core::iter::Iterator (for the type and reference)
+
+There is a opt-in crate feature `serde` that generate a parsing error type and implements the traits:
+
+- [X] core::str::FromStr
+- [X] serde::Serialize
+- [X] serde::Deserialize
+
+**Note:** This crate does not import/re-export serde traits, your project MUST have `serde` as dependency.
 
 ## Example
 
