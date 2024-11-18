@@ -180,60 +180,19 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             #[automatically_derived]
             impl ::core::fmt::Debug for #ty_name {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                    // #[derive(Debug, Clone, Copy)]
-                    // #[allow(clippy::upper_case_acronyms)]
-                    // enum AuxEnum {
-                    //     #(#all_flags_names, )*
-                    // }
+                    struct HumanReadable<'a>(&'a #ty_name);
 
-                    #[derive(Clone, Copy)]
-                    struct AuxItem(&'static str);
-
-                    impl ::core::fmt::Debug for AuxItem {
-                        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                            f.pad(self.0)
-                        }
-                    }
-
-                    // struct Set([Option<AuxEnum>; #num_flags]);
-                    struct Set([Option<AuxItem>; #num_flags]);
-
-                    impl Set {
-                        fn insert(&mut self, val: AuxItem) {
-                            for i in self.0.iter_mut() {
-                                if i.is_none() {
-                                    *i = Some(val);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    impl ::core::fmt::Debug for Set {
+                    impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
                         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                            let mut dbg = f.debug_set();
-
-                            for i in self.0.iter().flatten() {
-                                dbg.entry(i);
-                            }
-
-                            dbg.finish()
+                            self.0.to_writer(f)
                         }
                     }
 
-                    let name = stringify!(#ty_name);
+                    let name = ::core::stringify!(#ty_name);
 
-                    let mut set = Set([None; #num_flags]);
-                    let mut remaining = *self;
-
-                    #(if self.contains(#all_flags) && remaining.intersects(#all_flags) {
-                        remaining.unset(#all_flags);
-                        set.insert(AuxItem(#all_flags_names));
-                    })*
-
-                    f.debug_tuple(name)
-                        .field(&format_args!("0b{:b}", self.0))
-                        .field(&set)
+                    f.debug_struct(name)
+                        .field("bits", &::core::format_args!("{:#b}", self.0))
+                        .field("human_readable", &HumanReadable(self))
                         .finish()
                 }
             }
