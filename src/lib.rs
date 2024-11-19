@@ -596,20 +596,20 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// Set the flags in `other` in the value.
             #[inline]
             #[doc(alias = "insert")]
-            pub fn set(&mut self, other: Self) {
+            pub const fn set(&mut self, other: Self) {
                 self.0 = self.or(other).0
             }
 
             /// Unset the flags in `other` in the value.
             #[inline]
             #[doc(alias = "remove")]
-            pub fn unset(&mut self, other: Self) {
+            pub const fn unset(&mut self, other: Self) {
                 self.0 = self.difference(other).0
             }
 
             /// Toggle the flags in `other` in the value.
             #[inline]
-            pub fn toggle(&mut self, other: Self) {
+            pub const fn toggle(&mut self, other: Self) {
                 self.0 = self.xor(other).0
             }
         }
