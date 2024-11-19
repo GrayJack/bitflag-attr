@@ -12,17 +12,8 @@ homepage = "https://github.com/GrayJack/bitflag-attr"
 rust-version = "1.75.0"
 exclude = ["/tests", "/.github"]
 
-[lib]
-proc-macro = true
-
 [dependencies]
-syn = { version = "2", features = [
-    "full",
-    "parsing",
-    "printing",
-    "proc-macro",
-], default-features = false }
-quote = { version = "1", default-features = false }
+bitflags-attr-macros = { version = "=0.6.0", path = "bitflags-attr-macros" }
 
 [[test]]
 name = "tests"
@@ -40,4 +31,8 @@ serde = "1.0"
 default = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
-serde = []
+serde = ["bitflags-attr-macros/serde"]
+
+
+[workspace]
+members = ["bitflags-attr-macros"]
