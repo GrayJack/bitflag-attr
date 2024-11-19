@@ -1,10 +1,12 @@
 use bitflag_attr::bitflag;
 
-#[bitflag(str)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+struct Custom(i16);
+
+#[bitflag(Custom)]
 pub enum Test {
-    Flag1 = 1 << 0,
-    Flag2 = 1 << 1,
+    Flag1 = Custom(1),
+    Flag2 = Custom(2),
 }
 
 fn main() {}
