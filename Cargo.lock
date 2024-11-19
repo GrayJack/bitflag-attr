@@ -6,10 +6,17 @@ version = 3
 name = "bitflag-attr"
 version = "0.6.0"
 dependencies = [
- "quote",
+ "bitflags-attr-macros",
  "serde",
- "syn",
  "trybuild",
+]
+
+[[package]]
+name = "bitflags-attr-macros"
+version = "0.6.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
