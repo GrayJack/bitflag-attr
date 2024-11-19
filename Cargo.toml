@@ -19,6 +19,10 @@ bitflags-attr-macros = { version = "=0.6.0", path = "bitflags-attr-macros" }
 name = "tests"
 path = "tests/progress.rs"
 
+[[test]]
+name = "generated_api_tests"
+path = "tests/api.rs"
+
 [[example]]
 name = "serde"
 required-features = ["serde"]
@@ -32,6 +36,8 @@ default = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
 serde = ["bitflags-attr-macros/serde"]
+# Allows to use custom types as parameter for the bitflags macro
+custom-types = ["bitflags-attr-macros/custom-types"]
 
 
 [workspace]

@@ -30,3 +30,5 @@ default = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
 serde = []
+# Allows to use custom types as parameter for the bitflags macro
+custom-types = []

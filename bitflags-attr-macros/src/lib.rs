@@ -1,5 +1,3 @@
-#![doc = include_str!("../../README.md")]
-
 use proc_macro::{Span, TokenStream};
 use quote::quote;
 use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, Token};
@@ -25,6 +23,17 @@ use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, 
 /// Having this feature enabled will also generate a type to represent the parsing error and helper
 /// functions to do parsing the generated type from strings. And will generate the implementation
 /// for the [`FromStr`] trait.
+///
+/// ## Custom types
+///
+/// If the crate is compiled with the `custom-types` feature, it allows to use more than the types
+/// defined in Rust `core` ("i8",`u8`,`i16`,`u16`,`i32`,`u32`,`i64`,`u64`,`i128`,`u128`,`isize`,
+/// `usize`,`c_char`,`c_schar`,`c_uchar`,`c_short`,`c_ushort`,`c_int`,`c_uint`,`c_long`,`c_ulong`,
+/// `c_longlong`,`c_ulonglong`) as long as it is a type alias to one of those types.
+///
+/// The reason it is behind a feature flag is that to ensure the validity of such constrain, we have
+/// to pay the price of having much worse error messages. With this feature enabled, a invalid type
+/// will cause a massive wall of error message.
 ///
 /// # Example
 ///
@@ -399,7 +408,9 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         #[repr(transparent)]
         #[derive(Clone, Copy)]
         #(#attrs)*
-        #vis struct #ty_name(#ty);
+        #vis struct #ty_name(#ty)
+        where
+            #ty: ::bitflag_attr::BitflagPrimitive;
 
         #[allow(non_upper_case_globals)]
         impl #ty_name {
@@ -408,7 +419,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             const __OG: () = {
                 {
                     // Original enum
-                    // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant.
+                    // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
                     enum Original {
                         #(#all_variants, )*
                     }
@@ -1068,7 +1079,16 @@ impl Parse for Args {
                 no_debug_set = true;
                 continue;
             }
-            if VALID_TYPES.contains(&i.to_string().as_str()) {
+            if cfg!(feature = "custom-types") {
+                if ty_set {
+                    return Err(Error::new_spanned(
+                        i,
+                        "there must be only one instance of `{integer}` type specified",
+                    ));
+                }
+                ty = i;
+                ty_set = true;
+            } else if VALID_TYPES.contains(&i.to_string().as_str()) {
                 if ty_set {
                     return Err(Error::new_spanned(
                         i,
