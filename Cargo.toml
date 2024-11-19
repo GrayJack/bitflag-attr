@@ -38,7 +38,8 @@ default = []
 serde = ["bitflags-attr-macros/serde"]
 # Allows to use custom types as parameter for the bitflags macro
 custom-types = ["bitflags-attr-macros/custom-types"]
-
+# Generate as const functions some functions that take `&mut` (Only stable on rust 1.83.0: release date: 28 November, 2024)
+const-mut-ref = ["bitflags-attr-macros/const-mut-ref"]
 
 [workspace]
 members = ["bitflags-attr-macros"]

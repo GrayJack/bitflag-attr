@@ -133,6 +133,12 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         Ident::new(&ty_name, span)
     };
 
+    let const_mut = if cfg!(feature = "const-mut-ref") {
+        quote!(mut)
+    } else {
+        quote!()
+    };
+
     let number_flags = item.variants.len();
 
     let mut all_flags = Vec::with_capacity(number_flags);
@@ -607,20 +613,20 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// Set the flags in `other` in the value.
             #[inline]
             #[doc(alias = "insert")]
-            pub const fn set(&mut self, other: Self) {
+            pub #const_mut fn set(&mut self, other: Self) {
                 self.0 = self.or(other).0
             }
 
             /// Unset the flags in `other` in the value.
             #[inline]
             #[doc(alias = "remove")]
-            pub const fn unset(&mut self, other: Self) {
+            pub #const_mut fn unset(&mut self, other: Self) {
                 self.0 = self.difference(other).0
             }
 
             /// Toggle the flags in `other` in the value.
             #[inline]
-            pub const fn toggle(&mut self, other: Self) {
+            pub #const_mut fn toggle(&mut self, other: Self) {
                 self.0 = self.xor(other).0
             }
         }
