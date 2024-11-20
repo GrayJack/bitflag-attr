@@ -2,6 +2,7 @@
 
 pub use bitflags_attr_macros::bitflag;
 
+/// Primitive types that can be used with [`bitflag`] attribute implement this trait.
 pub trait BitflagPrimitive: private::Sealed {}
 
 mod private {
