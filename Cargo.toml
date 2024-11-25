@@ -33,6 +33,8 @@ serde = "1.0"
 
 [features]
 default = []
+# Just to satisfy
+std = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
 serde = ["bitflags-attr-macros/serde"]
