@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 
 pub use bitflags_attr_macros::bitflag;
 
@@ -23,6 +24,3 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 
 #[cfg(doc)]
 pub mod example_generated;
-
-#[cfg(test)]
-mod tests {}
