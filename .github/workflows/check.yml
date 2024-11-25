@@ -36,7 +36,7 @@ jobs:
     - name: Check
       run: cargo check
     - name: Run tests
-      run: cargo test --feature std
+      run: cargo test --features std
 
   # miri:
   #   name: Miri
