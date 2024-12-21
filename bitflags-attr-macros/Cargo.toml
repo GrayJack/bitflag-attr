@@ -22,6 +22,7 @@ syn = { version = "2", features = [
     "parsing",
     "printing",
     "proc-macro",
+    "clone-impls",
 ], default-features = false }
 quote = { version = "1", default-features = false }
 
