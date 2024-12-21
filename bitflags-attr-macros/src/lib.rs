@@ -141,6 +141,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
     let number_flags = item.variants.len();
 
+    let mut all_attrs = Vec::with_capacity(number_flags);
     let mut all_flags = Vec::with_capacity(number_flags);
     let mut all_flags_names = Vec::with_capacity(number_flags);
     let mut all_variants = Vec::with_capacity(number_flags);
@@ -165,6 +166,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
         };
 
+        all_attrs.push(var_attrs.clone());
         raw_flags.push(quote! {
             #(#var_attrs)*
             #[allow(non_upper_case_globals, dead_code, unused)]
@@ -427,7 +429,10 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     // Original enum
                     // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
                     enum Original {
-                        #(#all_variants, )*
+                        #(
+                            #(#all_attrs)*
+                            #all_variants,
+                        )*
                     }
                 }
                 ()
@@ -469,7 +474,10 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             #[inline]
             pub fn from_flag_name(name: &str) -> Option<Self> {
                 match name {
-                    #(#all_flags_names => Some(#all_flags),)*
+                    #(
+                        #(#all_attrs)*
+                        #all_flags_names => Some(#all_flags),
+                    )*
                     _ => None
                 }
             }
@@ -509,7 +517,16 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             /// This will only set the flags specified as associated constant.
             #[inline]
             pub const fn all() -> Self {
-                Self(#(#all_flags.0 |)* 0)
+                // Self(#(#all_flags.0 |)* 0)
+                let mut all = 0;
+
+                #(
+                    #(#all_attrs)*{
+                        all |= #all_flags.0
+                    }
+                )*
+
+                Self(all)
             }
 
             /// Returns `true` if the bitflag contais all known flags.
@@ -766,7 +783,10 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         #debug_impl
 
         impl #ty_name {
-            const FLAGS: &'static [(&'static str, #ty_name)] = &[#((#all_flags_names , #all_flags) ,)*];
+            const FLAGS: &'static [(&'static str, #ty_name)] = &[#(
+                #(#all_attrs)*
+                (#all_flags_names , #all_flags) ,
+            )*];
 
             /// Yield a set of contained flags values.
             ///
