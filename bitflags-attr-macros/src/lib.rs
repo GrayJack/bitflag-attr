@@ -166,7 +166,13 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
         };
 
-        all_attrs.push(var_attrs.clone());
+        all_attrs.push(
+            var_attrs
+                .clone()
+                .into_iter()
+                .filter(|attr| !attr.path().is_ident("doc"))
+                .collect::<Vec<syn::Attribute>>(),
+        );
         raw_flags.push(quote! {
             #(#var_attrs)*
             #[allow(non_upper_case_globals, dead_code, unused)]
