@@ -5,20 +5,22 @@ use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
 ///
-/// # Generated trait implementations
-/// This macro generates some trait implementations: [`fmt::Debug`], [`ops:Not`], [`ops:BitAnd`],
-/// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
-/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Clone`],
-/// [`Copy`], [`Extend`], [`FromIterator`], [`IntoIterator`]
+/// The attribute requires that the [`Clone`] and [`Copy`] traits are derived for the type.
 ///
-/// If the macro receives `no_auto_debug`, the trait [`fmt::Debug`] will not be generated. Use this
-/// flag when you want to implement [`fmt::Debug`] manually or use the standard derive.
+/// # Generated trait implementations
+/// This macro generates some trait implementations: [`ops:Not`], [`ops:BitAnd`],
+/// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
+/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Extend`], [`FromIterator`], [`IntoIterator`]
+///
+/// The custom [`fmt::Debug`] implementation will only be generated if it is included in the
+/// `#[derive(...)]` parameters.
 ///
 /// ## Serde feature
 ///
 /// If the crate is compiled with the `serde` feature, this crate will generate implementations for
-/// the `serde::{Serialize, Deserialize}` traits, but it will not import/re-export these traits,
-/// your project must have `serde` as dependency.
+/// the `serde::{Serialize, Deserialize}` traits if they are included in the `#[derive(...)]`
+/// parameters, but it will not import/re-export these traits, your project must have `serde` as
+/// dependency.
 ///
 /// Having this feature enabled will also generate a type to represent the parsing error and helper
 /// functions to do parsing the generated type from strings. And will generate the implementation
@@ -27,7 +29,7 @@ use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 /// ## Custom types
 ///
 /// If the crate is compiled with the `custom-types` feature, it allows to use more than the types
-/// defined in Rust `core` ("i8",`u8`,`i16`,`u16`,`i32`,`u32`,`i64`,`u64`,`i128`,`u128`,`isize`,
+/// defined in Rust `core` (`i8`,`u8`,`i16`,`u16`,`i32`,`u32`,`i64`,`u64`,`i128`,`u128`,`isize`,
 /// `usize`,`c_char`,`c_schar`,`c_uchar`,`c_short`,`c_ushort`,`c_int`,`c_uint`,`c_long`,`c_ulong`,
 /// `c_longlong`,`c_ulonglong`) as long as it is a type alias to one of those types.
 ///
@@ -41,7 +43,7 @@ use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 /// use bitflag_attr::bitflag;
 ///
 /// #[bitflag(u32)]
-/// #[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// pub enum Flags {
 ///     /// The value `A`, at bit position `0`.
 ///     A = 0b00000001,
@@ -60,8 +62,8 @@ use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 /// ```
 /// use bitflag_attr::bitflag;
 ///
-/// #[bitflag(u32, no_auto_debug)]
-/// #[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// #[bitflag(u32)]
+/// #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// pub enum Flags {
 ///     /// The value `A`, at bit position `0`.
 ///     A = 0b00000001,
@@ -78,7 +80,7 @@ use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 /// # Syntax
 ///
 /// ```text
-/// #[bitflag($ty[, no_auto_debug])]
+/// #[bitflag($ty)]
 /// $visibility enum $StructName {
 ///     FlagOne = flag1_value_expr,
 ///     FlagTwo = flag2_value_expr,
@@ -294,7 +296,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
     };
 
-    let serialize_impl = if cfg!(feature = "serde") || impl_serialize {
+    let serialize_impl = if cfg!(feature = "serde") && impl_serialize {
         quote! {
             #[automatically_derived]
             impl ::serde::Serialize for #ty_name {
@@ -325,7 +327,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         quote!()
     };
 
-    let deserialize_impl = if cfg!(feature = "serde") || impl_deserialize {
+    let deserialize_impl = if cfg!(feature = "serde") && impl_deserialize {
         quote! {
             #[automatically_derived]
             impl<'de> ::serde::Deserialize<'de> for #ty_name {
@@ -365,7 +367,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     };
 
     // Serde infra_structure
-    let serde_impl = if cfg!(feature = "serde") || impl_deserialize || impl_serialize {
+    let serde_impl = if cfg!(feature = "serde") {
         let parser_error_ty = {
             let span = ty_name.span();
             let mut ty = ty_name.to_string();
