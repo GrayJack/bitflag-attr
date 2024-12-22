@@ -1,5 +1,5 @@
-error: more arguments than expected. Expected a max of one integer type and one `no_auto_debug` flag
- --> tests/03-too_many_args:3:30
+error: unexpected token: expected a `{integer}` type
+ --> tests/03-too_many_args:3:13
   |
-3 | #[bitflag(u8, no_auto_debug, something_else)]
-  |                              ^^^^^^^^^^^^^^
+3 | #[bitflag(u8, something_else)]
+  |             ^

@@ -1,7 +1,7 @@
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum TestFlags {
     F1 = 1 << 0,
     F2 = 1 << 1,

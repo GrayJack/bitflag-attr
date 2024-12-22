@@ -1,7 +1,7 @@
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum SimpleFlag {
     Flag1 = 1 << 9,
     Flag2 = 1 << 12,

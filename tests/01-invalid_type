@@ -4,6 +4,7 @@ use bitflag_attr::bitflag;
 struct Custom(i16);
 
 #[bitflag(Custom)]
+#[derive(Debug, Clone, Copy)]
 pub enum Test {
     Flag1 = Custom(1),
     Flag2 = Custom(2),

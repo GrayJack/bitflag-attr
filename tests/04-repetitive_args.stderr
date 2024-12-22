@@ -1,11 +1,11 @@
-error: there must be only one instance of `{integer}` type specified
- --> tests/04-repetitive_args:3:15
+error: unexpected token: expected a `{integer}` type
+ --> tests/04-repetitive_args:3:13
   |
 3 | #[bitflag(u8, u16)]
-  |               ^^^
+  |             ^
 
-error: there must be only one instance of `no_auto_debug` flag
-  --> tests/04-repetitive_args:11:26
+error: unexpected token: expected a `{integer}` type
+  --> tests/04-repetitive_args:11:11
    |
 11 | #[bitflag(no_auto_debug, no_auto_debug)]
-   |                          ^^^^^^^^^^^^^
+   |           ^^^^^^^^^^^^^
