@@ -1,88 +1,53 @@
 /// Example of the generated code by bitflag macro.
+// Recursive expansion of bitflag macro
+// =====================================
+
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub struct Flags(u32)
+pub struct SimpleFlag(u32)
 where
-    u32: super::BitflagPrimitive;
+    u32: ::bitflag_attr::BitflagPrimitive;
 
 #[allow(non_upper_case_globals)]
-impl Flags {
+impl SimpleFlag {
     #[doc(hidden)]
     #[allow(clippy::unused_unit)]
     const __OG: () = {
         {
             enum Original {
-                A,
-                B,
-                C,
-                ABC,
+                Flag1,
+                Flag2,
+                Flag3,
             }
         }
         ()
     };
-    #[doc = " The value `A`, at bit position `0`."]
-    pub const A: Self = {
-        #[doc = " The value `A`, at bit position `0`."]
+    pub const Flag1: Self = {
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const A: u32 = 0b00000001;
-        #[doc = " The value `B`, at bit position `1`."]
+        const Flag1: u32 = 1 << 9;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const B: u32 = 0b00000010;
-        #[doc = " The value `C`, at bit position `2`."]
+        const Flag2: u32 = 1 << 12;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const C: u32 = 0b00000100;
-        #[doc = " The combination of `A`, `B`, and `C`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const ABC: u32 = A | B | C;
-        Self(0b00000001)
+        const Flag3: u32 = Flag1 | Flag2;
+        Self(1 << 9)
     };
-    #[doc = " The value `B`, at bit position `1`."]
-    pub const B: Self = {
-        #[doc = " The value `A`, at bit position `0`."]
+    pub const Flag2: Self = {
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const A: u32 = 0b00000001;
-        #[doc = " The value `B`, at bit position `1`."]
+        const Flag1: u32 = 1 << 9;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const B: u32 = 0b00000010;
-        #[doc = " The value `C`, at bit position `2`."]
+        const Flag2: u32 = 1 << 12;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const C: u32 = 0b00000100;
-        #[doc = " The combination of `A`, `B`, and `C`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const ABC: u32 = A | B | C;
-        Self(0b00000010)
+        const Flag3: u32 = Flag1 | Flag2;
+        Self(1 << 12)
     };
-    #[doc = " The value `C`, at bit position `2`."]
-    pub const C: Self = {
-        #[doc = " The value `A`, at bit position `0`."]
+    pub const Flag3: Self = {
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const A: u32 = 0b00000001;
-        #[doc = " The value `B`, at bit position `1`."]
+        const Flag1: u32 = 1 << 9;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const B: u32 = 0b00000010;
-        #[doc = " The value `C`, at bit position `2`."]
+        const Flag2: u32 = 1 << 12;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const C: u32 = 0b00000100;
-        #[doc = " The combination of `A`, `B`, and `C`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const ABC: u32 = A | B | C;
-        Self(0b00000100)
-    };
-    #[doc = " The combination of `A`, `B`, and `C`."]
-    pub const ABC: Self = {
-        #[doc = " The value `A`, at bit position `0`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const A: u32 = 0b00000001;
-        #[doc = " The value `B`, at bit position `1`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const B: u32 = 0b00000010;
-        #[doc = " The value `C`, at bit position `2`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const C: u32 = 0b00000100;
-        #[doc = " The combination of `A`, `B`, and `C`."]
-        #[allow(non_upper_case_globals, dead_code, unused)]
-        const ABC: u32 = A | B | C;
-        Self(A | B | C)
+        const Flag3: u32 = Flag1 | Flag2;
+        Self(Flag1 | Flag2)
     };
     #[doc = r" Return the underlying bits of the bitflag"]
     #[inline]
@@ -113,10 +78,9 @@ impl Flags {
     #[inline]
     pub fn from_flag_name(name: &str) -> Option<Self> {
         match name {
-            "A" => Some(Self::A),
-            "B" => Some(Self::B),
-            "C" => Some(Self::C),
-            "ABC" => Some(Self::ABC),
+            "Flag1" => Some(Self::Flag1),
+            "Flag2" => Some(Self::Flag2),
+            "Flag3" => Some(Self::Flag3),
             _ => None,
         }
     }
@@ -151,7 +115,17 @@ impl Flags {
     #[doc = r" This will only set the flags specified as associated constant."]
     #[inline]
     pub const fn all() -> Self {
-        Self(Self::A.0 | Self::B.0 | Self::C.0 | Self::ABC.0 | 0)
+        let mut all = 0;
+        {
+            all |= Self::Flag1.0
+        }
+        {
+            all |= Self::Flag2.0
+        }
+        {
+            all |= Self::Flag3.0
+        }
+        Self(all)
     }
     #[doc = r" Returns `true` if the bitflag contais all known flags."]
     #[doc = r""]
@@ -257,7 +231,7 @@ impl Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::Not for Flags {
+impl ::core::ops::Not for SimpleFlag {
     type Output = Self;
     #[inline]
     fn not(self) -> Self::Output {
@@ -265,7 +239,7 @@ impl ::core::ops::Not for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitAnd for Flags {
+impl ::core::ops::BitAnd for SimpleFlag {
     type Output = Self;
     #[inline]
     fn bitand(self, rhs: Self) -> Self::Output {
@@ -273,7 +247,7 @@ impl ::core::ops::BitAnd for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitOr for Flags {
+impl ::core::ops::BitOr for SimpleFlag {
     type Output = Self;
     #[inline]
     fn bitor(self, rhs: Self) -> Self::Output {
@@ -281,7 +255,7 @@ impl ::core::ops::BitOr for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitXor for Flags {
+impl ::core::ops::BitXor for SimpleFlag {
     type Output = Self;
     #[inline]
     fn bitxor(self, rhs: Self) -> Self::Output {
@@ -289,28 +263,28 @@ impl ::core::ops::BitXor for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitAndAssign for Flags {
+impl ::core::ops::BitAndAssign for SimpleFlag {
     #[inline]
     fn bitand_assign(&mut self, rhs: Self) {
         ::core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitOrAssign for Flags {
+impl ::core::ops::BitOrAssign for SimpleFlag {
     #[inline]
     fn bitor_assign(&mut self, rhs: Self) {
         ::core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
     }
 }
 #[automatically_derived]
-impl ::core::ops::BitXorAssign for Flags {
+impl ::core::ops::BitXorAssign for SimpleFlag {
     #[inline]
     fn bitxor_assign(&mut self, rhs: Self) {
         ::core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
     }
 }
 #[automatically_derived]
-impl ::core::ops::Sub for Flags {
+impl ::core::ops::Sub for SimpleFlag {
     type Output = Self;
     #[doc = r" The intersection of a source flag with the complement of a target flags value"]
     #[inline]
@@ -319,7 +293,7 @@ impl ::core::ops::Sub for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::ops::SubAssign for Flags {
+impl ::core::ops::SubAssign for SimpleFlag {
     #[doc = r" The intersection of a source flag with the complement of a target flags value"]
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
@@ -327,86 +301,85 @@ impl ::core::ops::SubAssign for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::convert::From<u32> for Flags {
+impl ::core::convert::From<u32> for SimpleFlag {
     #[inline]
     fn from(val: u32) -> Self {
         Self::from_bits_truncate(val)
     }
 }
 #[automatically_derived]
-impl ::core::convert::From<Flags> for u32 {
+impl ::core::convert::From<SimpleFlag> for u32 {
     #[inline]
-    fn from(val: Flags) -> Self {
+    fn from(val: SimpleFlag) -> Self {
         val.0
     }
 }
 #[automatically_derived]
-impl ::core::fmt::Binary for Flags {
+impl ::core::fmt::Binary for SimpleFlag {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::Binary::fmt(&self.0, f)
     }
 }
 #[automatically_derived]
-impl ::core::fmt::LowerHex for Flags {
+impl ::core::fmt::LowerHex for SimpleFlag {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::LowerHex::fmt(&self.0, f)
     }
 }
 #[automatically_derived]
-impl ::core::fmt::UpperHex for Flags {
+impl ::core::fmt::UpperHex for SimpleFlag {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::UpperHex::fmt(&self.0, f)
     }
 }
 #[automatically_derived]
-impl ::core::fmt::Octal for Flags {
+impl ::core::fmt::Octal for SimpleFlag {
     #[inline]
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::Octal::fmt(&self.0, f)
     }
 }
 #[automatically_derived]
-impl ::core::fmt::Debug for Flags {
+impl ::core::fmt::Debug for SimpleFlag {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        struct HumanReadable<'a>(&'a Flags);
+        struct HumanReadable<'a>(&'a SimpleFlag);
 
         impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 self.0.to_writer(f)
             }
         }
-        let name = "Flags";
+        let name = "SimpleFlag";
         f.debug_struct(name)
             .field("bits", &::core::format_args!("{:#b}", self.0))
             .field("human_readable", &HumanReadable(self))
             .finish()
     }
 }
-impl Flags {
-    const FLAGS: &'static [(&'static str, Flags)] = &[
-        ("A", Self::A),
-        ("B", Self::B),
-        ("C", Self::C),
-        ("ABC", Self::ABC),
+impl SimpleFlag {
+    const FLAGS: &'static [(&'static str, SimpleFlag)] = &[
+        ("Flag1", Self::Flag1),
+        ("Flag2", Self::Flag2),
+        ("Flag3", Self::Flag3),
     ];
     #[doc = r" Yield a set of contained flags values."]
     #[doc = r""]
     #[doc = r" Each yielded flags value will correspond to a defined named flag. Any unknown bits"]
     #[doc = r" will be yielded together as a final flags value."]
     #[inline]
-    pub const fn iter(&self) -> FlagsIter {
-        FlagsIter::new(self)
+    pub const fn iter(&self) -> SimpleFlagIter {
+        SimpleFlagIter::new(self)
     }
     #[doc = r" Yield a set of contained named flags values."]
     #[doc = r""]
     #[doc = r" This method is like [`iter`](#method.iter), except only yields bits in contained named flags."]
     #[doc = r" Any unknown bits, or bits not corresponding to a contained flag will not be yielded."]
     #[inline]
-    pub const fn iter_names(&self) -> FlagsIterNames {
-        FlagsIterNames::new(self)
+    pub const fn iter_names(&self) -> SimpleFlagIterNames {
+        SimpleFlagIterNames::new(self)
     }
     #[doc = r" Helper for formatting in human readable format. Write a flags value as text."]
     #[doc = r""]
@@ -460,7 +433,7 @@ impl Flags {
     }
 }
 #[automatically_derived]
-impl ::core::iter::Extend<Flags> for Flags {
+impl ::core::iter::Extend<SimpleFlag> for SimpleFlag {
     #[doc = r" Set all flags of `iter` to self"]
     fn extend<T: ::core::iter::IntoIterator<Item = Self>>(&mut self, iter: T) {
         for item in iter {
@@ -469,7 +442,7 @@ impl ::core::iter::Extend<Flags> for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::iter::FromIterator<Flags> for Flags {
+impl ::core::iter::FromIterator<SimpleFlag> for SimpleFlag {
     #[doc = r" Create a `#ty_name` from a iterator of flags."]
     fn from_iter<T: ::core::iter::IntoIterator<Item = Self>>(iter: T) -> Self {
         use ::core::iter::Extend;
@@ -479,17 +452,17 @@ impl ::core::iter::FromIterator<Flags> for Flags {
     }
 }
 #[automatically_derived]
-impl ::core::iter::IntoIterator for Flags {
+impl ::core::iter::IntoIterator for SimpleFlag {
     type Item = Self;
-    type IntoIter = FlagsIter;
+    type IntoIter = SimpleFlagIter;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 #[automatically_derived]
-impl ::core::iter::IntoIterator for &Flags {
-    type Item = Flags;
-    type IntoIter = FlagsIter;
+impl ::core::iter::IntoIterator for &SimpleFlag {
+    type Item = SimpleFlag;
+    type IntoIter = SimpleFlagIter;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -498,16 +471,16 @@ impl ::core::iter::IntoIterator for &Flags {
 #[doc = r""]
 #[doc = r" This iterator only yields flags values for contained, defined, named flags. Any remaining bits"]
 #[doc = r" won't be yielded, but can be found with the [`#iter_name_ty::remaining`] method."]
-pub struct FlagsIterNames {
-    flags: &'static [(&'static str, Flags)],
+pub struct SimpleFlagIterNames {
+    flags: &'static [(&'static str, SimpleFlag)],
     index: usize,
-    source: Flags,
-    remaining: Flags,
+    source: SimpleFlag,
+    remaining: SimpleFlag,
 }
-impl FlagsIterNames {
-    pub(crate) const fn new(flags: &Flags) -> Self {
+impl SimpleFlagIterNames {
+    pub(crate) const fn new(flags: &SimpleFlag) -> Self {
         Self {
-            flags: Flags::FLAGS,
+            flags: SimpleFlag::FLAGS,
             index: 0,
             remaining: *flags,
             source: *flags,
@@ -518,13 +491,13 @@ impl FlagsIterNames {
     #[doc = r" Once the iterator has finished, this method can be used to"]
     #[doc = r" check whether or not there are any bits that didn't correspond"]
     #[doc = r" to a contained, defined, named flag remaining."]
-    pub const fn remaining(&self) -> Flags {
+    pub const fn remaining(&self) -> SimpleFlag {
         self.remaining
     }
 }
 #[automatically_derived]
-impl ::core::iter::Iterator for FlagsIterNames {
-    type Item = (&'static str, Flags);
+impl ::core::iter::Iterator for SimpleFlagIterNames {
+    type Item = (&'static str, SimpleFlag);
     fn next(&mut self) -> ::core::option::Option<Self::Item> {
         while let Some((name, flag)) = self.flags.get(self.index) {
             if self.remaining.is_empty() {
@@ -540,27 +513,27 @@ impl ::core::iter::Iterator for FlagsIterNames {
     }
 }
 #[automatically_derived]
-impl ::core::iter::FusedIterator for FlagsIterNames {}
+impl ::core::iter::FusedIterator for SimpleFlagIterNames {}
 
 #[doc = r" An iterator over flags values."]
 #[doc = r""]
 #[doc = r" This iterator will yield flags values for contained, defined flags first, with any remaining bits yielded"]
 #[doc = r" as a final flags value."]
-pub struct FlagsIter {
-    inner: FlagsIterNames,
+pub struct SimpleFlagIter {
+    inner: SimpleFlagIterNames,
     done: bool,
 }
-impl FlagsIter {
-    pub(crate) const fn new(flags: &Flags) -> Self {
+impl SimpleFlagIter {
+    pub(crate) const fn new(flags: &SimpleFlag) -> Self {
         Self {
-            inner: FlagsIterNames::new(flags),
+            inner: SimpleFlagIterNames::new(flags),
             done: false,
         }
     }
 }
 #[automatically_derived]
-impl ::core::iter::Iterator for FlagsIter {
-    type Item = Flags;
+impl ::core::iter::Iterator for SimpleFlagIter {
+    type Item = SimpleFlag;
     fn next(&mut self) -> ::core::option::Option<Self::Item> {
         match self.inner.next() {
             Some((_, flag)) => Some(flag),
@@ -577,4 +550,4 @@ impl ::core::iter::Iterator for FlagsIter {
     }
 }
 #[automatically_derived]
-impl ::core::iter::FusedIterator for FlagsIter {}
+impl ::core::iter::FusedIterator for SimpleFlagIter {}
