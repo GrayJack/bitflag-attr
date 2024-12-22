@@ -1,4 +1,4 @@
-error: type must be a integer
+error: unexpected token: expected a `{integer}` type
  --> tests/01-invalid_type:6:11
   |
 6 | #[bitflag(Custom)]

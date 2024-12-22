@@ -1,6 +1,6 @@
-use proc_macro::{Span, TokenStream};
+use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse::Parse, punctuated::Punctuated, Error, Ident, ItemEnum, Result, Token};
+use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
 
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
@@ -110,15 +110,74 @@ pub fn bitflag(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
-    let args: Args = syn::parse(attr)?;
+    let args: Args = syn::parse(attr)
+        .map_err(|err| Error::new(err.span(), "unexpected token: expected a `{integer}` type"))?;
     let ty = args.ty;
     // let ty = parse_ty(attr)?;
 
     let item: ItemEnum = syn::parse(item)?;
+    let item_clone = item.clone();
 
     let vis = item.vis;
-    let attrs = item.attrs;
     let ty_name = item.ident;
+    // Attributes
+    let attrs = item
+        .attrs
+        .clone()
+        .into_iter()
+        .filter(|att| !att.path().is_ident("derive"));
+
+    let derives = item
+        .attrs
+        .clone()
+        .into_iter()
+        .filter(|att| att.path().is_ident("derive"));
+
+    let mut derived_traits = Vec::new();
+    let mut impl_debug = false;
+    let mut impl_serialize = false;
+    let mut impl_deserialize = false;
+    let mut clone_found = false;
+    let mut copy_found = false;
+
+    for derive in derives {
+        derive.parse_nested_meta(|meta| {
+            if let Some(ident) = meta.path.get_ident() {
+                if ident == "Debug" {
+                    impl_debug = true;
+                    return Ok(());
+                }
+
+                if ident == "Serialize" {
+                    impl_serialize = true;
+                    return Ok(());
+                }
+
+                if ident == "Deserialize" {
+                    impl_deserialize = true;
+                    return Ok(());
+                }
+
+                if ident == "Clone" {
+                    clone_found = true;
+                }
+
+                if ident == "Copy" {
+                    copy_found = true;
+                }
+
+                derived_traits.push(ident.clone());
+            }
+            Ok(())
+        })?;
+    }
+
+    if !clone_found || !copy_found {
+        return Err(syn::Error::new_spanned(
+            item_clone,
+            "`bitflags` attribute requires the type to derive `Clone` and `Copy`",
+        ));
+    }
 
     let iter_name_ty = {
         let span = ty_name.span();
@@ -209,7 +268,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         });
     }
 
-    let debug_impl = if args.no_auto_debug {
+    let debug_impl = if !impl_debug {
         quote! {}
     } else {
         quote! {
@@ -235,13 +294,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
     };
 
-    let serde_impl = if cfg!(feature = "serde") {
-        let parser_error_ty = {
-            let span = ty_name.span();
-            let mut ty = ty_name.to_string();
-            ty.push_str("ParserError");
-            Ident::new(&ty, span)
-        };
+    let serialize_impl = if cfg!(feature = "serde") || impl_serialize {
         quote! {
             #[automatically_derived]
             impl ::serde::Serialize for #ty_name {
@@ -267,7 +320,13 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     }
                 }
             }
+        }
+    } else {
+        quote!()
+    };
 
+    let deserialize_impl = if cfg!(feature = "serde") || impl_deserialize {
+        quote! {
             #[automatically_derived]
             impl<'de> ::serde::Deserialize<'de> for #ty_name {
                 fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
@@ -300,6 +359,20 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     }
                 }
             }
+        }
+    } else {
+        quote!()
+    };
+
+    // Serde infra_structure
+    let serde_impl = if cfg!(feature = "serde") || impl_deserialize || impl_serialize {
+        let parser_error_ty = {
+            let span = ty_name.span();
+            let mut ty = ty_name.to_string();
+            ty.push_str("ParserError");
+            Ident::new(&ty, span)
+        };
+        quote! {
 
             #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
             pub enum #parser_error_ty {
@@ -420,8 +493,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
     let generated = quote! {
         #[repr(transparent)]
-        #[derive(Clone, Copy)]
         #(#attrs)*
+        #[derive(#(#derived_traits,)*)]
         #vis struct #ty_name(#ty)
         where
             #ty: ::bitflag_attr::BitflagPrimitive;
@@ -1039,6 +1112,9 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         impl ::core::iter::FusedIterator for #iter_ty {}
 
         #serde_impl
+
+        #serialize_impl
+        #deserialize_impl
     };
 
     Ok(generated.into())
@@ -1071,70 +1147,83 @@ static VALID_TYPES: [&str; 23] = [
 ];
 
 struct Args {
-    ty: Ident,
-    no_auto_debug: bool,
+    ty: Path,
 }
 
 impl Parse for Args {
     fn parse(input: syn::parse::ParseStream) -> Result<Self> {
-        let content: Punctuated<_, _> = input.parse_terminated(Ident::parse, Token![,])?;
+        let ty: Path = input.parse().map_err(|err| {
+            Error::new(err.span(), "unexpected token: expected a `{integer}` type")
+        })?;
 
-        if content.empty_or_trailing() {
-            return Ok(Args {
-                ty: Ident::new("u32", Span::call_site().into()),
-                no_auto_debug: false,
-            });
-        }
-
-        if content.len() > 2 {
-            return Err(Error::new_spanned(
-                content.last().unwrap(),
-                "more arguments than expected. Expected a max of one integer type and one `no_auto_debug` flag",
-            ));
-        }
-
-        let mut no_debug_set = false;
-        let mut ty_set = false;
-
-        let mut no_auto_debug = false;
-        let mut ty = Ident::new("u32", Span::call_site().into());
-
-        for i in content {
-            if i == "no_auto_debug" {
-                if no_debug_set {
-                    return Err(Error::new_spanned(
-                        i,
-                        "there must be only one instance of `no_auto_debug` flag",
-                    ));
+        if !cfg!(feature = "custom-types") {
+            if let Some(ident) = ty.get_ident() {
+                if !VALID_TYPES.contains(&ident.to_string().as_str()) {
+                    return Err(Error::new_spanned(ident, "type must be a `{integer}` type"));
                 }
-                no_auto_debug = true;
-                no_debug_set = true;
-                continue;
-            }
-            if cfg!(feature = "custom-types") {
-                if ty_set {
-                    return Err(Error::new_spanned(
-                        i,
-                        "there must be only one instance of `{integer}` type specified",
-                    ));
-                }
-                ty = i;
-                ty_set = true;
-            } else if VALID_TYPES.contains(&i.to_string().as_str()) {
-                if ty_set {
-                    return Err(Error::new_spanned(
-                        i,
-                        "there must be only one instance of `{integer}` type specified",
-                    ));
-                }
-                ty = i;
-                ty_set = true;
-                continue;
-            } else {
-                return Err(Error::new_spanned(i, "type must be a integer"));
             }
         }
 
-        Ok(Args { ty, no_auto_debug })
+        Ok(Args { ty })
+
+        // let content: Punctuated<_, _> = input.parse_terminated(Ident::parse, Token![,])?;
+
+        // if content.empty_or_trailing() {
+        //     return Ok(Args {
+        //         ty: Ident::new("u32", Span::call_site().into()),
+        //         no_auto_debug: false,
+        //     });
+        // }
+
+        // if content.len() > 2 {
+        //     return Err(Error::new_spanned(
+        //         content.last().unwrap(),
+        //         "more arguments than expected. Expected a max of one integer type and one `no_auto_debug` flag",
+        //     ));
+        // }
+
+        // let mut no_debug_set = false;
+        // let mut ty_set = false;
+
+        // let mut no_auto_debug = false;
+        // let mut ty = Ident::new("u32", Span::call_site().into());
+
+        // for i in content {
+        //     if i == "no_auto_debug" {
+        //         if no_debug_set {
+        //             return Err(Error::new_spanned(
+        //                 i,
+        //                 "there must be only one instance of `no_auto_debug` flag",
+        //             ));
+        //         }
+        //         no_auto_debug = true;
+        //         no_debug_set = true;
+        //         continue;
+        //     }
+        //     if cfg!(feature = "custom-types") {
+        //         if ty_set {
+        //             return Err(Error::new_spanned(
+        //                 i,
+        //                 "there must be only one instance of `{integer}` type specified",
+        //             ));
+        //         }
+        //         ty = i;
+        //         ty_set = true;
+        //     } else if VALID_TYPES.contains(&i.to_string().as_str()) {
+        //         if ty_set {
+        //             return Err(Error::new_spanned(
+        //                 i,
+        //                 "there must be only one instance of `{integer}` type specified",
+        //             ));
+        //         }
+        //         ty = i;
+        //         ty_set = true;
+        //         continue;
+        //     } else {
+        //         return Err(Error::new_spanned(i, "type must be a integer"));
+        //     }
+        // }
+
+        // Ok(Args { ty, no_auto_debug })
     }
 }
