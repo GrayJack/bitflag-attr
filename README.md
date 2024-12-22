@@ -18,6 +18,8 @@ You can't use this crate to:
 
 ## Implemented traits
 
+The macro requires that `Clone` and `Copy` are derived.
+
 The macro will also implement some traits for bitwise operations and formatting.
 
 - [X] core::ops::Not
@@ -35,10 +37,8 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] core::fmt::LowerHex
 - [X] core::fmt::Octal
 - [X] From
-- [X] Clone
-- [X] Copy
 
-Besides the `Debug`, `Clone` and `Copy` traits, all other standard derivable traits can be used together with the type.
+If the `Debug` trait is defined in the `#[derive(...)]` attribute. The macro will produce a custom implementation instead of the one Rust std produces
 
 The macro also generate iterator types to iterate over the set flags, and for convenience also implement the following traits:
 
@@ -52,6 +52,8 @@ There is a opt-in crate feature `serde` that generate a parsing error type and i
 - [X] serde::Serialize
 - [X] serde::Deserialize
 
+The custom implementation for `Serialize` and `Deserialize` will be generated only if those traits are in the `#[derive(...)]` attribute list (similar how the `Debug` works).
+
 **Note:** This crate does not import/re-export serde traits, your project MUST have `serde` as dependency.
 
 ## Example
@@ -62,7 +64,7 @@ Generate a flags structure:
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 enum Flags {
     /// The value `A`, at bit position `0`.
     A = 0b00000001,
@@ -85,13 +87,13 @@ fn main() {
 }
 ```
 
-If you don't want `Debug` trait to be generated, you can pass `no_auto_debug` to the attribute.
+If you don't want `Debug` trait to be generated, you can simply not define it on the derive attribute to the attribute.
 
 ```rust
 use bitflag_attr::bitflag;
 
-#[bitflag(u32, no_auto_debug)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[bitflag(u32)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 enum Flags {
     /// The value `A`, at bit position `0`.
     A = 0b00000001,
