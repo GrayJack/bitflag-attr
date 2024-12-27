@@ -119,6 +119,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
     let item: ItemEnum = syn::parse(item)?;
     let item_clone = item.clone();
+    let og_attrs = item_clone.attrs.clone();
 
     let vis = item.vis;
     let ty_name = item.ident;
@@ -509,6 +510,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                 {
                     // Original enum
                     // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
+                    #(#og_attrs)*
                     enum Original {
                         #(
                             #(#all_attrs)*
