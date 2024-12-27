@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "bitflag-attr"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "bitflags-attr-macros",
  "serde",
@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "bitflags-attr-macros"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "quote",
  "syn",
