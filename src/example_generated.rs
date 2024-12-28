@@ -4,9 +4,7 @@
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub struct SimpleFlag(u32)
-where
-    u32: ::bitflag_attr::BitflagPrimitive;
+pub struct SimpleFlag(u32);
 
 #[allow(non_upper_case_globals)]
 impl SimpleFlag {
