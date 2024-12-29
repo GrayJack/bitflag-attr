@@ -1,8 +1,10 @@
-/// Example of the generated code by bitflag macro.
-// Recursive expansion of bitflag macro
-// =====================================
+//! Example of the generated code by bitflag macro.
+
+const CONST1: u32 = 0b10;
+const CONST2: u32 = 0b100;
 
 #[repr(transparent)]
+#[doc = " A simple bitflag"]
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct SimpleFlag(u32);
 
@@ -12,41 +14,74 @@ impl SimpleFlag {
     #[allow(clippy::unused_unit)]
     const __OG: () = {
         {
-            enum Original {
+            #[doc = " A simple bitflag"]
+            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+            enum SimpleFlag {
                 Flag1,
                 Flag2,
                 Flag3,
+                Flag4,
+                Flag5,
+                Flag6,
+                Flag7,
+                Flag8,
+                Flag9,
             }
         }
         ()
     };
-    pub const Flag1: Self = {
+    pub const Flag1: Self = Self(1 << 9);
+    pub const Flag2: Self = Self(1 << 12);
+    pub const Flag3: Self = Self(CONST1);
+    pub const Flag4: Self = Self(!CONST1);
+    pub const Flag5: Self = Self(CONST1 | CONST2 | 3);
+    pub const Flag6: Self = {
         #[allow(non_upper_case_globals, dead_code, unused)]
         const Flag1: u32 = 1 << 9;
         #[allow(non_upper_case_globals, dead_code, unused)]
         const Flag2: u32 = 1 << 12;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag3: u32 = Flag1 | Flag2;
-        Self(1 << 9)
-    };
-    pub const Flag2: Self = {
+        const Flag3: u32 = CONST1;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag1: u32 = 1 << 9;
+        const Flag4: u32 = !CONST1;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag2: u32 = 1 << 12;
+        const Flag5: u32 = CONST1 | CONST2 | 3;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag3: u32 = Flag1 | Flag2;
-        Self(1 << 12)
-    };
-    pub const Flag3: Self = {
+        const Flag6: u32 = Flag1 | Flag2;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag1: u32 = 1 << 9;
+        const Flag7: u32 = CONST1 | Flag1;
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag2: u32 = 1 << 12;
+        const Flag8: u32 = (1 << 1) | (1 << 4);
         #[allow(non_upper_case_globals, dead_code, unused)]
-        const Flag3: u32 = Flag1 | Flag2;
+        const Flag9: u32 = 1u8 as u32;
         Self(Flag1 | Flag2)
     };
+    pub const Flag7: Self = {
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag1: u32 = 1 << 9;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag2: u32 = 1 << 12;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag3: u32 = CONST1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag4: u32 = !CONST1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag5: u32 = CONST1 | CONST2 | 3;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag6: u32 = Flag1 | Flag2;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag7: u32 = CONST1 | Flag1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag8: u32 = (1 << 1) | (1 << 4);
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag9: u32 = 1u8 as u32;
+        Self(CONST1 | Flag1)
+    };
+    pub const Flag8: Self = Self((1 << 1) | (1 << 4));
+    pub const Flag9: Self = Self(1u8 as u32);
+}
+#[allow(non_upper_case_globals)]
+impl SimpleFlag {
     #[doc = r" Return the underlying bits of the bitflag"]
     #[inline]
     pub const fn bits(&self) -> u32 {
@@ -79,6 +114,12 @@ impl SimpleFlag {
             "Flag1" => Some(Self::Flag1),
             "Flag2" => Some(Self::Flag2),
             "Flag3" => Some(Self::Flag3),
+            "Flag4" => Some(Self::Flag4),
+            "Flag5" => Some(Self::Flag5),
+            "Flag6" => Some(Self::Flag6),
+            "Flag7" => Some(Self::Flag7),
+            "Flag8" => Some(Self::Flag8),
+            "Flag9" => Some(Self::Flag9),
             _ => None,
         }
     }
@@ -122,6 +163,24 @@ impl SimpleFlag {
         }
         {
             all |= Self::Flag3.0
+        }
+        {
+            all |= Self::Flag4.0
+        }
+        {
+            all |= Self::Flag5.0
+        }
+        {
+            all |= Self::Flag6.0
+        }
+        {
+            all |= Self::Flag7.0
+        }
+        {
+            all |= Self::Flag8.0
+        }
+        {
+            all |= Self::Flag9.0
         }
         Self(all)
     }
@@ -362,6 +421,12 @@ impl SimpleFlag {
         ("Flag1", Self::Flag1),
         ("Flag2", Self::Flag2),
         ("Flag3", Self::Flag3),
+        ("Flag4", Self::Flag4),
+        ("Flag5", Self::Flag5),
+        ("Flag6", Self::Flag6),
+        ("Flag7", Self::Flag7),
+        ("Flag8", Self::Flag8),
+        ("Flag9", Self::Flag9),
     ];
     #[doc = r" Yield a set of contained flags values."]
     #[doc = r""]
