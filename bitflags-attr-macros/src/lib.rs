@@ -530,7 +530,10 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             };
 
             #(#flags)*
+        }
 
+        #[allow(non_upper_case_globals)]
+        impl #ty_name {
             /// Return the underlying bits of the bitflag
             #[inline]
             pub const fn bits(&self) -> #ty {
