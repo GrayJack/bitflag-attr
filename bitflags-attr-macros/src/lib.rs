@@ -228,15 +228,19 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
         };
 
-        all_attrs.push(
-            var_attrs
-                .clone()
-                .into_iter()
-                .filter(|attr| !attr.path().is_ident("doc"))
-                .collect::<Vec<syn::Attribute>>(),
-        );
+        let non_doc_attrs = var_attrs
+            .clone()
+            .into_iter()
+            .filter(|attr| !attr.path().is_ident("doc"))
+            .collect::<Vec<syn::Attribute>>();
+
+        all_flags.push(quote!(Self::#var_name));
+        // all_flags_names.push(quote!(stringify!(#var_name)));
+        all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
+        all_variants.push(var_name.clone());
+        all_attrs.push(non_doc_attrs.clone());
         raw_flags.push(quote! {
-            #(#var_attrs)*
+            #(#non_doc_attrs)*
             #[allow(non_upper_case_globals, dead_code, unused)]
             const #var_name: #ty = #expr;
         });
@@ -256,19 +260,23 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
             }
         };
 
-        all_flags.push(quote!(Self::#var_name));
-        // all_flags_names.push(quote!(stringify!(#var_name)));
-        all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
-        all_variants.push(quote!(#var_name));
+        let generated = if can_simplify(expr, &all_variants) {
+            quote! {
+                #(#var_attrs)*
+                #vis const #var_name: Self = Self(#expr);
+            }
+        } else {
+            quote! {
+                #(#var_attrs)*
+                #vis const #var_name: Self = {
+                    #(#raw_flags)*
 
-        flags.push(quote! {
-            #(#var_attrs)*
-            #vis const #var_name: Self = {
-                #(#raw_flags)*
+                    Self(#expr)
+                };
+            }
+        };
 
-                Self(#expr)
-            };
-        });
+        flags.push(generated);
     }
 
     let debug_impl = if !impl_debug {
@@ -1230,4 +1238,46 @@ impl Parse for Args {
 
         // Ok(Args { ty, no_auto_debug })
     }
+}
+
+/// Recursively check if a expression can be simplified to a simple wrap of `Self(<expr>)`.
+///
+/// Logic behind this:
+/// A literal and a path where it is not fancy and is not one of the variants names are always able to be simplified.
+///
+/// A unary expression can be simplified if it's underlying expression is also able to be simplified.
+///
+/// A binary expression can be simplified if both expression that compose it also are able to be simplified.
+///
+/// A parenthesized expression can be simplified if it's underlying expression is also able to be simplified.
+///
+/// A "as" cast can be simplified if it's underlying expression is also able to be simplified.
+fn can_simplify(expr: &syn::Expr, variants: &[Ident]) -> bool {
+    match expr {
+        syn::Expr::Lit(_) => true,
+        syn::Expr::Path(expr_path) if is_simple_path(expr_path, variants) => true,
+        syn::Expr::Unary(expr_unary) => can_simplify(&expr_unary.expr, variants),
+        syn::Expr::Binary(expr_binary) => {
+            can_simplify(&expr_binary.left, variants) && can_simplify(&expr_binary.right, variants)
+        }
+        syn::Expr::Paren(expr_paren) => can_simplify(&expr_paren.expr, variants),
+        syn::Expr::Cast(expr_cast) => can_simplify(&expr_cast.expr, variants),
+        _ => false,
+    }
+}
+
+fn is_simple_path(expr: &syn::ExprPath, variants: &[Ident]) -> bool {
+    if expr.qself.is_some() {
+        return false;
+    }
+
+    // simplest path
+    if let Some(ident) = expr.path.get_ident() {
+        // if the ident is in variants, it is not a simple path
+        if !variants.contains(ident) {
+            return true;
+        }
+    }
+
+    false
 }
