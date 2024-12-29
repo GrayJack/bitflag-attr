@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse::Parse, Error, Ident, ItemEnum, Path, Result};
+use syn::{parse::Parse, spanned::Spanned, Error, Ident, ItemEnum, Path, Result};
 
 /// An attribute macro that transforms an C-like enum into a bitflag struct implementing an type API
 /// similar to the `bitflags` crate, and implementing traits as listed below.
@@ -118,8 +118,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     // let ty = parse_ty(attr)?;
 
     let item: ItemEnum = syn::parse(item)?;
-    let item_clone = item.clone();
-    let og_attrs = item_clone.attrs.clone();
+    let item_span = item.span();
+    let og_attrs = item.attrs.clone();
 
     let vis = item.vis;
     let ty_name = item.ident;
@@ -176,8 +176,8 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     }
 
     if !clone_found || !copy_found {
-        return Err(syn::Error::new_spanned(
-            item_clone,
+        return Err(syn::Error::new(
+            item_span,
             "`bitflags` attribute requires the type to derive `Clone` and `Copy`",
         ));
     }
@@ -519,7 +519,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
                     // Original enum
                     // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
                     #(#og_attrs)*
-                    enum Original {
+                    enum #ty_name {
                         #(
                             #(#all_attrs)*
                             #all_variants,
