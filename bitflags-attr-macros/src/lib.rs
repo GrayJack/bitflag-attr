@@ -502,6 +502,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         quote!()
     };
 
+    let doc_from_iter = format!("Create a `{ty_name}` from a iterator of flags.");
     let generated = quote! {
         #[repr(transparent)]
         #(#attrs)*
@@ -985,7 +986,7 @@ fn bitflag_impl(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
         #[automatically_derived]
         impl ::core::iter::FromIterator<#ty_name> for #ty_name {
-            /// Create a `#ty_name` from a iterator of flags.
+            #[doc = #doc_from_iter]
             fn from_iter<T: ::core::iter::IntoIterator<Item = Self>>(iter: T) -> Self {
                 use ::core::iter::Extend;
 
