@@ -25,6 +25,7 @@ syn = { version = "2", features = [
     "clone-impls",
 ], default-features = false }
 quote = { version = "1", default-features = false }
+proc-macro2 = "1"
 
 [features]
 default = []
