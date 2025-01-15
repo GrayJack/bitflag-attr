@@ -1,6 +1,6 @@
 use syn::{
-    parse::Parse, spanned::Spanned, Attribute, Error, Ident, ItemConst, ItemEnum, LitStr, Path,
-    Visibility,
+    parse::Parse, spanned::Spanned, Attribute, Error, Expr, Ident, ItemConst, ItemEnum, LitStr,
+    Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -22,7 +22,7 @@ pub struct Bitflag {
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
     flags: Vec<ItemConst>,
-
+    custom_known_bits: Option<Expr>,
     orig_enum: ItemEnum,
 }
 
@@ -37,7 +37,7 @@ impl Bitflag {
         let vis = item.vis;
         let name = item.ident;
 
-        let _is_non_exhaustive = item
+        let has_non_exhaustive = item
             .attrs
             .iter()
             .any(|att| att.path().is_ident("non_exhaustive"));
@@ -204,6 +204,12 @@ impl Bitflag {
             }
         })?;
 
+        let custom_known_bits: Option<Expr> = if has_non_exhaustive {
+            Some(syn::parse2(quote! {!0})?)
+        } else {
+            None
+        };
+
         Ok(Self {
             vis,
             attrs,
@@ -219,6 +225,7 @@ impl Bitflag {
             all_flags,
             all_flags_names,
             flags,
+            custom_known_bits,
             orig_enum,
         })
     }
@@ -241,8 +248,25 @@ impl ToTokens for Bitflag {
             all_flags,
             all_flags_names,
             flags,
+            custom_known_bits,
             orig_enum,
         } = self;
+
+        let all_impl = if let Some(expr) = custom_known_bits {
+            quote! {Self(#expr)}
+        } else {
+            quote! {
+                let mut all = 0;
+
+                #(
+                    #(#all_attrs)*{
+                        all |= #all_flags.0
+                    }
+                )*
+
+                Self(all)
+            }
+        };
 
         let const_mut = if cfg!(feature = "const-mut-ref") {
             quote!(mut)
@@ -577,16 +601,7 @@ impl ToTokens for Bitflag {
                 /// This will only set the flags specified as associated constant.
                 #[inline]
                 pub const fn all() -> Self {
-                    // Self(#(#all_flags.0 |)* 0)
-                    let mut all = 0;
-
-                    #(
-                        #(#all_attrs)*{
-                            all |= #all_flags.0
-                        }
-                    )*
-
-                    Self(all)
+                    #all_impl
                 }
 
                 /// Returns `true` if the bitflag contais all known flags.
