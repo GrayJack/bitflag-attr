@@ -40,6 +40,36 @@ mod typed;
 /// to pay the price of having much worse error messages. With this feature enabled, a invalid type
 /// will cause a massive wall of error message.
 ///
+/// ## Externally defined flags
+///
+/// If you're generating flags types for an external source, such as a C API, you can use the
+/// `non_exhaustive` attribute to communicate to the bitflags macro that there may be more valid
+/// flags then the known flags.
+///
+/// Without extra configuration, it defaults to `!0` (all bits set) as a mask of all bits the
+/// external source may ever set, i.e. all bits are considered as possible values.
+///
+/// ```
+/// use bitflag_attr::bitflag;
+///
+/// #[bitflag(u32)]
+/// #[non_exhaustive] // All bits are considered as possible values.
+/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+/// pub enum Flags {
+///     /// The value `A`, at bit position `0`.
+///     A = 0b00000001,
+///     /// The value `B`, at bit position `1`.
+///     B = 0b00000010,
+///     /// The value `C`, at bit position `2`.
+///     C = 0b00000100,
+///
+///     /// The combination of `A`, `B`, and `C`.
+///     ABC = A | B | C,
+/// }
+/// ```
+///
+/// TODO: Custom externally defined flags bits.
+///
 /// # Example
 ///
 /// ```
