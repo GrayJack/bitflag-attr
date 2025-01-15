@@ -1,6 +1,6 @@
 use syn::{
     parse::Parse, spanned::Spanned, Attribute, Error, Expr, Ident, ItemConst, ItemEnum, LitStr,
-    Path, Visibility,
+    Meta, MetaNameValue, Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -32,7 +32,12 @@ impl Bitflag {
 
         let item: ItemEnum = syn::parse(item)?;
         let item_span = item.span();
-        let og_attrs = item.attrs.clone();
+        let og_attrs: Vec<Attribute> = item
+            .attrs
+            .iter()
+            .filter(|att| !att.path().is_ident("extra_valid_bits"))
+            .cloned()
+            .collect();
 
         let vis = item.vis;
         let name = item.ident;
@@ -47,8 +52,15 @@ impl Bitflag {
             .attrs
             .clone()
             .into_iter()
-            .filter(|att| !att.path().is_ident("derive"))
+            .filter(|att| {
+                !att.path().is_ident("derive") && !att.path().is_ident("extra_valid_bits")
+            })
             .collect();
+
+        let valid_bits_attr = item
+            .attrs
+            .iter()
+            .find(|att| att.path().is_ident("extra_valid_bits"));
 
         let derives = item
             .attrs
@@ -204,7 +216,11 @@ impl Bitflag {
             }
         })?;
 
-        let custom_known_bits: Option<Expr> = if has_non_exhaustive {
+        let custom_known_bits: Option<Expr> = if let Some(attr) = valid_bits_attr {
+            let parsed = ExtraValidBits::from_meta(&attr.meta)?;
+
+            Some(parsed.0)
+        } else if has_non_exhaustive {
             Some(syn::parse2(quote! {!0})?)
         } else {
             None
@@ -252,20 +268,10 @@ impl ToTokens for Bitflag {
             orig_enum,
         } = self;
 
-        let all_impl = if let Some(expr) = custom_known_bits {
-            quote! {Self(#expr)}
+        let extra_valid_bits = if let Some(expr) = custom_known_bits {
+            quote! {all |= #expr;}
         } else {
-            quote! {
-                let mut all = 0;
-
-                #(
-                    #(#all_attrs)*{
-                        all |= #all_flags.0
-                    }
-                )*
-
-                Self(all)
-            }
+            quote! {}
         };
 
         let const_mut = if cfg!(feature = "const-mut-ref") {
@@ -601,7 +607,17 @@ impl ToTokens for Bitflag {
                 /// This will only set the flags specified as associated constant.
                 #[inline]
                 pub const fn all() -> Self {
-                    #all_impl
+                    let mut all = 0;
+
+                    #(
+                        #(#all_attrs)*{
+                            all |= #all_flags.0;
+                        }
+                    )*
+
+                    #extra_valid_bits;
+
+                    Self(all)
                 }
 
                 /// Returns `true` if the bitflag contais all known flags.
@@ -1136,6 +1152,41 @@ impl Parse for Args {
         }
 
         Ok(Args { ty })
+    }
+}
+
+struct ExtraValidBits(Expr);
+
+impl ExtraValidBits {
+    fn from_meta(meta: &Meta) -> syn::Result<Self> {
+        match meta {
+            Meta::NameValue(m) => {
+                if !m.path.is_ident("extra_valid_bits") {
+                    return Err(Error::new(
+                        m.span(),
+                        "not a valid `extra_valid_bits` attribute",
+                    ));
+                }
+
+                Ok(Self(m.value.clone()))
+            }
+            _ => Err(Error::new(
+                meta.span(),
+                "extra_valid_bits must follow the syntax `extra_valid_bits = <expr>`",
+            )),
+        }
+    }
+}
+
+impl Parse for ExtraValidBits {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let meta: MetaNameValue = input.parse()?;
+
+        if !meta.path.is_ident("extra_valid_bits") {
+            return Err(Error::new(meta.span(), "not a extra_valid_bits attribute"));
+        }
+
+        Ok(Self(meta.value))
     }
 }
 
