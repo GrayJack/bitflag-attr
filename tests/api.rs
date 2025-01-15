@@ -46,17 +46,17 @@ fn constructors_works() {
 }
 
 #[test]
-fn truncate_works() {
+fn truncated_works() {
     // Flag with known flags won't change
-    let test = TestFlags::all().truncate();
+    let test = TestFlags::all().truncated();
     assert_eq!(
         test,
         TestFlags::F1 | TestFlags::F2 | TestFlags::F3 | TestFlags::F4
     );
     let test = TestFlags::F1 | TestFlags::F2 | TestFlags::F3;
-    assert_eq!(test.truncate(), test);
+    assert_eq!(test.truncated(), test);
 
-    let test = TestFlags::all_bits().truncate();
+    let test = TestFlags::all_bits().truncated();
     assert_eq!(test, TestFlags::all());
 }
 
