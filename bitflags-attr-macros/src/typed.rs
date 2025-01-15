@@ -32,12 +32,10 @@ impl Bitflag {
 
         let item: ItemEnum = syn::parse(item)?;
         let item_span = item.span();
-        let og_attrs: Vec<Attribute> = item
+        let og_attrs = item
             .attrs
             .iter()
-            .filter(|att| !att.path().is_ident("extra_valid_bits"))
-            .cloned()
-            .collect();
+            .filter(|att| !att.path().is_ident("extra_valid_bits"));
 
         let vis = item.vis;
         let name = item.ident;
@@ -50,11 +48,11 @@ impl Bitflag {
         // Attributes
         let attrs = item
             .attrs
-            .clone()
-            .into_iter()
+            .iter()
             .filter(|att| {
                 !att.path().is_ident("derive") && !att.path().is_ident("extra_valid_bits")
             })
+            .cloned()
             .collect();
 
         let valid_bits_attr = item
@@ -64,8 +62,7 @@ impl Bitflag {
 
         let derives = item
             .attrs
-            .clone()
-            .into_iter()
+            .iter()
             .filter(|att| att.path().is_ident("derive"));
 
         let mut derived_traits = Vec::new();
@@ -154,16 +151,14 @@ impl Bitflag {
                 }
             };
 
-            let non_doc_attrs = var_attrs
-                .clone()
-                .into_iter()
+            let non_doc_attrs: Vec<Attribute> = var_attrs
+                .iter()
                 .filter(|attr| !attr.path().is_ident("doc"))
-                .collect::<Vec<syn::Attribute>>();
+                .cloned()
+                .collect();
 
             all_flags.push(quote!(Self::#var_name));
-            // all_flags_names.push(quote!(stringify!(#var_name)));
             all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
-            // all_variants.push(var_name.clone());
             all_variants.push(var_name.clone());
             all_attrs.push(non_doc_attrs.clone());
             raw_flags.push(quote! {
