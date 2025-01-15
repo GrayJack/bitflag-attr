@@ -11,8 +11,6 @@ pub struct Bitflag {
     vis: Visibility,
     attrs: Vec<Attribute>,
     name: Ident,
-    iter_name_ty: Ident,
-    iter_ty: Ident,
     inner_ty: Path,
     derived_traits: Vec<Ident>,
     impl_debug: bool,
@@ -110,19 +108,6 @@ impl Bitflag {
                 "`bitflags` attribute requires the type to derive `Clone` and `Copy`",
             ));
         }
-
-        let iter_name_ty = {
-            let span = name.span();
-            let mut ty_name = name.to_string();
-            ty_name.push_str("IterNames");
-            Ident::new(&ty_name, span)
-        };
-        let iter_ty = {
-            let span = name.span();
-            let mut ty_name = name.to_string();
-            ty_name.push_str("Iter");
-            Ident::new(&ty_name, span)
-        };
 
         let number_flags = item.variants.len();
 
@@ -225,8 +210,6 @@ impl Bitflag {
             vis,
             attrs,
             name,
-            iter_name_ty,
-            iter_ty,
             inner_ty: ty,
             derived_traits,
             impl_debug,
@@ -248,8 +231,6 @@ impl ToTokens for Bitflag {
             vis,
             attrs,
             name,
-            iter_name_ty,
-            iter_ty,
             inner_ty,
             derived_traits,
             impl_debug,
@@ -286,7 +267,7 @@ impl ToTokens for Bitflag {
 
                         impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
                             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                                self.0.to_writer(f)
+                                ::bitflag_attr::parser::to_writer(self.0, f)
                             }
                         }
 
@@ -313,7 +294,7 @@ impl ToTokens for Bitflag {
 
                         impl<'a> ::core::fmt::Display for AsDisplay<'a> {
                             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                                self.0.to_writer(f)
+                                ::bitflag_attr::parser::to_writer(self.0, f)
                             }
                         }
 
@@ -354,7 +335,7 @@ impl ToTokens for Bitflag {
                                 where
                                     E: ::serde::de::Error,
                                 {
-                                    Self::Value::from_text(flags).map_err(|e| E::custom(e))
+                                    ::bitflag_attr::parser::from_text(flags).map_err(|e| E::custom(e))
                                 }
                             }
 
@@ -371,133 +352,6 @@ impl ToTokens for Bitflag {
             quote!()
         };
 
-        // Serde infra_structure
-        let serde_impl = if cfg!(feature = "serde") {
-            let parser_error_ty = {
-                let span = name.span();
-                let mut ty = name.to_string();
-                ty.push_str("ParserError");
-                Ident::new(&ty, span)
-            };
-            quote! {
-
-                #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
-                pub enum #parser_error_ty {
-                    EmptyFlag,
-                    InvalidNamedFlag,
-                    InvalidHexFlag,
-                }
-
-                #[automatically_derived]
-                impl ::core::error::Error for #parser_error_ty {}
-
-                #[automatically_derived]
-                impl ::core::fmt::Display for #parser_error_ty {
-                    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                        match self {
-                            Self::EmptyFlag => write!(f, "encountered empty flag"),
-                            Self::InvalidNamedFlag => write!(f, "unrecognized named flag"),
-                            Self::InvalidHexFlag => write!(f, "invalid hex flag"),
-                        }
-                    }
-                }
-
-                impl #name {
-                    /// Helper to parse flags from human readable format. Parse a flags value from text.
-                    ///
-                    /// This function will fail on any names that don't correspond to defined flags.
-                    /// Unknown bits will be retained.
-                    pub(crate) fn from_text(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
-                        let mut parsed_flags = Self::empty();
-
-                        // If the input is empty, then return an empty set of flags
-                        if input.trim().is_empty() {
-                            return Ok(parsed_flags);
-                        }
-
-                        for flag in input.split('|') {
-                            let flag = flag.trim();
-
-                            // If the flag is empty, then we've got a missing input
-                            if flag.is_empty() {
-                                return Err(#parser_error_ty::EmptyFlag);
-                            }
-
-                            // If the flag starts with `0x` ten it's a hex number
-                            // Parse it directly to the underlying bits
-                            let parsed_flag =  if let Some(flag) = flag.strip_prefix("0x") {
-                                let bits = #inner_ty::from_str_radix(flag, 16).map_err(|_| #parser_error_ty::InvalidHexFlag)?;
-
-                                Self::from_bits_retain(bits)
-                            } else {
-                                // Otherwise, the flag is a name
-                                // The generated flags type will determine whether or not it is a valid
-                                // identifier
-                                Self::from_flag_name(flag).ok_or_else(|| #parser_error_ty::InvalidNamedFlag)?
-                            };
-
-                            parsed_flags.set(parsed_flag);
-                        }
-
-                        Ok(parsed_flags)
-                    }
-
-                    /// Helper to parse flags from human readable format. Parse a flags value from text.
-                    ///
-                    /// This function will fail on any names that don't correspond to defined flags.
-                    /// Unknown bits will be ignored.
-                    pub(crate) fn from_text_truncate(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
-                        Ok(Self::from_text(input)?.truncated())
-                    }
-
-                    /// Helper to parse flags from human readable format. Parse a flags value from text.
-                    ///
-                    /// This function will fail on any names that don't correspond to defined flags.
-                    /// This function will fail to parse hex values.
-                    pub(crate) fn from_text_strict(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
-                        let mut parsed_flags = Self::empty();
-
-                        // If the input is empty, then return an empty set of flags
-                        if input.trim().is_empty() {
-                            return Ok(parsed_flags);
-                        }
-
-                        for flag in input.split('|') {
-                            let flag =  flag.trim();
-
-                            // If the flag is empty, then we've got a missing input
-                            if flag.is_empty() {
-                                return Err(#parser_error_ty::EmptyFlag);
-                            }
-
-                            // If the flag starts with `0x` then it is a hex number
-                            // There aren't supported in the strict parser
-                            if flag.starts_with("0x") {
-                                return Err(#parser_error_ty::InvalidHexFlag);
-                            }
-
-                            let parsed_flag = Self::from_flag_name(flag).ok_or_else(|| #parser_error_ty::InvalidNamedFlag)?;
-
-                            parsed_flags.set(parsed_flag);
-                        }
-
-                        Ok(parsed_flags)
-                    }
-                }
-
-                #[automatically_derived]
-                impl ::core::str::FromStr for #name {
-                    type Err = #parser_error_ty;
-
-                    fn from_str(input: &str) -> ::core::result::Result<Self, Self::Err> {
-                        Self::from_text(input)
-                    }
-                }
-            }
-        } else {
-            quote!()
-        };
-
         let doc_from_iter = format!("Create a `{name}` from a iterator of flags.");
         let generated = quote! {
             #[repr(transparent)]
@@ -505,7 +359,7 @@ impl ToTokens for Bitflag {
             #[derive(#(#derived_traits,)*)]
             #vis struct #name(#inner_ty)
             where
-                #inner_ty: ::bitflag_attr::BitflagPrimitive;
+                #inner_ty: ::bitflag_attr::BitsPrimitive;
 
             #[allow(non_upper_case_globals)]
             impl #name {
@@ -880,7 +734,33 @@ impl ToTokens for Bitflag {
                 }
             }
 
+            #[automatically_derived]
+            impl ::core::str::FromStr for #name {
+                type Err = ::bitflag_attr::parser::ParseError;
+
+                fn from_str(input: &str) -> ::core::result::Result<Self, Self::Err> {
+                    ::bitflag_attr::parser::from_text(input)
+                }
+            }
+
             #debug_impl
+
+            impl ::bitflag_attr::Flags for #name {
+                const FLAGS: &'static [(&'static str, #name)] = &[#(
+                    #(#all_attrs)*
+                    (#all_flags_names , #all_flags) ,
+                )*];
+
+                type Bits = #inner_ty;
+
+                fn bits(&self) -> Self::Bits {
+                    self.0
+                }
+
+                fn from_bits_retain(bits: Self::Bits) -> Self {
+                    Self(bits)
+                }
+            }
 
             impl #name {
                 const FLAGS: &'static [(&'static str, #name)] = &[#(
@@ -893,8 +773,8 @@ impl ToTokens for Bitflag {
                 /// Each yielded flags value will correspond to a defined named flag. Any unknown bits
                 /// will be yielded together as a final flags value.
                 #[inline]
-                pub const fn iter(&self) -> #iter_ty {
-                    #iter_ty::new(self)
+                pub const fn iter(&self) -> ::bitflag_attr::iter::Iter<Self> {
+                    ::bitflag_attr::iter::Iter::__private_const_new(Self::FLAGS, *self, *self)
                 }
 
                 /// Yield a set of contained named flags values.
@@ -902,80 +782,8 @@ impl ToTokens for Bitflag {
                 /// This method is like [`iter`](#method.iter), except only yields bits in contained named flags.
                 /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
                 #[inline]
-                pub const fn iter_names(&self) -> #iter_name_ty {
-                    #iter_name_ty::new(self)
-                }
-
-                /// Helper for formatting in human readable format. Write a flags value as text.
-                ///
-                /// Any bits that aren't part of a contained flag will be formatted as a hex number.
-                pub(crate) fn to_writer<W>(&self, mut writer: W) -> ::core::fmt::Result
-                where
-                    W: ::core::fmt::Write,
-                {
-                    // A formatter for bitflags that produces text output like:
-                    //
-                    // A | B | 0xf6
-                    //
-                    // The names of set flags are written in a bar-separated-format,
-                    // followed by a hex number of any remaining bits that are set
-                    // but don't correspond to any flags.
-
-                    // Iterate over known flag values
-                    let mut first = true;
-                    let mut iter = self.iter_names();
-                    for (name, _) in &mut iter {
-                        if !first {
-                            writer.write_str(" | ")?;
-                        }
-
-                        first = false;
-                        writer.write_str(name)?;
-                    }
-
-                    // Append any extra bits that correspond to flags to the end of the format
-                    let remaining = iter.remaining();
-                    if !remaining.is_empty() {
-                        if !first {
-                            writer.write_str(" | ")?;
-                        }
-
-                        ::core::write!(writer, "{:#X}", remaining.bits())?;
-                    }
-
-                    ::core::fmt::Result::Ok(())
-                }
-
-                /// Helper for formatting in human readable format. Write a flags value as text,
-                /// ignoring any unknown bits.
-                pub(crate) fn to_writer_truncate<W>(&self, writer: W) -> ::core::fmt::Result
-                where
-                    W: ::core::fmt::Write
-                {
-                    self.truncated().to_writer(writer)
-                }
-
-                /// Helper for formatting in human readable format. Write only the contained, defined,
-                /// named flags in a flags value as text.
-                pub(crate) fn to_writer_strict<W>(&self, mut writer: W) -> ::core::fmt::Result
-                where
-                    W: ::core::fmt::Write
-                {
-                    // This is a simplified version of `to_writer` that ignores
-                    // any bits not corresponding to a named flag
-
-                    let mut first = true;
-                    let mut iter = self.iter_names();
-                    for (name, _) in &mut iter {
-                        if !first {
-                            writer.write_str(" | ")?;
-                        }
-
-                        first = false;
-                        writer.write_str(name)?;
-                    }
-
-                    ::core::fmt::Result::Ok(())
+                pub const fn iter_names(&self) -> ::bitflag_attr::iter::IterNames<Self> {
+                    ::bitflag_attr::iter::IterNames::__private_const_new(Self::FLAGS, *self, *self)
                 }
             }
 
@@ -1004,7 +812,7 @@ impl ToTokens for Bitflag {
             #[automatically_derived]
             impl ::core::iter::IntoIterator for #name {
                 type Item = Self;
-                type IntoIter = #iter_ty;
+                type IntoIter = ::bitflag_attr::iter::Iter<Self>;
 
                 fn into_iter(self) -> Self::IntoIter {
                     self.iter()
@@ -1014,125 +822,12 @@ impl ToTokens for Bitflag {
             #[automatically_derived]
             impl ::core::iter::IntoIterator for &#name {
                 type Item = #name;
-                type IntoIter = #iter_ty;
+                type IntoIter = ::bitflag_attr::iter::Iter<#name>;
 
                 fn into_iter(self) -> Self::IntoIter {
                     self.iter()
                 }
             }
-
-            /// An iterator over flags values.
-            ///
-            /// This iterator only yields flags values for contained, defined, named flags. Any remaining bits
-            /// won't be yielded, but can be found with the [`#iter_name_ty::remaining`] method.
-            #vis struct #iter_name_ty {
-                flags: &'static [(&'static str, #name)],
-                index: usize,
-                source: #name,
-                remaining: #name,
-            }
-
-            impl #iter_name_ty {
-                pub(crate) const fn new(flags: &#name) -> Self {
-                    Self {
-                        flags: #name::FLAGS,
-                        index: 0,
-                        remaining: *flags,
-                        source: *flags,
-                    }
-                }
-
-                /// Get a flags value of any remaining bits that haven't been yielded yet.
-                ///
-                /// Once the iterator has finished, this method can be used to
-                /// check whether or not there are any bits that didn't correspond
-                /// to a contained, defined, named flag remaining.
-                pub const fn remaining(&self) -> #name {
-                    self.remaining
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::Iterator for #iter_name_ty {
-                type Item = (&'static str, #name);
-
-                fn next(&mut self) -> ::core::option::Option<Self::Item> {
-                    while let Some((name, flag)) = self.flags.get(self.index) {
-                        // Short-circuit if our state is empty
-                        if self.remaining.is_empty() {
-                            return None;
-                        }
-
-                        self.index += 1;
-
-                        // If the flag is set in the original source _and_ it has bits that haven't
-                        // been covered by a previous flag yet then yield it. These conditions cover
-                        // two cases for multi-bit flags:
-                        //
-                        // 1. When flags partially overlap, such as `0b00000001` and `0b00000101`, we'll
-                        // yield both flags.
-                        // 2. When flags fully overlap, such as in convenience flags that are a shorthand for others,
-                        // we won't yield both flags.
-                        if self.source.contains(*flag) && self.remaining.intersects(*flag) {
-                            self.remaining.unset(*flag);
-
-                            return Some((name, *flag))
-                        }
-                    }
-
-                    None
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::FusedIterator for #iter_name_ty {}
-
-            /// An iterator over flags values.
-            ///
-            /// This iterator will yield flags values for contained, defined flags first, with any remaining bits yielded
-            /// as a final flags value.
-            #vis struct #iter_ty {
-                inner: #iter_name_ty,
-                done: bool,
-            }
-
-            impl #iter_ty {
-                pub(crate) const fn new(flags: &#name) -> Self  {
-                    Self {
-                        inner: #iter_name_ty::new(flags),
-                        done: false,
-                    }
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::Iterator for #iter_ty {
-                type Item = #name;
-
-                fn next(&mut self) -> ::core::option::Option<Self::Item> {
-                    match self.inner.next() {
-                        Some((_, flag)) => Some(flag),
-                        None if !self.done => {
-                            self.done = true;
-
-                            // After iterating through valid names, if there are any bits left over
-                            // then return one final value that includes them. This makes `into_iter`
-                            // and `from_iter` roundtrip
-                            if !self.inner.remaining().is_empty() {
-                                Some(self.inner.remaining)
-                            } else {
-                                None
-                            }
-                        }
-                        None => None
-                    }
-                }
-            }
-
-            #[automatically_derived]
-            impl ::core::iter::FusedIterator for #iter_ty {}
-
-            #serde_impl
 
             #serialize_impl
             #deserialize_impl
