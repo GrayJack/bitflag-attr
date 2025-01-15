@@ -447,7 +447,7 @@ impl ToTokens for Bitflag {
                     /// This function will fail on any names that don't correspond to defined flags.
                     /// Unknown bits will be ignored.
                     pub(crate) fn from_text_truncate(input: &str) -> ::core::result::Result<Self, #parser_error_ty> {
-                        Ok(Self::from_text(input)?.truncate())
+                        Ok(Self::from_text(input)?.truncated())
                     }
 
                     /// Helper to parse flags from human readable format. Parse a flags value from text.
@@ -525,7 +525,7 @@ impl ToTokens for Bitflag {
 
             #[allow(non_upper_case_globals)]
             impl #name {
-                /// Return the underlying bits of the bitflag
+                /// Return the underlying bits of this bitflag.
                 #[inline]
                 pub const fn bits(&self) -> #inner_ty {
                     self.0
@@ -567,19 +567,19 @@ impl ToTokens for Bitflag {
                     }
                 }
 
-                /// Construct an empty bitflag.
+                /// Construct a flags value with all bits unset.
                 #[inline]
                 pub const fn empty() -> Self {
                     Self(0)
                 }
 
-                /// Returns `true` if the flag is empty.
+                /// Returns `true` if the flag value has all bits unset.
                 #[inline]
                 pub const fn is_empty(&self) -> bool {
                     self.0 == 0
                 }
 
-                /// Returns a bitflag that contains all value.
+                /// Returns a flag value that contains all value.
                 ///
                 /// This will include bits that do not have any flags/meaning.
                 /// Use [`all`](Self::all) if you want only the specified flags set.
@@ -588,7 +588,7 @@ impl ToTokens for Bitflag {
                     Self(!0)
                 }
 
-                /// Returns `true` if the bitflag contains all value bits set.
+                /// Returns `true` if the flag value contains all value bits set.
                 ///
                 /// This will check for all bits.
                 /// Use [`is_all`](Self::is_all) if you want to check for all specified flags.
@@ -597,7 +597,7 @@ impl ToTokens for Bitflag {
                     self.0 == !0
                 }
 
-                /// Construct a bitflag with all known flags set.
+                /// Construct a flag value with all known flags set.
                 ///
                 /// This will only set the flags specified as associated constant.
                 #[inline]
@@ -615,20 +615,31 @@ impl ToTokens for Bitflag {
                     Self(all)
                 }
 
-                /// Returns `true` if the bitflag contais all known flags.
-                ///
+                /// Returns `true` if the flag value contais all known flags.
                 #[inline]
                 pub const fn is_all(&self) -> bool {
-                    self.0 == Self::all().0
+                    Self::all().0 | self.0 == self.0
+                }
+
+                /// Returns `true` if there are any unknown bits set in the flag value.
+                #[inline]
+                pub const fn contains_unknown_bits(&self) -> bool {
+                    Self::all().0 & self.0 != self.0
                 }
 
                 /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
                 #[inline]
-                pub const fn truncate(&self) -> Self {
+                pub const fn truncated(&self) -> Self {
                     Self(self.0 & Self::all().0)
                 }
 
-                /// Returns `true` if this bitflag intersects with any value in `other`.
+                /// Removes unknown bits from the flag value.
+                #[inline]
+                pub #const_mut fn truncate(&mut self) {
+                    *self = Self::from_bits_truncate(self.0);
+                }
+
+                /// Returns `true` if this flag value intersects with any value in `other`.
                 ///
                 /// This is equivalent to `(self & other) != Self::empty()`
                 #[inline]
@@ -636,7 +647,7 @@ impl ToTokens for Bitflag {
                     (self.0 & other.0) != Self::empty().0
                 }
 
-                /// Returns `true` if this bitflag contains all values of `other`.
+                /// Returns `true` if this flag value contains all values of `other`.
                 ///
                 /// This is equivalent to `(self & other) == other`
                 #[inline]
@@ -682,7 +693,7 @@ impl ToTokens for Bitflag {
                     self.and(other)
                 }
 
-                /// Returns the union from this value with `other`
+                /// Returns the union from this value with `other`.
                 #[inline]
                 #[doc(alias = "or")]
                 pub const fn union(self, other: Self) -> Self {
@@ -692,6 +703,9 @@ impl ToTokens for Bitflag {
                 /// Returns the difference from this value with `other`.
                 ///
                 /// In other words, returns the intersection of this value with the negation of `other`.
+                ///
+                /// This method is not equivalent to `self & !other` when `other` has unknown bits set.
+                /// `difference` won't truncate `other`, but the `!` operator will.
                 #[inline]
                 pub const fn difference(self, other: Self) -> Self {
                     self.and(other.not())
@@ -706,11 +720,11 @@ impl ToTokens for Bitflag {
 
                 /// Returns the complement of the value.
                 ///
-                /// This is very similar to the [`not`](Self::not), but truncates non used bits
+                /// This is very similar to the [`not`](Self::not), but truncates non used bits.
                 #[inline]
                 #[doc(alias = "not")]
                 pub const fn complement(self) -> Self {
-                    self.not().truncate()
+                    self.not().truncated()
                 }
 
                 /// Set the flags in `other` in the value.
@@ -720,7 +734,7 @@ impl ToTokens for Bitflag {
                     self.0 = self.or(other).0
                 }
 
-                /// Unset the flags in `other` in the value.
+                /// Unset the flags bits in `other` in the value.
                 #[inline]
                 #[doc(alias = "remove")]
                 pub #const_mut fn unset(&mut self, other: Self) {
@@ -938,7 +952,7 @@ impl ToTokens for Bitflag {
                 where
                     W: ::core::fmt::Write
                 {
-                    self.truncate().to_writer(writer)
+                    self.truncated().to_writer(writer)
                 }
 
                 /// Helper for formatting in human readable format. Write only the contained, defined,
