@@ -1,6 +1,8 @@
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
+#[non_exhaustive]
+#[extra_valid_bits = 0b001001111]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum SimpleFlag {
     Flag1 = 1 << 9,
