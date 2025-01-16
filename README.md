@@ -5,58 +5,36 @@
 [![Documentation](https://docs.rs/bitflag-attr/badge.svg)](https://docs.rs/bitflag-attr)
 ![License](https://img.shields.io/crates/l/bitflag-attr.svg)
 
-This is a proc-macro Rust crate that allows to turn a C-like enum into a bitflag structures with an API similar to `bitfields` crate.
+This is a proc-macro Rust crate that allows to turn a C-like enum into a bitflag types with an ergonomic end-user API.
 
 You can use this crate to:
 
-- provide more user-friendly bindings to C APIs where flags may or may not be fully known in advance.
+- Provide more user-friendly bindings to C APIs where flags may or may not be fully known in advance.
+- Generate efficient options types with string parsing and formatting support.
 
-You can't use this crate to:
+You **can't** use this crate to:
 
-- guarantee only bits corresponding to defined flags will ever be set. `bitflag-attr` allows access to the underlying bits type so arbitrary bits may be set.
-- define bitfields. `bitflag-attr` only generates types where set bits denote the presence of some combination of flags.
+- Guarantee only bits corresponding to defined flags will ever be set. `bitflag-attr` allows access to the underlying bits type so arbitrary bits may be set.
+- Define bitfields. `bitflag-attr` only generates types where set bits denote the presence of some combination of flags.
 
-## Implemented traits
+- [Documentation](https://docs.rs/bitflag-attr)
 
-The macro requires that `Clone` and `Copy` are derived.
+## Usage
 
-The macro will also implement some traits for bitwise operations and formatting.
+Add this to your `Cargo.toml`:
 
-- [X] core::ops::Not
-- [X] core::ops::BitAnd
-- [X] core::ops::BitOr
-- [X] core::ops::BitXor
-- [X] core::ops::BitAndAssign
-- [X] core::ops::BitOrAssign
-- [X] core::ops::BitXorAssign
-- [X] core::ops::Sub
-- [X] core::ops::SubAssign
-- [X] core::fmt::Debug (This can be opt-out with the `no_auto_debug`)
-- [X] core::fmt::Binary
-- [X] core::fmt::UpperHex
-- [X] core::fmt::LowerHex
-- [X] core::fmt::Octal
-- [X] From
+```toml
+[dependencies]
+bitflag_attr = "0.9.0"
+```
 
-If the `Debug` trait is defined in the `#[derive(...)]` attribute. The macro will produce a custom implementation instead of the one Rust std produces
+and this to your source code:
 
-The macro also generate iterator types to iterate over the set flags, and for convenience also implement the following traits:
+```rust
+use bitflag_attr::bitflag;
+```
 
-- [X] core::iter::Extend
-- [X] core::iter::FromIterator
-- [X] core::iter::Iterator (for the type and reference)
-
-There is a opt-in crate feature `serde` that generate a parsing error type and implements the traits:
-
-- [X] core::str::FromStr
-- [X] serde::Serialize
-- [X] serde::Deserialize
-
-The custom implementation for `Serialize` and `Deserialize` will be generated only if those traits are in the `#[derive(...)]` attribute list (similar how the `Debug` works).
-
-**Note:** This crate does not import/re-export serde traits, your project MUST have `serde` as dependency.
-
-## Example
+## Quick Example
 
 Generate a flags structure:
 
@@ -87,7 +65,7 @@ fn main() {
 }
 ```
 
-If you don't want `Debug` trait to be generated, you can simply not define it on the derive attribute to the attribute.
+If you don't want `Debug` trait to be generated, you can simply not define it on the derive attribute.
 
 ```rust
 use bitflag_attr::bitflag;
@@ -107,6 +85,63 @@ enum Flags {
 }
 ```
 
+## Features
+
+- [X] Use enum native syntax to define individual known flags
+- [X] Discriminant values must be defined
+- [X] Generated end-user API almost entirely the same to `bitflags` crate
+- [X] Most of the generated type-associated API is `const`-compatible (entirely if `const-mut-ref` feature flag enabled)
+- [X] Debug formatter outputs both the binary representation and named flag representation
+- [X] Optional support for serialization with
+- [X] Compatible with `#[no_std]`
+
+### Implemented traits
+
+The macro requires that `Clone` and `Copy` are derived.
+
+The macro will also implement some traits for bitwise operations and formatting.
+
+- [X] core::ops::Not
+- [X] core::ops::BitAnd
+- [X] core::ops::BitOr
+- [X] core::ops::BitXor
+- [X] core::ops::BitAndAssign
+- [X] core::ops::BitOrAssign
+- [X] core::ops::BitXorAssign
+- [X] core::ops::Sub
+- [X] core::ops::SubAssign
+- [X] core::fmt::Debug (if on the derive macro list)
+- [X] core::fmt::Binary
+- [X] core::fmt::UpperHex
+- [X] core::fmt::LowerHex
+- [X] core::fmt::Octal
+- [X] core::str::FromStr
+- [X] core::iter::Extend
+- [X] core::iter::FromIterator
+- [X] core::iter::IntoIterator (for the type and reference)
+- [X] From
+
+If the `Debug` trait is defined in the `#[derive(...)]` attribute. The macro will produce a custom implementation instead of the one Rust std produces
+
+There is a opt-in crate feature `serde` that generate a parsing error type and implements the traits:
+
+- [X] serde::Serialize
+- [X] serde::Deserialize
+
+The custom implementation for `Serialize` and `Deserialize` will be generated only if those traits are in the `#[derive(...)]` attribute list (similar how the `Debug` works).
+
+**Note:** This crate does not import/re-export serde traits, your project MUST have `serde` as dependency.
+
+### Const mut ref
+
+Most of the associated function generated for the flags type are `const`-compatible, with exceptions with the one that takes `&mut self`.
+
+If you are on Rust version 1.83.0 or superior, you can enable the `const-mut-ref` feature flag to make those function to also be `const`-compatible.
+
+## Alternatives
+
+- [bitflags](https://crates.io/crates/bitflags): The OG of Rust ecosystem
+- [enumflags2](https://crates.io/crates/enumflags2):
 
 ## Rust Version Support
 

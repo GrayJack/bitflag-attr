@@ -16,6 +16,7 @@ pub enum ExampleFlags {
     Flag7 = CONST1 | Flag1,
     Flag8 = (1 << 1) | (1 << 4),
     Flag9 = 1u8 as u32,
+    Flag10 = ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits(),
 }
 
 fn main() {
