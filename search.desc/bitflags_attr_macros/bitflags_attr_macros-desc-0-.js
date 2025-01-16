@@ -1,0 +1,1 @@
+searchState.loadedDescShard("bitflags_attr_macros", 0, "An attribute macro that transforms an C-like enum into a …")

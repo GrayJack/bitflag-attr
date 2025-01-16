@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["bitflag"],"mod":["example_generated","iter","parser"],"trait":["BitsPrimitive","Flags"]};
