@@ -13,7 +13,8 @@ mod typed;
 /// # Generated trait implementations
 /// This macro generates some trait implementations: [`ops:Not`], [`ops:BitAnd`],
 /// [`ops:BitOr`], [`ops:BitXor`], [`ops:BitAndAssign`], [`ops:BitOrAssign`], [`ops:BitXorAssign`],
-/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Extend`], [`FromIterator`], [`IntoIterator`]
+/// [`fmt::Binary`], [`fmt::LowerHex`], [`fmt::UpperHex`], [`fmt::Octal`], [`From`], [`Extend`],
+/// [`FromIterator`], [`FromStr`] and [`IntoIterator`].
 ///
 /// The custom [`fmt::Debug`] implementation will only be generated if it is included in the
 /// `#[derive(...)]` parameters.
@@ -25,11 +26,7 @@ mod typed;
 /// parameters, but it will not import/re-export these traits, your project must have `serde` as
 /// dependency.
 ///
-/// Having this feature enabled will also generate a type to represent the parsing error and helper
-/// functions to do parsing the generated type from strings. And will generate the implementation
-/// for the [`FromStr`] trait.
-///
-/// ## Custom types
+/// ## Custom types feature
 ///
 /// If the crate is compiled with the `custom-types` feature, it allows to use more than the types
 /// defined in Rust `core` (`i8`,`u8`,`i16`,`u16`,`i32`,`u32`,`i64`,`u64`,`i128`,`u128`,`isize`,

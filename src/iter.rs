@@ -18,7 +18,7 @@ pub struct IterNames<B: 'static> {
 impl<B: Flags> IterNames<B> {
     pub(crate) fn new(flags: &B) -> Self {
         Self {
-            flags: B::FLAGS,
+            flags: B::KNOWN_FLAGS,
             index: 0,
             source: B::from_bits_retain(flags.bits()),
             remaining: B::from_bits_retain(flags.bits()),

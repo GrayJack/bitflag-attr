@@ -250,6 +250,24 @@ impl ToTokens for Bitflag {
             quote! {}
         };
 
+        let extra_valid_bits_value = if let Some(expr) = custom_known_bits {
+            quote! {#expr}
+        } else {
+            quote! {
+                {
+                    let mut all = 0;
+
+                    #(
+                        #(#all_attrs)*{
+                            all |= #all_flags.0;
+                        }
+                    )*
+
+                    all
+                }
+            }
+        };
+
         let const_mut = if cfg!(feature = "const-mut-ref") {
             quote!(mut)
         } else {
@@ -270,7 +288,7 @@ impl ToTokens for Bitflag {
                                 if self.0.is_empty() {
                                     ::core::write!(f, "{:#X}", self.0.0)
                                 } else {
-                                ::bitflag_attr::parser::to_writer(self.0, f)
+                                    ::bitflag_attr::parser::to_writer(self.0, f)
                                 }
                             }
                         }
@@ -751,10 +769,12 @@ impl ToTokens for Bitflag {
             #debug_impl
 
             impl ::bitflag_attr::Flags for #name {
-                const FLAGS: &'static [(&'static str, #name)] = &[#(
+                const KNOWN_FLAGS: &'static [(&'static str, #name)] = &[#(
                     #(#all_attrs)*
                     (#all_flags_names , #all_flags) ,
                 )*];
+
+                const EXTRA_VALID_BITS: #inner_ty = #extra_valid_bits_value;
 
                 type Bits = #inner_ty;
 
@@ -768,7 +788,7 @@ impl ToTokens for Bitflag {
             }
 
             impl #name {
-                const FLAGS: &'static [(&'static str, #name)] = &[#(
+                const KNOWN_FLAGS: &'static [(&'static str, #name)] = &[#(
                     #(#all_attrs)*
                     (#all_flags_names , #all_flags) ,
                 )*];
@@ -779,7 +799,7 @@ impl ToTokens for Bitflag {
                 /// will be yielded together as a final flags value.
                 #[inline]
                 pub const fn iter(&self) -> ::bitflag_attr::iter::Iter<Self> {
-                    ::bitflag_attr::iter::Iter::__private_const_new(Self::FLAGS, *self, *self)
+                    ::bitflag_attr::iter::Iter::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
                 }
 
                 /// Yield a set of contained named flags values.
@@ -788,7 +808,7 @@ impl ToTokens for Bitflag {
                 /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
                 #[inline]
                 pub const fn iter_names(&self) -> ::bitflag_attr::iter::IterNames<Self> {
-                    ::bitflag_attr::iter::IterNames::__private_const_new(Self::FLAGS, *self, *self)
+                    ::bitflag_attr::iter::IterNames::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
                 }
             }
 

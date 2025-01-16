@@ -124,8 +124,13 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// assert_eq!(3, defined_flags::<MyFlags>());
 /// ```
 pub trait Flags: Sized + Copy + 'static {
-    // / The set of defined flags.
-    const FLAGS: &'static [(&'static str, Self)];
+    /// The set of named defined flags.
+    const KNOWN_FLAGS: &'static [(&'static str, Self)];
+
+    /// Extra possible bits values for the flags.
+    ///
+    /// Useful for externally defined flags
+    const EXTRA_VALID_BITS: Self::Bits;
 
     /// The underlying bits type.
     type Bits: BitsPrimitive;
@@ -162,7 +167,7 @@ pub trait Flags: Sized + Copy + 'static {
             return None;
         }
 
-        Self::FLAGS
+        Self::KNOWN_FLAGS
             .iter()
             .find(|(s, _)| *s == name)
             .map(|(_, v)| Self::from_bits_retain(v.bits()))
@@ -178,7 +183,7 @@ pub trait Flags: Sized + Copy + 'static {
             return None;
         }
 
-        for (flag_name, flag) in Self::FLAGS {
+        for (flag_name, flag) in Self::KNOWN_FLAGS {
             if *flag_name == name {
                 return Some(Self::from_bits_retain(flag.bits()));
             }
@@ -219,9 +224,11 @@ pub trait Flags: Sized + Copy + 'static {
     fn all() -> Self {
         let mut truncated = Self::Bits::EMPTY;
 
-        for (_, flag) in Self::FLAGS.iter() {
+        for (_, flag) in Self::KNOWN_FLAGS.iter() {
             truncated = truncated | flag.bits();
         }
+
+        truncated = truncated | Self::EXTRA_VALID_BITS;
 
         Self::from_bits_retain(truncated)
     }
