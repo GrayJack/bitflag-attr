@@ -267,7 +267,11 @@ impl ToTokens for Bitflag {
 
                         impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
                             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                                if self.0.is_empty() {
+                                    ::core::write!(f, "{:#X}", self.0.0)
+                                } else {
                                 ::bitflag_attr::parser::to_writer(self.0, f)
+                                }
                             }
                         }
 
