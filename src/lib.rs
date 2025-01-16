@@ -253,7 +253,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-#[cfg(feature = "std")]
+#[cfg(any(test, feature = "std"))]
 extern crate std;
 
 use core::{
@@ -613,6 +613,103 @@ pub trait Flags: Sized + Copy + 'static {
     /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
     fn iter_names(&self) -> iter::IterNames<Self> {
         iter::IterNames::new(self)
+    }
+}
+
+/// A macro that matches flags values, similar to Rust's `match` statement.
+///
+/// In a regular `match` statement, the syntax `Flag::A | Flag::B` is interpreted as an or-pattern,
+/// instead of the bitwise-or of `Flag::A` and `Flag::B`. This can be surprising when combined with flags types
+/// because `Flag::A | Flag::B` won't match the pattern `Flag::A | Flag::B`. This macro is an alternative to
+/// `match` for flags values that doesn't have this issue.
+///
+/// # Syntax
+///
+/// ```ignore
+/// bitflag_match!(expression, {
+///     pattern1 => result1,
+///     pattern2 => result2,
+///     ..
+///     _ => default_result,
+/// })
+/// ```
+///
+/// The final `_ => default_result` arm is required, otherwise the macro will fail to compile.
+///
+/// # Examples
+///
+/// ```rust
+/// use bitflag_attr::{bitflag, bitflag_match};
+///
+/// #[bitflag(u8)]
+/// #[derive(Clone, Copy, PartialEq)]
+/// enum Flags {
+///     A = 1 << 0,
+///     B = 1 << 1,
+///     C = 1 << 2,
+/// }
+///
+/// let flags = Flags::A | Flags::B;
+///
+/// bitflag_match!(flags, {
+///     Flags::A | Flags::B => println!("A and/or B are set"),
+///     _ => println!("neither A nor B are set"),
+/// })
+/// ```
+///
+/// # How it works
+///
+/// The macro expands to a series of `if` statements, checking equality between the input expression
+/// and each pattern. This allows for correct matching of bitflag combinations, which is not possible
+/// with a regular match expression due to the way bitflags are implemented.
+///
+/// Patterns are evaluated in order.
+#[macro_export]
+macro_rules! bitflag_match {
+    ($operation:expr, {
+        $($t:tt)*
+    }) => {
+        // Expand to a closure so we can use `return`
+        // This makes it possible to apply attributes to the "match arms"
+        (|| {
+            $crate::__bitflag_match!($operation, { $($t)* })
+        })()
+    };
+}
+
+/// Expand the `bitflags_match` macro
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __bitflag_match {
+    // Eat an optional `,` following a block match arm
+    ($operation:expr, { $pattern:expr => { $($body:tt)* } , $($t:tt)+ }) => {
+        $crate::__bitflag_match!($operation, { $pattern => { $($body)* } $($t)+ })
+    };
+    // Expand a block match arm `A => { .. }`
+    ($operation:expr, { $pattern:expr => { $($body:tt)* } $($t:tt)+ }) => {
+        {
+            if $operation == $pattern {
+                return {
+                    $($body)*
+                };
+            }
+
+            $crate::__bitflag_match!($operation, { $($t)+ })
+        }
+    };
+    // Expand an expression match arm `A => x,`
+    ($operation:expr, { $pattern:expr => $body:expr , $($t:tt)+ }) => {
+        {
+            if $operation == $pattern {
+                return $body;
+            }
+
+            $crate::__bitflag_match!($operation, { $($t)+ })
+        }
+    };
+    // Expand the default case
+    ($operation:expr, { _ => $default:expr $(,)? }) => {
+        $default
     }
 }
 
