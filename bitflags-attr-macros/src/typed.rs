@@ -245,7 +245,7 @@ impl ToTokens for Bitflag {
         } = self;
 
         let extra_valid_bits = if let Some(expr) = custom_known_bits {
-            quote! {all |= #expr;}
+            quote! {all |= #expr}
         } else {
             quote! {}
         };
