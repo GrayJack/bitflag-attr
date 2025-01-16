@@ -3,10 +3,10 @@ use bitflag_attr::bitflag;
 const CONST1: u32 = 0b10;
 const CONST2: u32 = 0b100;
 
-/// A simple bitflag
+/// A example bitflag
 #[bitflag(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub enum SimpleFlag {
+pub enum ExampleFlags {
     Flag1 = 1 << 9,
     Flag2 = 1 << 12,
     Flag3 = CONST1,
@@ -19,9 +19,9 @@ pub enum SimpleFlag {
 }
 
 fn main() {
-    let flag = SimpleFlag::Flag1 | SimpleFlag::Flag2;
+    let flag = ExampleFlags::Flag1 | ExampleFlags::Flag2;
 
-    assert_eq!(flag, SimpleFlag::Flag6);
+    assert_eq!(flag, ExampleFlags::Flag6);
 
     println!("Binary: 0b{flag:b}");
     println!();

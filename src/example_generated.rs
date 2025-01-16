@@ -1,4 +1,4 @@
-//! Example of the generated code by bitflag macro.
+//! Example of the generated code by the [`bitflag`](crate::bitflag) macro.
 
 const CONST1: u32 = 0b10;
 const CONST2: u32 = 0b100;
@@ -427,18 +427,25 @@ impl ::core::fmt::Debug for ExampleFlags {
 
         impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                crate::parser::to_writer(self.0, f)
+                if self.0.is_empty() {
+                    f.write_fmt(core::format_args!("{:#X}", self.0 .0))
+                } else {
+                    crate::parser::to_writer(self.0, f)
+                }
             }
         }
         let name = "ExampleFlags";
         f.debug_struct(name)
-            .field("bits", &::core::format_args!("{:#b}", self.0))
-            .field("human_readable", &HumanReadable(self))
+            .field("flags", &HumanReadable(self))
+            .field(
+                "bits",
+                &::core::format_args!("{:#0width$b}", self.0, width = 2 + u32::BITS as usize),
+            )
             .finish()
     }
 }
 impl crate::Flags for ExampleFlags {
-    const FLAGS: &'static [(&'static str, ExampleFlags)] = &[
+    const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
         ("Flag1", Self::Flag1),
         ("Flag2", Self::Flag2),
         ("Flag3", Self::Flag3),
@@ -449,6 +456,37 @@ impl crate::Flags for ExampleFlags {
         ("Flag8", Self::Flag8),
         ("Flag9", Self::Flag9),
     ];
+    const EXTRA_VALID_BITS: u32 = {
+        let mut all = 0;
+        {
+            all |= Self::Flag1.0;
+        }
+        {
+            all |= Self::Flag2.0;
+        }
+        {
+            all |= Self::Flag3.0;
+        }
+        {
+            all |= Self::Flag4.0;
+        }
+        {
+            all |= Self::Flag5.0;
+        }
+        {
+            all |= Self::Flag6.0;
+        }
+        {
+            all |= Self::Flag7.0;
+        }
+        {
+            all |= Self::Flag8.0;
+        }
+        {
+            all |= Self::Flag9.0;
+        }
+        all
+    };
     type Bits = u32;
     fn bits(&self) -> Self::Bits {
         self.0
@@ -458,7 +496,7 @@ impl crate::Flags for ExampleFlags {
     }
 }
 impl ExampleFlags {
-    const FLAGS: &'static [(&'static str, ExampleFlags)] = &[
+    const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
         ("Flag1", Self::Flag1),
         ("Flag2", Self::Flag2),
         ("Flag3", Self::Flag3),
@@ -475,7 +513,7 @@ impl ExampleFlags {
     #[doc = r" will be yielded together as a final flags value."]
     #[inline]
     pub const fn iter(&self) -> crate::iter::Iter<Self> {
-        crate::iter::Iter::__private_const_new(Self::FLAGS, *self, *self)
+        crate::iter::Iter::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
     }
     #[doc = r" Yield a set of contained named flags values."]
     #[doc = r""]
@@ -483,7 +521,7 @@ impl ExampleFlags {
     #[doc = r" Any unknown bits, or bits not corresponding to a contained flag will not be yielded."]
     #[inline]
     pub const fn iter_names(&self) -> crate::iter::IterNames<Self> {
-        crate::iter::IterNames::__private_const_new(Self::FLAGS, *self, *self)
+        crate::iter::IterNames::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
     }
 }
 #[automatically_derived]
