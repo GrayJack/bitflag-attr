@@ -84,10 +84,12 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// struct MyFlags(u8);
 ///
 /// impl Flags for MyFlags {
-///     const FLAGS: &'static [(&'static str, Self)] = &[
+///     const KNOWN_FLAGS: &'static [(&'static str, Self)] = &[
 ///         ("A", MyFlags(1)),
 ///         ("B", MyFlags(1 << 1)),
 ///     ];
+///
+///     const EXTRA_VALID_BITS: Self::Bits = 1 | (1 << 1);
 ///
 ///     type Bits = u8;
 ///
@@ -109,7 +111,7 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// ```
 /// # use bitflag_attr::{bitflag, Flags};
 /// fn defined_flags<F: Flags>() -> usize {
-///     F::FLAGS.iter().count()
+///     F::KNOWN_FLAGS.iter().count()
 /// }
 ///
 /// #[bitflag(u8)]
