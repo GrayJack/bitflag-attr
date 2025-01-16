@@ -1,8 +1,8 @@
 #![allow(mixed_script_confusables, clippy::module_inception)]
 #[path = "bitflags/all.rs"]
 mod all;
-// #[path = "bitflags/bitflags_match.rs"]
-// mod bitflags_match;
+#[path = "bitflags/bitflag_match.rs"]
+mod bitflag_match;
 #[path = "bitflags/bits.rs"]
 mod bits;
 #[path = "bitflags/complement.rs"]

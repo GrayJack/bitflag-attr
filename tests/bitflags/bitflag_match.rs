@@ -1,15 +1,16 @@
-bitflags! {
-    #[derive(PartialEq)]
-    struct Flags: u8 {
-        const A = 1 << 0;
-        const B = 1 << 1;
-        const C = 1 << 2;
-        const D = 1 << 3;
-    }
+use bitflag_attr::{bitflag, bitflag_match};
+
+#[bitflag(u8)]
+#[derive(Clone, Copy, PartialEq)]
+enum Flags {
+    A = 1 << 0,
+    B = 1 << 1,
+    C = 1 << 2,
+    D = 1 << 3,
 }
 
 fn flag_to_string(flag: Flags) -> String {
-    bitflags_match!(flag, {
+    bitflag_match!(flag, {
         Flags::A => "A".to_string(),
         Flags::B => { "B".to_string() }
         Flags::C => "C".to_string(),
