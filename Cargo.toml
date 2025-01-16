@@ -23,6 +23,10 @@ path = "tests/progress.rs"
 name = "generated_api_tests"
 path = "tests/api.rs"
 
+[[test]]
+name = "bitflags_imported_tests"
+path = "tests/api.rs"
+
 [[example]]
 name = "serde"
 required-features = ["serde"]
