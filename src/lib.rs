@@ -616,6 +616,10 @@ pub trait Flags: Sized + Copy + 'static {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Adapted from bitflags `bitflags_match!`
+///////////////////////////////////////////////////////////////////////////////
+
 /// A macro that matches flags values, similar to Rust's `match` statement.
 ///
 /// In a regular `match` statement, the syntax `Flag::A | Flag::B` is interpreted as an or-pattern,
