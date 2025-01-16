@@ -184,14 +184,6 @@ pub fn from_text_strict<B: Flags>(input: &str) -> Result<B, ParseError> {
     Ok(parsed_flags)
 }
 
-/// Encode a value as a hex string.
-///
-/// Implementors of this trait should not write the `0x` prefix.
-pub trait WriteHex {
-    /// Write the value as hex.
-    fn write_hex<W: fmt::Write>(&self, writer: W) -> fmt::Result;
-}
-
 /// Parse a value from a hex string.
 pub trait ParseHex {
     /// Parse the value from hex.
