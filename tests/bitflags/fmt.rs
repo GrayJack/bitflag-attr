@@ -4,7 +4,7 @@ use super::*;
 fn cases() {
     case(
         TestFlags::empty(),
-        "TestFlags { bits: 0b00000000, human_readable: 0x0 }",
+        "TestFlags { flags: 0x0, bits: 0b00000000 }",
         "0",
         "0",
         "0",
@@ -12,7 +12,7 @@ fn cases() {
     );
     case(
         TestFlags::A,
-        "TestFlags { bits: 0b00000001, human_readable: A }",
+        "TestFlags { flags: A, bits: 0b00000001 }",
         "1",
         "1",
         "1",
@@ -20,7 +20,7 @@ fn cases() {
     );
     case(
         TestFlags::all(),
-        "TestFlags { bits: 0b00000111, human_readable: A | B | C }",
+        "TestFlags { flags: A | B | C, bits: 0b00000111 }",
         "7",
         "7",
         "7",
@@ -28,7 +28,7 @@ fn cases() {
     );
     case(
         TestFlags::from_bits_retain(1 << 3),
-        "TestFlags { bits: 0b00001000, human_readable: 0x8 }",
+        "TestFlags { flags: 0x8, bits: 0b00001000 }",
         "8",
         "8",
         "10",
@@ -36,7 +36,7 @@ fn cases() {
     );
     case(
         TestFlags::A | TestFlags::from_bits_retain(1 << 3),
-        "TestFlags { bits: 0b00001001, human_readable: A | 0x8 }",
+        "TestFlags { flags: A | 0x8, bits: 0b00001001 }",
         "9",
         "9",
         "11",
@@ -45,7 +45,7 @@ fn cases() {
 
     case(
         TestZero::ZERO,
-        "TestZero { bits: 0b00000000, human_readable: 0x0 }",
+        "TestZero { flags: 0x0, bits: 0b00000000 }",
         "0",
         "0",
         "0",
@@ -53,7 +53,7 @@ fn cases() {
     );
     case(
         TestZero::ZERO | TestZero::from_bits_retain(1),
-        "TestZero { bits: 0b00000001, human_readable: 0x1 }",
+        "TestZero { flags: 0x1, bits: 0b00000001 }",
         "1",
         "1",
         "1",
@@ -62,7 +62,7 @@ fn cases() {
 
     case(
         TestZeroOne::ONE,
-        "TestZeroOne { bits: 0b00000001, human_readable: ONE }",
+        "TestZeroOne { flags: ONE, bits: 0b00000001 }",
         "1",
         "1",
         "1",
@@ -71,7 +71,7 @@ fn cases() {
 
     case(
         TestOverlapping::from_bits_retain(1 << 1),
-        "TestOverlapping { bits: 0b00000010, human_readable: 0x2 }",
+        "TestOverlapping { flags: 0x2, bits: 0b00000010 }",
         "2",
         "2",
         "2",
@@ -80,7 +80,7 @@ fn cases() {
 
     case(
         TestExternal::from_bits_retain(1 | (1 << 1) | (1 << 3)),
-        "TestExternal { bits: 0b00001011, human_readable: A | B | 0x8 }",
+        "TestExternal { flags: A | B | 0x8, bits: 0b00001011 }",
         "B",
         "b",
         "13",
@@ -89,7 +89,7 @@ fn cases() {
 
     case(
         TestExternal::all(),
-        "TestExternal { bits: 0b11111111, human_readable: A | B | C | 0xF8 }",
+        "TestExternal { flags: A | B | C | 0xF8, bits: 0b11111111 }",
         "FF",
         "ff",
         "377",
@@ -98,7 +98,7 @@ fn cases() {
 
     case(
         TestExternalFull::all(),
-        "TestExternalFull { bits: 0b11111111, human_readable: 0xFF }",
+        "TestExternalFull { flags: 0xFF, bits: 0b11111111 }",
         "FF",
         "ff",
         "377",

@@ -296,9 +296,9 @@ impl ToTokens for Bitflag {
                         let name = ::core::stringify!(#name);
 
                         f.debug_struct(name)
+                            .field("flags", &HumanReadable(self))
                             // The width `2 +` is to account for the 0b printed before the binary number
                             .field("bits", &::core::format_args!("{:#0width$b}", self.0, width = 2 + #inner_ty::BITS as usize))
-                            .field("human_readable", &HumanReadable(self))
                             .finish()
                     }
                 }
