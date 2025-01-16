@@ -248,7 +248,13 @@
 //! `Flags::A` or `Flags::B` even though it's still a known bit.
 //!
 //! [`example_generated`]: crate::example_generated::ExampleFlags
-#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
+#![no_std]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
 
 use core::{
     fmt,

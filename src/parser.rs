@@ -31,6 +31,12 @@ use core::fmt::{self, Write};
 
 use crate::{BitsPrimitive, Flags};
 
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
+
+#[cfg(not(feature = "alloc"))]
+use fmt::Display as ToString;
+
 /// Write a flags value as text.
 ///
 /// Any bits that aren't part of a contained flag will be formatted as a hex number.
@@ -201,26 +207,29 @@ pub struct ParseError(ParseErrorKind);
 enum ParseErrorKind {
     EmptyFlag,
     InvalidNamedFlag {
-        #[cfg(not(feature = "std"))]
+        #[cfg(not(feature = "alloc"))]
         got: (),
-        #[cfg(feature = "std")]
+        #[cfg(feature = "alloc")]
         got: String,
     },
     InvalidHexFlag {
-        #[cfg(not(feature = "std"))]
+        #[cfg(not(feature = "alloc"))]
         got: (),
-        #[cfg(feature = "std")]
+        #[cfg(feature = "alloc")]
         got: String,
     },
 }
 
 impl ParseError {
     /// An invalid hex flag was encountered.
-    pub fn invalid_hex_flag(flag: impl fmt::Display) -> Self {
+    pub fn invalid_hex_flag<T>(flag: T) -> Self
+    where
+        T: fmt::Display + ToString,
+    {
         let _flag = flag;
 
         let got = {
-            #[cfg(feature = "std")]
+            #[cfg(feature = "alloc")]
             {
                 _flag.to_string()
             }
@@ -230,11 +239,14 @@ impl ParseError {
     }
 
     /// A named flag that doesn't correspond to any on the flags type was encountered.
-    pub fn invalid_named_flag(flag: impl fmt::Display) -> Self {
+    pub fn invalid_named_flag<T>(flag: T) -> Self
+    where
+        T: fmt::Display + ToString,
+    {
         let _flag = flag;
 
         let got = {
-            #[cfg(feature = "std")]
+            #[cfg(feature = "alloc")]
             {
                 _flag.to_string()
             }
@@ -257,7 +269,7 @@ impl fmt::Display for ParseError {
 
                 write!(f, "unrecognized named flag")?;
 
-                #[cfg(feature = "std")]
+                #[cfg(feature = "alloc")]
                 {
                     write!(f, " `{}`", _got)?;
                 }
@@ -267,7 +279,7 @@ impl fmt::Display for ParseError {
 
                 write!(f, "invalid hex flag")?;
 
-                #[cfg(feature = "std")]
+                #[cfg(feature = "alloc")]
                 {
                     write!(f, " `{}`", _got)?;
                 }
