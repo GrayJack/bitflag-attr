@@ -25,7 +25,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitflag_attr = "0.9.0"
+bitflag-attr = "0.9.0"
 ```
 
 and this to your source code:
@@ -92,7 +92,7 @@ enum Flags {
 - [X] Generated end-user API almost entirely the same to `bitflags` crate
 - [X] Most of the generated type-associated API is `const`-compatible (entirely if `const-mut-ref` feature flag enabled)
 - [X] Debug formatter outputs both the binary representation and named flag representation
-- [X] Optional support for serialization with
+- [X] Optional support for serialization with the `serde` feature flag
 - [X] Compatible with `#[no_std]`
 
 ### Implemented traits
