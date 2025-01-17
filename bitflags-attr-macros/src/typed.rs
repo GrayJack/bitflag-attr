@@ -15,12 +15,14 @@ pub struct Bitflag {
     repr_attr: Option<ReprAttr>,
     derived_traits: Vec<Ident>,
     impl_debug: bool,
+    impl_default: bool,
     impl_serialize: bool,
     impl_deserialize: bool,
     all_attrs: Vec<Vec<Attribute>>,
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
     flags: Vec<ItemConst>,
+    default_value: Option<Expr>,
     custom_known_bits: Option<Expr>,
     orig_enum: ItemEnum,
 }
@@ -31,10 +33,11 @@ impl Bitflag {
 
         let item: ItemEnum = syn::parse(item)?;
         let item_span = item.span();
-        let og_attrs = item
-            .attrs
-            .iter()
-            .filter(|att| !att.path().is_ident("extra_valid_bits") && !att.path().is_ident("repr"));
+        let og_attrs = item.attrs.iter().filter(|att| {
+            !att.path().is_ident("derive")
+                && !att.path().is_ident("extra_valid_bits")
+                && !att.path().is_ident("repr")
+        });
 
         let vis = item.vis;
         let name = item.ident;
@@ -86,12 +89,18 @@ impl Bitflag {
         let mut impl_deserialize = false;
         let mut clone_found = false;
         let mut copy_found = false;
+        let mut impl_default = false;
 
         for derive in derives {
             derive.parse_nested_meta(|meta| {
                 if let Some(ident) = meta.path.get_ident() {
                     if ident == "Debug" {
                         impl_debug = true;
+                        return Ok(());
+                    }
+
+                    if ident == "Default" {
+                        impl_default = true;
                         return Ok(());
                     }
 
@@ -132,6 +141,8 @@ impl Bitflag {
         let mut all_flags = Vec::with_capacity(number_flags);
         let mut all_flags_names = Vec::with_capacity(number_flags);
         let mut all_variants = Vec::with_capacity(number_flags);
+        let mut all_non_doc_attrs = Vec::with_capacity(number_flags);
+        let mut default_value = None;
 
         // The raw flags as private itens to allow defining flags referencing other flag definitions
         let mut raw_flags = Vec::with_capacity(number_flags);
@@ -153,18 +164,38 @@ impl Bitflag {
                 }
             };
 
+            let default_attr = var_attrs
+                .iter()
+                .find(|attr| attr.path().is_ident("default"));
+
+            if let Some(default) = default_attr {
+                if !impl_debug {
+                    return Err(Error::new(
+                        default.span(),
+                        "`default` attribute without `#[derive(Default)]`",
+                    ));
+                }
+
+                default_value = Some(syn::parse2(quote!(Self::#var_name))?);
+            }
+
             let non_doc_attrs: Vec<Attribute> = var_attrs
                 .iter()
                 .filter(|attr| !attr.path().is_ident("doc"))
                 .cloned()
                 .collect();
 
+            let filtered_attrs = var_attrs
+                .iter()
+                .filter(|attr| !attr.path().is_ident("doc") && !attr.path().is_ident("default"));
+
             all_flags.push(quote!(Self::#var_name));
             all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
             all_variants.push(var_name.clone());
-            all_attrs.push(non_doc_attrs.clone());
+            all_attrs.push(filtered_attrs.clone().cloned().collect::<Vec<_>>());
+            all_non_doc_attrs.push(non_doc_attrs.clone());
             raw_flags.push(quote! {
-                #(#non_doc_attrs)*
+                #(#filtered_attrs)*
                 #[allow(non_upper_case_globals, dead_code, unused)]
                 const #var_name: #ty = #expr;
             });
@@ -184,14 +215,18 @@ impl Bitflag {
                 }
             };
 
+            let all_attr = var_attrs
+                .iter()
+                .filter(|attr| !attr.path().is_ident("default"));
+
             let generated = if can_simplify(expr, &all_variants) {
                 quote! {
-                    #(#var_attrs)*
+                    #(#all_attr)*
                     #vis const #var_name: Self = Self(#expr);
                 }
             } else {
                 quote! {
-                    #(#var_attrs)*
+                    #(#all_attr)*
                     #vis const #var_name: Self = {
                         #(#raw_flags)*
 
@@ -203,11 +238,18 @@ impl Bitflag {
             flags.push(syn::parse2(generated)?);
         }
 
+        let og_derive = if impl_default && default_value.is_some() {
+            Some(quote!(#[derive(Default)]))
+        } else {
+            None
+        };
         let orig_enum = syn::parse2(quote! {
+            #[allow(dead_code)]
             #(#og_attrs)*
+            #og_derive
             enum #name {
                 #(
-                    #(#all_attrs)*
+                    #(#all_non_doc_attrs)*
                     #all_variants,
                 )*
             }
@@ -231,11 +273,13 @@ impl Bitflag {
             derived_traits,
             repr_attr,
             impl_debug,
+            impl_default,
             impl_serialize,
             impl_deserialize,
             all_attrs,
             all_flags,
             all_flags_names,
+            default_value,
             flags,
             custom_known_bits,
             orig_enum,
@@ -253,11 +297,13 @@ impl ToTokens for Bitflag {
             repr_attr,
             derived_traits,
             impl_debug,
+            impl_default,
             impl_serialize,
             impl_deserialize,
             all_attrs,
             all_flags,
             all_flags_names,
+            default_value,
             flags,
             custom_known_bits,
             orig_enum,
@@ -329,6 +375,32 @@ impl ToTokens for Bitflag {
                     }
                 }
             }
+        };
+
+        let default_impl = if *impl_default {
+            if let Some(expr) = default_value {
+                quote! {
+                    #[automatically_derived]
+                    impl ::core::default::Default for #name {
+                        #[inline]
+                        fn default() -> Self {
+                            #expr
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    #[automatically_derived]
+                    impl ::core::default::Default for #name {
+                        #[inline]
+                        fn default() -> Self {
+                            Self(<#inner_ty as ::core::default::Default>::default())
+                        }
+                    }
+                }
+            }
+        } else {
+            quote!()
         };
 
         let serialize_impl = if cfg!(feature = "serde") && *impl_serialize {
@@ -794,6 +866,9 @@ impl ToTokens for Bitflag {
 
             #debug_impl
 
+            #default_impl
+
+            #[automatically_derived]
             impl ::bitflag_attr::Flags for #name {
                 const KNOWN_FLAGS: &'static [(&'static str, #name)] = &[#(
                     #(#all_attrs)*

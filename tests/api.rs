@@ -10,6 +10,27 @@ enum TestFlags {
     F1_3 = F1 | F3,
 }
 
+#[bitflag(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
+enum DefaultTest1 {
+    F1 = 1 << 0,
+    F2 = 1 << 1,
+    F3 = 1 << 3,
+    F4 = 1 << 4,
+    F1_3 = F1 | F3,
+}
+
+#[bitflag(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
+enum DefaultTest2 {
+    F1 = 1 << 0,
+    #[default]
+    F2 = 1 << 1,
+    F3 = 1 << 3,
+    F4 = 1 << 4,
+    F1_3 = F1 | F3,
+}
+
 #[test]
 fn constructors_works() {
     let empty = TestFlags::empty();
@@ -218,4 +239,13 @@ fn symmetric_difference_works() {
     );
     assert_eq!(g2.symmetric_difference(g3), TestFlags::F1 | TestFlags::F3);
     assert_eq!(g3.symmetric_difference(g2), TestFlags::F1 | TestFlags::F3);
+}
+
+#[test]
+fn derived_default() {
+    let default1 = DefaultTest1::default();
+    assert_eq!(default1, DefaultTest1::empty());
+
+    let default2 = DefaultTest2::default();
+    assert_eq!(default2, DefaultTest2::F2);
 }
