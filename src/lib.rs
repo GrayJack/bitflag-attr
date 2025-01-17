@@ -258,7 +258,7 @@ extern crate std;
 
 use core::{
     fmt,
-    ops::{BitAnd, BitOr, BitXor, Not},
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
 };
 
 pub use bitflags_attr_macros::bitflag;
@@ -275,7 +275,13 @@ pub trait BitsPrimitive:
     + BitOr<Output = Self>
     + BitXor<Output = Self>
     + Not<Output = Self>
+    + BitAndAssign
+    + BitOrAssign
+    + BitXorAssign
+    + fmt::Binary
+    + fmt::LowerHex
     + fmt::UpperHex
+    + fmt::Octal
     + Sized
     + 'static
 {
