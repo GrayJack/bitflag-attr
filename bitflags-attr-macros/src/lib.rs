@@ -135,6 +135,24 @@ mod typed;
 /// bits, without generating additional constants for them. It helps compatibility when the external
 /// source may start setting additional bits at any time.
 ///
+/// ## Type representation
+///
+/// By default, the generated flag type will be `#[repr(transparent)]`, but you can explicit it on
+/// the definition as long is one of the supported ones (`C`, `Rust` and `transparent`):
+///
+/// ```rust
+/// # use bitflag_attr::bitflag;
+///
+/// #[repr(C)]
+/// #[bitflag(u8)]
+/// #[derive(Clone, Copy)]
+/// enum Flags {
+///     A = 1,
+///     B = 1 << 1,
+///     C = 1 << 2,
+/// }
+/// ```
+///
 /// ## Generated trait implementations
 ///
 /// This macro generates some trait implementations: [`ops:Not`], [`ops:BitAnd`],

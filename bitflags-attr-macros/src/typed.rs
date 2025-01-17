@@ -1,6 +1,6 @@
 use syn::{
-    parse::Parse, spanned::Spanned, Attribute, Error, Expr, Ident, ItemConst, ItemEnum, LitStr,
-    Meta, MetaNameValue, Path, Visibility,
+    parse::Parse, spanned::Spanned, token::Paren, Attribute, Error, Expr, Ident, ItemConst,
+    ItemEnum, LitStr, Meta, MetaNameValue, Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -12,6 +12,7 @@ pub struct Bitflag {
     attrs: Vec<Attribute>,
     name: Ident,
     inner_ty: Path,
+    repr_attr: Option<ReprAttr>,
     derived_traits: Vec<Ident>,
     impl_debug: bool,
     impl_serialize: bool,
@@ -33,7 +34,7 @@ impl Bitflag {
         let og_attrs = item
             .attrs
             .iter()
-            .filter(|att| !att.path().is_ident("extra_valid_bits"));
+            .filter(|att| !att.path().is_ident("extra_valid_bits") && !att.path().is_ident("repr"));
 
         let vis = item.vis;
         let name = item.ident;
@@ -48,10 +49,26 @@ impl Bitflag {
             .attrs
             .iter()
             .filter(|att| {
-                !att.path().is_ident("derive") && !att.path().is_ident("extra_valid_bits")
+                !att.path().is_ident("derive")
+                    && !att.path().is_ident("extra_valid_bits")
+                    && !att.path().is_ident("repr")
             })
             .cloned()
             .collect();
+
+        let repr_attr = item
+            .attrs
+            .iter()
+            .find(|att| att.path().is_ident("repr"))
+            .map(|att| syn::parse2::<ReprAttr>(att.meta.to_token_stream()));
+
+        let repr_attr = match repr_attr {
+            Some(repr) => {
+                let repr = repr?;
+                Some(repr)
+            }
+            None => None,
+        };
 
         let valid_bits_attr = item
             .attrs
@@ -212,6 +229,7 @@ impl Bitflag {
             name,
             inner_ty: ty,
             derived_traits,
+            repr_attr,
             impl_debug,
             impl_serialize,
             impl_deserialize,
@@ -232,6 +250,7 @@ impl ToTokens for Bitflag {
             attrs,
             name,
             inner_ty,
+            repr_attr,
             derived_traits,
             impl_debug,
             impl_serialize,
@@ -266,6 +285,13 @@ impl ToTokens for Bitflag {
                     all
                 }
             }
+        };
+
+        let repr_attr = match repr_attr {
+            Some(repr) => {
+                quote! {#repr}
+            }
+            None => quote! {#[repr(transparent)]},
         };
 
         let const_mut = if cfg!(feature = "const-mut-ref") {
@@ -377,7 +403,7 @@ impl ToTokens for Bitflag {
 
         let doc_from_iter = format!("Create a `{name}` from a iterator of flags.");
         let generated = quote! {
-            #[repr(transparent)]
+            #repr_attr
             #(#attrs)*
             #[derive(#(#derived_traits,)*)]
             #vis struct #name(#inner_ty)
@@ -916,6 +942,99 @@ impl Parse for ExtraValidBits {
         }
 
         Ok(Self(meta.value))
+    }
+}
+
+struct ReprAttr {
+    path: Path,
+    _paren_token: Paren,
+    kind: ReprKind,
+}
+
+impl Parse for ReprAttr {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let repr: syn::MetaList = input.parse()?;
+
+        if !repr.path.is_ident("repr") {
+            return Err(Error::new(repr.path.span(), "not a repr"));
+        }
+
+        let _paren_token = match repr.delimiter {
+            syn::MacroDelimiter::Paren(paren) => paren,
+            syn::MacroDelimiter::Brace(b) => {
+                return Err(Error::new(
+                    b.span.span(),
+                    "invalid syntax, expected parenthesis",
+                ))
+            }
+            syn::MacroDelimiter::Bracket(b) => {
+                return Err(Error::new(
+                    b.span.span(),
+                    "invalid syntax, expected parenthesis",
+                ))
+            }
+        };
+
+        let kind: ReprKind = syn::parse2(repr.tokens)?;
+
+        Ok(Self {
+            path: repr.path,
+            _paren_token,
+            kind,
+        })
+    }
+}
+
+impl ToTokens for ReprAttr {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self { path, kind, .. } = self;
+        tokens.append_all(quote! {#[#path(#kind)]});
+    }
+}
+
+/// Supported repr
+enum ReprKind {
+    C,
+    Rust,
+    Transparent,
+}
+
+impl Parse for ReprKind {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let meta: Meta = input.parse()?;
+
+        match meta {
+            Meta::Path(path) => {
+                let text = path
+                    .get_ident()
+                    .map(|p| p.to_string())
+                    .unwrap_or("".to_string());
+
+                match text.as_str() {
+                    "C" => Ok(Self::C),
+                    "Rust" => Ok(Self::Rust),
+                    "transparent" => Ok(Self::Transparent),
+                    _ => Err(Error::new(
+                        path.span(),
+                        "`bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`",
+                    )),
+                }
+            }
+            _ => Err(Error::new(
+                meta.span(),
+                "`bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`",
+            )),
+        }
+    }
+}
+
+impl ToTokens for ReprKind {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            ReprKind::C => tokens.append_all(quote!(C)),
+            ReprKind::Rust => tokens.append_all(quote!(Rust)),
+            ReprKind::Transparent => tokens.append_all(quote!(transparent)),
+        }
     }
 }
 

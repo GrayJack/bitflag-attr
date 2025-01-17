@@ -1,0 +1,11 @@
+error: `bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`
+ --> tests/06-invalid_repr:4:8
+  |
+4 | #[repr(u8)]
+  |        ^^
+
+error: `bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`
+  --> tests/06-invalid_repr:13:8
+   |
+13 | #[repr(packed)]
+   |        ^^^^^^

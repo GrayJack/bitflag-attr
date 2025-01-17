@@ -48,4 +48,49 @@ pub enum SmokeTest3 {
     Flag9 = 12u8 as u32,
 }
 
+#[bitflag(u32)]
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum SmokeTest4 {
+    Flag1 = 1 << 9,
+    Flag2 = 1 << 12,
+    Flag3 = CONST1,
+    Flag4 = !CONST1,
+    Flag5 = CONST1 | CONST2 | 3,
+    Flag6 = Flag1 | Flag2,
+    Flag7 = CONST1 | Flag1,
+    Flag8 = (1 << 1) | (1 << 4),
+    Flag9 = 12u8 as u32,
+}
+
+#[bitflag(u32)]
+#[repr(Rust)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum SmokeTest5 {
+    Flag1 = 1 << 9,
+    Flag2 = 1 << 12,
+    Flag3 = CONST1,
+    Flag4 = !CONST1,
+    Flag5 = CONST1 | CONST2 | 3,
+    Flag6 = Flag1 | Flag2,
+    Flag7 = CONST1 | Flag1,
+    Flag8 = (1 << 1) | (1 << 4),
+    Flag9 = 12u8 as u32,
+}
+
+#[bitflag(u32)]
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum SmokeTes6 {
+    Flag1 = 1 << 9,
+    Flag2 = 1 << 12,
+    Flag3 = CONST1,
+    Flag4 = !CONST1,
+    Flag5 = CONST1 | CONST2 | 3,
+    Flag6 = Flag1 | Flag2,
+    Flag7 = CONST1 | Flag1,
+    Flag8 = (1 << 1) | (1 << 4),
+    Flag9 = 12u8 as u32,
+}
+
 fn main() {}
