@@ -488,10 +488,10 @@ pub trait Flags: Sized + Copy + 'static {
         let mut truncated = Self::Bits::EMPTY;
 
         for (_, flag) in Self::KNOWN_FLAGS.iter() {
-            truncated = truncated | flag.bits();
+            truncated |= flag.bits();
         }
 
-        truncated = truncated | Self::EXTRA_VALID_BITS;
+        truncated |= Self::EXTRA_VALID_BITS;
 
         Self::from_bits_retain(truncated)
     }
