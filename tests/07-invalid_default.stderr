@@ -1,0 +1,5 @@
+error: `default` attribute without `#[derive(Default)]`
+ --> tests/07-invalid_default:7:5
+  |
+7 |     #[default]
+  |     ^^^^^^^^^^

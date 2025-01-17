@@ -1,0 +1,12 @@
+use bitflag_attr::bitflag;
+
+#[bitflag(u8)]
+#[derive(Clone, Copy)]
+pub enum Test {
+    Flag1 = 1 << 0,
+    #[default]
+    Flag2 = 1 << 1,
+    Flag3 = Flag1 | Flag2,
+}
+
+fn main() {}

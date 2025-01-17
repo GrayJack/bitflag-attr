@@ -163,6 +163,41 @@ mod typed;
 /// The custom [`fmt::Debug`] implementation will only be generated if it is included in the
 /// `#[derive(...)]` parameters.
 ///
+/// The custom [`Default`] implementation will only be generated if it is included in the
+/// `#[derive(...)]` parameters.
+///
+/// ### Default derive
+///
+/// The `bitflag` macro handles the [`Default`] if specified in the derive list. Without specifying
+/// a default variant, the default implementation is the same as a empty flag:
+///
+/// ```rust
+/// # use bitflag_attr::bitflag;
+///
+/// #[bitflag(u8)]
+/// #[derive(Clone, Copy, Default)] // Default is the same as `Flags::empty()`
+/// enum Flags {
+///     A = 1,
+///     B = 1 << 1,
+///     C = 1 << 2,
+/// }
+/// ```
+///
+/// But it can be specified like deriving [`Default`] on enum, using the `#[default]` helper attribute:
+///
+/// ```rust
+/// # use bitflag_attr::bitflag;
+///
+/// #[bitflag(u8)]
+/// #[derive(Clone, Copy, Default)]
+/// enum Flags {
+///     A = 1,
+///     B = 1 << 1,
+///     #[default] // `Flags::C` are the default value returned by `Default::default()`
+///     C = 1 << 2,
+/// }
+/// ```
+///
 /// ### Serde feature
 ///
 /// If the crate is compiled with the `serde` feature, this crate will generate implementations for
