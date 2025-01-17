@@ -238,11 +238,8 @@ impl Bitflag {
             flags.push(syn::parse2(generated)?);
         }
 
-        let og_derive = if impl_default && default_value.is_some() {
-            Some(quote!(#[derive(Default)]))
-        } else {
-            None
-        };
+        let og_derive =
+            (impl_default && default_value.is_some()).then(|| quote!(#[derive(Default)]));
         let orig_enum = syn::parse2(quote! {
             #[allow(dead_code)]
             #(#og_attrs)*
@@ -309,11 +306,9 @@ impl ToTokens for Bitflag {
             orig_enum,
         } = self;
 
-        let extra_valid_bits = if let Some(expr) = custom_known_bits {
-            quote! {all |= #expr}
-        } else {
-            quote! {}
-        };
+        let extra_valid_bits = custom_known_bits
+            .as_ref()
+            .map(|expr| quote! {all |= #expr;});
 
         let extra_valid_bits_value = if let Some(expr) = custom_known_bits {
             quote! {#expr}
@@ -340,15 +335,9 @@ impl ToTokens for Bitflag {
             None => quote! {#[repr(transparent)]},
         };
 
-        let const_mut = if cfg!(feature = "const-mut-ref") {
-            quote!(mut)
-        } else {
-            quote!()
-        };
+        let const_mut = cfg!(feature = "const-mut-ref").then(|| quote!(mut));
 
-        let debug_impl = if !impl_debug {
-            quote! {}
-        } else {
+        let debug_impl = impl_debug.then(|| {
             quote! {
                 #[automatically_derived]
                 impl ::core::fmt::Debug for #name {
@@ -375,9 +364,9 @@ impl ToTokens for Bitflag {
                     }
                 }
             }
-        };
+        });
 
-        let default_impl = if *impl_default {
+        let default_impl = impl_default.then(|| {
             if let Some(expr) = default_value {
                 quote! {
                     #[automatically_derived]
@@ -399,11 +388,9 @@ impl ToTokens for Bitflag {
                     }
                 }
             }
-        } else {
-            quote!()
-        };
+        });
 
-        let serialize_impl = if cfg!(feature = "serde") && *impl_serialize {
+        let serialize_impl = (cfg!(feature = "serde") && *impl_serialize).then(|| {
             quote! {
                 #[automatically_derived]
                 impl ::serde::Serialize for #name {
@@ -430,11 +417,9 @@ impl ToTokens for Bitflag {
                     }
                 }
             }
-        } else {
-            quote!()
-        };
+        });
 
-        let deserialize_impl = if cfg!(feature = "serde") && *impl_deserialize {
+        let deserialize_impl = (cfg!(feature = "serde") && *impl_deserialize).then(|| {
             quote! {
                 #[automatically_derived]
                 impl<'de> ::serde::Deserialize<'de> for #name {
@@ -469,9 +454,7 @@ impl ToTokens for Bitflag {
                     }
                 }
             }
-        } else {
-            quote!()
-        };
+        });
 
         let doc_from_iter = format!("Create a `{name}` from a iterator of flags.");
         let generated = quote! {
@@ -585,7 +568,7 @@ impl ToTokens for Bitflag {
                         }
                     )*
 
-                    #extra_valid_bits;
+                    #extra_valid_bits
 
                     Self(all)
                 }
