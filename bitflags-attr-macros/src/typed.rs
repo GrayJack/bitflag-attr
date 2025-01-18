@@ -37,6 +37,7 @@ impl Bitflag {
             !att.path().is_ident("derive")
                 && !att.path().is_ident("extra_valid_bits")
                 && !att.path().is_ident("repr")
+                && !att.path().is_ident("serde")
         });
 
         let vis = item.vis;
@@ -46,6 +47,15 @@ impl Bitflag {
             .attrs
             .iter()
             .any(|att| att.path().is_ident("non_exhaustive"));
+
+        let serde_helper = item.attrs.iter().find(|att| att.path().is_ident("serde"));
+
+        if let Some(serde) = serde_helper {
+            return Err(Error::new(
+                serde.span(),
+                "`serde` helper attribute is not compatible with `bitflag` attribute: in this case, manual implementation of serde traits should be considered",
+            ));
+        }
 
         // Attributes
         let attrs = item
@@ -163,6 +173,15 @@ impl Bitflag {
                     ))
                 }
             };
+
+            let serde_helper = var_attrs.iter().find(|attr| attr.path().is_ident("serde"));
+
+            if let Some(serde) = serde_helper {
+                return Err(Error::new(
+                    serde.span(),
+                    "`serde` helper attribute is not compatible with `bitflag` attribute: in this case, manual implementation of serde traits should be considered",
+                ));
+            }
 
             let default_attr = var_attrs
                 .iter()

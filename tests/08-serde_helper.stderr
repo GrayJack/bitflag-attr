@@ -1,0 +1,5 @@
+error: `serde` helper attribute is not compatible with `bitflag` attribute: in this case, manual implementation of serde traits should be considered
+ --> tests/08-serde_helper:6:5
+  |
+6 |     #[serde(rename(serialize = "ser_name"))]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
