@@ -203,12 +203,11 @@ mod typed;
 /// If the crate is compiled with the `serde` feature, this crate will generate implementations for
 /// the `serde::{Serialize, Deserialize}` traits if they are included in the `#[derive(...)]`
 /// parameters, but it will not import/re-export these traits, your project must have `serde` as
-/// dependency.
+/// a direct dependency.
 ///
-/// #### Example
 /// ```no_run
 /// use bitflag_attr::bitflag;
-/// use serde::{Serialize, Deserialize}
+/// use serde::{Serialize, Deserialize};
 ///
 /// #[bitflag(u32)]
 /// #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -222,6 +221,26 @@ mod typed;
 ///
 ///     /// The combination of `A`, `B`, and `C`.
 ///     ABC = A | B | C,
+/// }
+/// ```
+///
+/// ### Arbitrary feature
+///
+/// If the crate is compiled with the `arbitrary` feature, this crate will generate implementations for
+/// the `arbitrary::Arbitrary` traits if they are included in the `#[derive(...)]`
+/// parameters, but it will not import/re-export these traits, your project must have `arbitrary` as
+/// a direct dependency.
+///
+/// ```no_run
+/// use bitflag_attr::bitflag;
+/// use arbitrary::Arbitrary;
+///
+/// #[bitflag(u32)]
+/// #[derive(Clone, Copy, Arbitrary)]
+/// enum Color {
+///     RED = 0x1,
+///     GREEN = 0x02,
+///     BLUE = 0x4,
 /// }
 /// ```
 ///

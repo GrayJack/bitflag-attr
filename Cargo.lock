@@ -3,9 +3,16 @@
 version = 3
 
 [[package]]
+name = "arbitrary"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
+
+[[package]]
 name = "bitflag-attr"
 version = "0.9.0"
 dependencies = [
+ "arbitrary",
  "bitflags-attr-macros",
  "serde",
  "trybuild",
