@@ -116,17 +116,17 @@ impl Bitflag {
                         return Ok(());
                     }
 
-                    if ident == "Serialize" {
+                    if ident == "Serialize" && cfg!(feature = "serde") {
                         impl_serialize = true;
                         return Ok(());
                     }
 
-                    if ident == "Deserialize" {
+                    if ident == "Deserialize" && cfg!(feature = "serde") {
                         impl_deserialize = true;
                         return Ok(());
                     }
 
-                    if ident == "Arbitrary" {
+                    if ident == "Arbitrary" && cfg!(feature = "arbitrary") {
                         impl_arbitrary = true;
                         return Ok(());
                     }
