@@ -103,6 +103,7 @@
 //!
 //! - `serde`: Support `#[derive(Serialize, Deserialize)]`, using text for human-readable formats,
 //!     and a raw number for binary formats.
+//! - `arbitrary`: Support `#[derive(Arbitrary)]`, only generating flags values with known bits.
 //!
 //! ### Adding custom methods
 //!

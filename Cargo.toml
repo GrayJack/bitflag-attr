@@ -27,6 +27,11 @@ path = "tests/api.rs"
 name = "bitflags_imported_tests"
 path = "tests/bitflags.rs"
 
+[[test]]
+name = "arbitrary_tests"
+path = "tests/arbitrary.rs"
+required-features = ["arbitrary"]
+
 [[example]]
 name = "serde"
 required-features = ["serde"]
@@ -34,6 +39,7 @@ required-features = ["serde"]
 [dev-dependencies]
 trybuild = "1.0"
 serde = "1.0"
+arbitrary = "1.0"
 
 [features]
 default = []
@@ -44,6 +50,9 @@ alloc = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
 serde = ["bitflags-attr-macros/serde"]
+# Implement `Arbitrary` for the type with the bitflag attribute.
+# This do not add `arbitrary` in your dependency tree
+arbitrary = ["bitflags-attr-macros/arbitrary"]
 # Allows to use custom types as parameter for the bitflags macro.
 custom-types = ["bitflags-attr-macros/custom-types"]
 # Generate as const functions some functions that take `&mut` (Only stable on rust 1.83.0: release date: 28 November, 2024)

@@ -18,6 +18,7 @@ pub struct Bitflag {
     impl_default: bool,
     impl_serialize: bool,
     impl_deserialize: bool,
+    impl_arbitrary: bool,
     all_attrs: Vec<Vec<Attribute>>,
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
@@ -95,11 +96,12 @@ impl Bitflag {
 
         let mut derived_traits = Vec::new();
         let mut impl_debug = false;
+        let mut impl_default = false;
         let mut impl_serialize = false;
         let mut impl_deserialize = false;
+        let mut impl_arbitrary = false;
         let mut clone_found = false;
         let mut copy_found = false;
-        let mut impl_default = false;
 
         for derive in derives {
             derive.parse_nested_meta(|meta| {
@@ -121,6 +123,11 @@ impl Bitflag {
 
                     if ident == "Deserialize" {
                         impl_deserialize = true;
+                        return Ok(());
+                    }
+
+                    if ident == "Arbitrary" {
+                        impl_arbitrary = true;
                         return Ok(());
                     }
 
@@ -292,6 +299,7 @@ impl Bitflag {
             impl_default,
             impl_serialize,
             impl_deserialize,
+            impl_arbitrary,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -316,6 +324,7 @@ impl ToTokens for Bitflag {
             impl_default,
             impl_serialize,
             impl_deserialize,
+            impl_arbitrary,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -470,6 +479,17 @@ impl ToTokens for Bitflag {
 
                             Ok(#name::from_bits_retain(bits))
                         }
+                    }
+                }
+            }
+        });
+
+        let arbitrary_impl = (cfg!(feature = "arbitrary") && *impl_arbitrary).then(|| {
+            quote! {
+                #[automatically_derived]
+                impl<'a> ::arbitrary::Arbitrary<'a> for #name {
+                    fn arbitrary(u: &mut ::arbitrary::Unstructured<'a>) -> ::arbitrary::Result<Self> {
+                        #name::from_bits(u.arbitrary()?).ok_or(::arbitrary::Error::IncorrectFormat)
                     }
                 }
             }
@@ -959,6 +979,7 @@ impl ToTokens for Bitflag {
 
             #serialize_impl
             #deserialize_impl
+            #arbitrary_impl
         };
 
         tokens.append_all(generated);
