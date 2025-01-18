@@ -1148,6 +1148,9 @@ impl ToTokens for ReprKind {
 /// A parenthesized expression can be simplified if it's underlying expression is also able to be simplified.
 ///
 /// A "as" cast can be simplified if it's underlying expression is also able to be simplified.
+///
+/// To-Do:
+/// In theory, something like `FlagTypeName::FlagKind.bits()` could be simplified, but demands a more complicated analysis of method call expression
 fn can_simplify(expr: &syn::Expr, variants: &[Ident]) -> bool {
     match expr {
         syn::Expr::Lit(_) => true,
@@ -1173,6 +1176,13 @@ fn is_simple_path(expr: &syn::ExprPath, variants: &[Ident]) -> bool {
         if !variants.contains(ident) {
             return true;
         }
+    }
+
+    // compound path
+    // All real usages I had it could be simplified, after simplification, even cases where type
+    // don't match, the resulting native error is very good.
+    if expr.path.segments.iter().count() >= 2 {
+        return true;
     }
 
     false
