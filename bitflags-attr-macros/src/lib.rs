@@ -244,6 +244,32 @@ mod typed;
 /// }
 /// ```
 ///
+/// ### Bytemuck feature
+///
+/// If the crate is compiled with the `bytemuck` feature, this crate will generate implementations for
+/// the `bytemuck::{Pod, Zeroable}` traits if they are included in the `#[derive(...)]`
+/// parameters, but it will not import/re-export these traits, your project must have `bytemuck` as
+/// a direct dependency.
+///
+/// ```no_run
+/// use bitflag_attr::bitflag;
+/// use bytemuck::{Pod, Zeroable};
+///
+/// #[bitflag(u32)]
+/// #[derive(Debug, Clone, Copy, Pod, Zeroable)]
+/// pub enum Flags {
+///     /// The value `A`, at bit position `0`.
+///     A = 0b00000001,
+///     /// The value `B`, at bit position `1`.
+///     B = 0b00000010,
+///     /// The value `C`, at bit position `2`.
+///     C = 0b00000100,
+///
+///     /// The combination of `A`, `B`, and `C`.
+///     ABC = A | B | C,
+/// }
+/// ```
+///
 /// ### `const-mut-ref` feature
 ///
 /// If the crate is compiled with the `const-mut-ref` feature, all type-associated API that takes

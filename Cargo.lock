@@ -14,6 +14,7 @@ version = "0.9.0"
 dependencies = [
  "arbitrary",
  "bitflags-attr-macros",
+ "bytemuck",
  "serde",
  "trybuild",
 ]
@@ -26,6 +27,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "bytemuck"
+version = "1.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef657dfab802224e671f5818e9a4935f9b1957ed18e58292690cc39e7a4092a3"
 
 [[package]]
 name = "equivalent"

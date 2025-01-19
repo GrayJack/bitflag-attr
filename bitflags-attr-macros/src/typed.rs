@@ -19,6 +19,8 @@ pub struct Bitflag {
     impl_serialize: bool,
     impl_deserialize: bool,
     impl_arbitrary: bool,
+    impl_pod: bool,
+    impl_zeroable: bool,
     all_attrs: Vec<Vec<Attribute>>,
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
@@ -100,6 +102,8 @@ impl Bitflag {
         let mut impl_serialize = false;
         let mut impl_deserialize = false;
         let mut impl_arbitrary = false;
+        let mut impl_pod = false;
+        let mut impl_zeroable = false;
         let mut clone_found = false;
         let mut copy_found = false;
 
@@ -128,6 +132,37 @@ impl Bitflag {
 
                     if ident == "Arbitrary" && cfg!(feature = "arbitrary") {
                         impl_arbitrary = true;
+                        return Ok(());
+                    }
+
+                    if ident == "Pod" && cfg!(feature = "bytemuck") {
+                        // Our types are repr(transparent) by default, and that is compatible with
+                        // the constrains required by `Pod` trait.
+                        if repr_attr.is_none() {
+                            impl_pod = true;
+                            return Ok(());
+                        }
+
+                        if let Some(ReprAttr { kind, .. }) = &repr_attr {
+                            match kind {
+                                // Pod requires either `repr(transparent)` or `repr(C)` without
+                                // padding (I think it's always safe for one field struct) or
+                                // `repr(C, packed|align)`
+                                // We should generate static checks to make sure though
+                                ReprKind::Transparent | ReprKind::C => {
+                                    impl_pod = true;
+                                    return Ok(());
+                                }
+                                ReprKind::Rust => return Err(Error::new(
+                                    meta.path.span(),
+                                    "bitflag: deriving `Pod` for `#[repr(Rust)]` is not compatible",
+                                )),
+                            }
+                        }
+                    }
+
+                    if ident == "Zeroable" && cfg!(feature = "bytemuck") {
+                        impl_zeroable = true;
                         return Ok(());
                     }
 
@@ -300,6 +335,8 @@ impl Bitflag {
             impl_serialize,
             impl_deserialize,
             impl_arbitrary,
+            impl_pod,
+            impl_zeroable,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -325,6 +362,8 @@ impl ToTokens for Bitflag {
             impl_serialize,
             impl_deserialize,
             impl_arbitrary,
+            impl_pod,
+            impl_zeroable,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -492,6 +531,27 @@ impl ToTokens for Bitflag {
                         #name::from_bits(u.arbitrary()?).ok_or(::arbitrary::Error::IncorrectFormat)
                     }
                 }
+            }
+        });
+
+        let pod_impl = (cfg!(feature = "bytemuck") && *impl_pod).then(|| {
+            quote! {
+                /// Extra static check for the Pod implementation
+                #[doc(hidden)]
+                const _: () = {
+                    if ::core::mem::size_of::<#name>() != ::core::mem::size_of::<#inner_ty>() {
+                        ::core::panic!("bitflag: type not compatible with the `bytemuck::Pod` trait.")
+                    }
+                };
+                #[automatically_derived]
+                unsafe impl ::bytemuck::Pod for #name {}
+            }
+        });
+
+        let zeroable_impl = (cfg!(feature = "bytemuck") && *impl_zeroable).then(|| {
+            quote! {
+                #[automatically_derived]
+                unsafe impl ::bytemuck::Zeroable for #name {}
             }
         });
 
@@ -980,6 +1040,8 @@ impl ToTokens for Bitflag {
             #serialize_impl
             #deserialize_impl
             #arbitrary_impl
+            #pod_impl
+            #zeroable_impl
         };
 
         tokens.append_all(generated);

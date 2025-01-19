@@ -132,6 +132,21 @@ The custom implementation for `Serialize` and `Deserialize` will be generated on
 
 **Note:** This crate does not import/re-export serde traits, your project MUST have `serde` as dependency.
 
+There is a opt-in crate feature `arbitrary` that generate a parsing error type and implements the traits:
+
+- [X] arbitrary::Arbitrary
+
+The custom implementation for `Arbitrary` will be generated only if this traits are in the `#[derive(...)]` attribute list (similar how the `Debug` works).
+
+**Note:** This crate does not import/re-export arbitrary traits, your project MUST have `arbitrary` as dependency.
+
+There is a opt-in crate feature `bytemuck` that generate a parsing error type and implements the traits:
+
+- [X] bytemuck::Pod
+- [X] bytemuck::Zeroable
+
+The custom implementation for `Pod` and `Zeroable` will be generated only if those traits are in the `#[derive(...)]` attribute list (similar how the `Debug` works).
+
 ### Const mut ref
 
 Most of the associated function generated for the flags type are `const`-compatible, with exceptions with the one that takes `&mut self`.
