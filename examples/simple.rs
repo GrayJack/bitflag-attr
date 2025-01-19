@@ -5,7 +5,7 @@ const CONST2: u32 = 0b100;
 
 mod namespaced {
     pub const CONST3: u32 = 0b1000;
-    pub const Flag1: u32 = super::ExampleFlags::Flag1.bits();
+    pub const FLAG1: u32 = super::ExampleFlags::Flag1.bits();
 }
 
 /// A example bitflag
@@ -23,7 +23,7 @@ pub enum ExampleFlags {
     Flag9 = 1u8 as u32,
     Flag10 = ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits(),
     Flag11 = namespaced::CONST3,
-    Flag12 = namespaced::CONST3 & namespaced::Flag1,
+    Flag12 = namespaced::CONST3 & namespaced::FLAG1,
 }
 
 fn main() {

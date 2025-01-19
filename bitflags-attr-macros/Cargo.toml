@@ -35,6 +35,9 @@ serde = []
 # Implement `Arbitrary` for the type with the bitflag attribute.
 # This do not add `arbitrary` in your dependency tree
 arbitrary = []
+# Implement `Pod` and `Zeroable` for the type with the bitflag attribute.
+# This do not add `bytemuck` in your dependency tree
+bytemuck = []
 # Allows to use custom types as parameter for the bitflags macro
 custom-types = []
 # Generate as const functions some functions that take `&mut` (Only stable on rust 1.83.0: release date: 28 November, 2024)
