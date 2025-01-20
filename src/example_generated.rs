@@ -3,6 +3,11 @@
 const CONST1: u32 = 0b10;
 const CONST2: u32 = 0b100;
 
+mod namespaced {
+    pub const CONST3: u32 = 0b1000;
+    pub const FLAG1: u32 = super::ExampleFlags::Flag1.bits();
+}
+
 #[repr(transparent)]
 #[doc = " A example bitflag"]
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
@@ -10,28 +15,31 @@ pub struct ExampleFlags(u32)
 where
     u32: crate::BitsPrimitive;
 
+#[doc(hidden)]
+#[allow(clippy::unused_unit)]
+const _: () = {
+    {
+        #[allow(dead_code)]
+        #[doc = " A example bitflag"]
+        enum ExampleFlags {
+            Flag1,
+            Flag2,
+            Flag3,
+            Flag4,
+            Flag5,
+            Flag6,
+            Flag7,
+            Flag8,
+            Flag9,
+            Flag10,
+            Flag11,
+            Flag12,
+        }
+    }
+    ()
+};
 #[allow(non_upper_case_globals)]
 impl ExampleFlags {
-    #[doc(hidden)]
-    #[allow(clippy::unused_unit)]
-    const __OG: () = {
-        {
-            #[doc = " A example bitflag"]
-            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-            enum ExampleFlags {
-                Flag1,
-                Flag2,
-                Flag3,
-                Flag4,
-                Flag5,
-                Flag6,
-                Flag7,
-                Flag8,
-                Flag9,
-            }
-        }
-        ()
-    };
     pub const Flag1: Self = Self(1 << 9);
     pub const Flag2: Self = Self(1 << 12);
     pub const Flag3: Self = Self(CONST1);
@@ -56,6 +64,12 @@ impl ExampleFlags {
         const Flag8: u32 = (1 << 1) | (1 << 4);
         #[allow(non_upper_case_globals, dead_code, unused)]
         const Flag9: u32 = 1u8 as u32;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag10: u32 = ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits();
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag11: u32 = namespaced::CONST3;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag12: u32 = namespaced::CONST3 & namespaced::FLAG1;
         Self(Flag1 | Flag2)
     };
     pub const Flag7: Self = {
@@ -77,10 +91,45 @@ impl ExampleFlags {
         const Flag8: u32 = (1 << 1) | (1 << 4);
         #[allow(non_upper_case_globals, dead_code, unused)]
         const Flag9: u32 = 1u8 as u32;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag10: u32 = ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits();
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag11: u32 = namespaced::CONST3;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag12: u32 = namespaced::CONST3 & namespaced::FLAG1;
         Self(CONST1 | Flag1)
     };
     pub const Flag8: Self = Self((1 << 1) | (1 << 4));
     pub const Flag9: Self = Self(1u8 as u32);
+    pub const Flag10: Self = {
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag1: u32 = 1 << 9;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag2: u32 = 1 << 12;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag3: u32 = CONST1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag4: u32 = !CONST1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag5: u32 = CONST1 | CONST2 | 3;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag6: u32 = Flag1 | Flag2;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag7: u32 = CONST1 | Flag1;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag8: u32 = (1 << 1) | (1 << 4);
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag9: u32 = 1u8 as u32;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag10: u32 = ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits();
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag11: u32 = namespaced::CONST3;
+        #[allow(non_upper_case_globals, dead_code, unused)]
+        const Flag12: u32 = namespaced::CONST3 & namespaced::FLAG1;
+        Self(ExampleFlags::Flag1.bits() | ExampleFlags::Flag4.bits())
+    };
+    pub const Flag11: Self = Self(namespaced::CONST3);
+    pub const Flag12: Self = Self(namespaced::CONST3 & namespaced::FLAG1);
 }
 #[allow(non_upper_case_globals)]
 impl ExampleFlags {
@@ -113,15 +162,18 @@ impl ExampleFlags {
     #[inline]
     pub fn from_flag_name(name: &str) -> Option<Self> {
         match name {
-            "Flag1" => Some(Self::Flag1),
-            "Flag2" => Some(Self::Flag2),
-            "Flag3" => Some(Self::Flag3),
-            "Flag4" => Some(Self::Flag4),
-            "Flag5" => Some(Self::Flag5),
-            "Flag6" => Some(Self::Flag6),
-            "Flag7" => Some(Self::Flag7),
-            "Flag8" => Some(Self::Flag8),
-            "Flag9" => Some(Self::Flag9),
+            "Flag1" => Some(ExampleFlags::Flag1),
+            "Flag2" => Some(ExampleFlags::Flag2),
+            "Flag3" => Some(ExampleFlags::Flag3),
+            "Flag4" => Some(ExampleFlags::Flag4),
+            "Flag5" => Some(ExampleFlags::Flag5),
+            "Flag6" => Some(ExampleFlags::Flag6),
+            "Flag7" => Some(ExampleFlags::Flag7),
+            "Flag8" => Some(ExampleFlags::Flag8),
+            "Flag9" => Some(ExampleFlags::Flag9),
+            "Flag10" => Some(ExampleFlags::Flag10),
+            "Flag11" => Some(ExampleFlags::Flag11),
+            "Flag12" => Some(ExampleFlags::Flag12),
             _ => None,
         }
     }
@@ -158,32 +210,41 @@ impl ExampleFlags {
     pub const fn all() -> Self {
         let mut all = 0;
         {
-            all |= Self::Flag1.0;
+            all |= ExampleFlags::Flag1.0;
         }
         {
-            all |= Self::Flag2.0;
+            all |= ExampleFlags::Flag2.0;
         }
         {
-            all |= Self::Flag3.0;
+            all |= ExampleFlags::Flag3.0;
         }
         {
-            all |= Self::Flag4.0;
+            all |= ExampleFlags::Flag4.0;
         }
         {
-            all |= Self::Flag5.0;
+            all |= ExampleFlags::Flag5.0;
         }
         {
-            all |= Self::Flag6.0;
+            all |= ExampleFlags::Flag6.0;
         }
         {
-            all |= Self::Flag7.0;
+            all |= ExampleFlags::Flag7.0;
         }
         {
-            all |= Self::Flag8.0;
+            all |= ExampleFlags::Flag8.0;
         }
         {
-            all |= Self::Flag9.0;
-        };
+            all |= ExampleFlags::Flag9.0;
+        }
+        {
+            all |= ExampleFlags::Flag10.0;
+        }
+        {
+            all |= ExampleFlags::Flag11.0;
+        }
+        {
+            all |= ExampleFlags::Flag12.0;
+        }
         Self(all)
     }
     #[doc = r" Returns `true` if the flag value contais all known flags."]
@@ -444,46 +505,59 @@ impl ::core::fmt::Debug for ExampleFlags {
             .finish()
     }
 }
+#[automatically_derived]
 impl crate::Flags for ExampleFlags {
     const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
-        ("Flag1", Self::Flag1),
-        ("Flag2", Self::Flag2),
-        ("Flag3", Self::Flag3),
-        ("Flag4", Self::Flag4),
-        ("Flag5", Self::Flag5),
-        ("Flag6", Self::Flag6),
-        ("Flag7", Self::Flag7),
-        ("Flag8", Self::Flag8),
-        ("Flag9", Self::Flag9),
+        ("Flag1", ExampleFlags::Flag1),
+        ("Flag2", ExampleFlags::Flag2),
+        ("Flag3", ExampleFlags::Flag3),
+        ("Flag4", ExampleFlags::Flag4),
+        ("Flag5", ExampleFlags::Flag5),
+        ("Flag6", ExampleFlags::Flag6),
+        ("Flag7", ExampleFlags::Flag7),
+        ("Flag8", ExampleFlags::Flag8),
+        ("Flag9", ExampleFlags::Flag9),
+        ("Flag10", ExampleFlags::Flag10),
+        ("Flag11", ExampleFlags::Flag11),
+        ("Flag12", ExampleFlags::Flag12),
     ];
     const EXTRA_VALID_BITS: u32 = {
         let mut all = 0;
         {
-            all |= Self::Flag1.0;
+            all |= ExampleFlags::Flag1.0;
         }
         {
-            all |= Self::Flag2.0;
+            all |= ExampleFlags::Flag2.0;
         }
         {
-            all |= Self::Flag3.0;
+            all |= ExampleFlags::Flag3.0;
         }
         {
-            all |= Self::Flag4.0;
+            all |= ExampleFlags::Flag4.0;
         }
         {
-            all |= Self::Flag5.0;
+            all |= ExampleFlags::Flag5.0;
         }
         {
-            all |= Self::Flag6.0;
+            all |= ExampleFlags::Flag6.0;
         }
         {
-            all |= Self::Flag7.0;
+            all |= ExampleFlags::Flag7.0;
         }
         {
-            all |= Self::Flag8.0;
+            all |= ExampleFlags::Flag8.0;
         }
         {
-            all |= Self::Flag9.0;
+            all |= ExampleFlags::Flag9.0;
+        }
+        {
+            all |= ExampleFlags::Flag10.0;
+        }
+        {
+            all |= ExampleFlags::Flag11.0;
+        }
+        {
+            all |= ExampleFlags::Flag12.0;
         }
         all
     };
@@ -497,15 +571,18 @@ impl crate::Flags for ExampleFlags {
 }
 impl ExampleFlags {
     const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
-        ("Flag1", Self::Flag1),
-        ("Flag2", Self::Flag2),
-        ("Flag3", Self::Flag3),
-        ("Flag4", Self::Flag4),
-        ("Flag5", Self::Flag5),
-        ("Flag6", Self::Flag6),
-        ("Flag7", Self::Flag7),
-        ("Flag8", Self::Flag8),
-        ("Flag9", Self::Flag9),
+        ("Flag1", ExampleFlags::Flag1),
+        ("Flag2", ExampleFlags::Flag2),
+        ("Flag3", ExampleFlags::Flag3),
+        ("Flag4", ExampleFlags::Flag4),
+        ("Flag5", ExampleFlags::Flag5),
+        ("Flag6", ExampleFlags::Flag6),
+        ("Flag7", ExampleFlags::Flag7),
+        ("Flag8", ExampleFlags::Flag8),
+        ("Flag9", ExampleFlags::Flag9),
+        ("Flag10", ExampleFlags::Flag10),
+        ("Flag11", ExampleFlags::Flag11),
+        ("Flag12", ExampleFlags::Flag12),
     ];
     #[doc = r" Yield a set of contained flags values."]
     #[doc = r""]
