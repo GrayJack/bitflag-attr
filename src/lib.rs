@@ -326,7 +326,7 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 ///
 /// ## Implementing `Flags`
 ///
-/// This trait is implemented by the [`bitflag`](crate::bitflag) macro:
+/// This trait is implemented by the [`bitflag`] macro:
 ///
 /// ```
 /// use bitflag_attr::bitflag;
@@ -575,7 +575,7 @@ pub trait Flags: Sized + Copy + 'static {
 
     /// Returns the complement of the value.
     ///
-    /// This is very similar to the [`not`](Self::not), but truncates non used bits.
+    /// This is very similar to the `not` operation, but truncates non used bits.
     #[must_use]
     fn complement(self) -> Self {
         Self::from_bits_truncate(!self.bits())
