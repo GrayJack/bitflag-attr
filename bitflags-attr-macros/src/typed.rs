@@ -1,6 +1,6 @@
 use syn::{
-    parse::Parse, spanned::Spanned, token::Paren, Attribute, Error, Expr, Ident, ItemConst,
-    ItemEnum, LitStr, Meta, MetaNameValue, Path, Visibility,
+    parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren, Attribute, Error, Expr,
+    Ident, ItemConst, ItemEnum, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -80,7 +80,31 @@ impl Bitflag {
 
         let repr_attr = match repr_attr {
             Some(repr) => {
+                use ReprKind::*;
                 let repr = repr?;
+
+                // Cause errors on invalid ones since Rust will cause worse errors
+                match repr.kinds() {
+                    // ignore case | impossible case
+                    (None, None) | (None, Some(_)) => {}
+                    // Simplest cases
+                    (Some(Rust(_) | C(_) | Transparent(_)), None) => {}
+                    // Definitely wrong cases
+                    (Some(kind), None)
+                    | (Some(Rust(_) | C(_)), Some(kind))
+                    | (Some(kind), Some(Rust(_) | C(_))) => {
+                        return Err(Error::new(
+                            kind.span(),
+                            "`bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`",
+                        ));
+                    }
+                    // TODO: Theoretically, `packed(N)` and `align(N)` is allowed if N is the same
+                    // or bigger than size_of the inner type. We can only prove it by this time
+                    // if the inner type is one of the integers of specific type (i<BITS>|u<BITS>).
+                    // We could allow and generate a static assert (a.k.a. a const that panics under
+                    // condition) like we do with the `Pod` trait.
+                    _ => {}
+                }
                 Some(repr)
             }
             None => None,
@@ -143,20 +167,29 @@ impl Bitflag {
                             return Ok(());
                         }
 
-                        if let Some(ReprAttr { kind, .. }) = &repr_attr {
-                            match kind {
+                        if let Some(repr_attr) = &repr_attr {
+                            match repr_attr.kinds() {
                                 // Pod requires either `repr(transparent)` or `repr(C)` without
                                 // padding (I think it's always safe for one field struct) or
                                 // `repr(C, packed|align)`
                                 // We should generate static checks to make sure though
-                                ReprKind::Transparent | ReprKind::C => {
+                                (Some(ReprKind::Transparent(_) | ReprKind::C(_)), None)
+                                | (
+                                    Some(ReprKind::C(_)),
+                                    Some(ReprKind::Packed(_, _) | ReprKind::Align(_, _)),
+                                ) => {
                                     impl_pod = true;
                                     return Ok(());
                                 }
-                                ReprKind::Rust => return Err(Error::new(
-                                    meta.path.span(),
-                                    "bitflag: deriving `Pod` for `#[repr(Rust)]` is not compatible",
-                                )),
+                                _ => {
+                                    return Err(Error::new(
+                                        meta.path.span(),
+                                        format!(
+                                            "bitflag: deriving `Pod` for `{}` is not compatible",
+                                            repr_attr.to_token_stream()
+                                        ),
+                                    ))
+                                }
                             }
                         }
                     }
@@ -540,7 +573,7 @@ impl ToTokens for Bitflag {
                 #[doc(hidden)]
                 const _: () = {
                     if ::core::mem::size_of::<#name>() != ::core::mem::size_of::<#inner_ty>() {
-                        ::core::panic!("bitflag: type not compatible with the `bytemuck::Pod` trait.")
+                        ::core::panic!("`bitflag` error: type `{}` not compatible with the `bytemuck::Pod` trait.", ::core::stringify!(#name));
                     }
                 };
                 #[automatically_derived]
@@ -1108,55 +1141,62 @@ impl Parse for ExtraValidBits {
 struct ReprAttr {
     path: Path,
     _paren_token: Paren,
-    kind: ReprKind,
+    kinds: Punctuated<ReprKind, syn::Token![,]>,
+}
+
+impl ReprAttr {
+    pub fn kinds(&self) -> (Option<ReprKind>, Option<ReprKind>) {
+        (self.kinds.get(0).cloned(), self.kinds.get(1).cloned())
+    }
 }
 
 impl Parse for ReprAttr {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let repr: syn::MetaList = input.parse()?;
+        let path: Path = input.parse()?;
 
-        if !repr.path.is_ident("repr") {
-            return Err(Error::new(repr.path.span(), "not a repr"));
+        let content;
+        let _paren_token = syn::parenthesized!(content in input);
+
+        if !path.is_ident("repr") {
+            return Err(Error::new(path.span(), "not a `#[repr]` attribute"));
         }
 
-        let _paren_token = match repr.delimiter {
-            syn::MacroDelimiter::Paren(paren) => paren,
-            syn::MacroDelimiter::Brace(b) => {
-                return Err(Error::new(
-                    b.span.span(),
-                    "invalid syntax, expected parenthesis",
-                ))
-            }
-            syn::MacroDelimiter::Bracket(b) => {
-                return Err(Error::new(
-                    b.span.span(),
-                    "invalid syntax, expected parenthesis",
-                ))
-            }
-        };
+        let mut kinds = Punctuated::new();
 
-        let kind: ReprKind = syn::parse2(repr.tokens)?;
+        while !content.is_empty() {
+            let first: ReprKind = content.parse()?;
+            kinds.push_value(first);
+            if content.is_empty() {
+                break;
+            }
+            let punct = content.parse()?;
+            kinds.push_punct(punct);
+        }
 
         Ok(Self {
-            path: repr.path,
+            path,
             _paren_token,
-            kind,
+            kinds,
         })
     }
 }
 
 impl ToTokens for ReprAttr {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { path, kind, .. } = self;
-        tokens.append_all(quote! {#[#path(#kind)]});
+        let Self { path, kinds, .. } = self;
+        tokens.append_all(quote! {#[#path(#kinds)]});
     }
 }
 
 /// Supported repr
+#[derive(Clone)]
 enum ReprKind {
-    C,
-    Rust,
-    Transparent,
+    C(Path),
+    Rust(Path),
+    Transparent(Path),
+    Integer(Path),
+    Packed(Path, Option<LitInt>),
+    Align(Path, LitInt),
 }
 
 impl Parse for ReprKind {
@@ -1171,19 +1211,34 @@ impl Parse for ReprKind {
                     .unwrap_or("".to_string());
 
                 match text.as_str() {
-                    "C" => Ok(Self::C),
-                    "Rust" => Ok(Self::Rust),
-                    "transparent" => Ok(Self::Transparent),
-                    _ => Err(Error::new(
-                        path.span(),
-                        "`bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`",
-                    )),
+                    "C" => Ok(Self::C(path)),
+                    "Rust" => Ok(Self::Rust(path)),
+                    "transparent" => Ok(Self::Transparent(path)),
+                    "packed" => Ok(Self::Packed(path, None)),
+                    x if VALID_REPR_INT.contains(&x) => Ok(Self::Integer(path)),
+                    _ => Err(Error::new(path.span(), "invalid `repr` kind")),
                 }
             }
-            _ => Err(Error::new(
-                meta.span(),
-                "`bitflag` unsupported repr: Supported repr are `C`, `Rust` and `transparent`",
-            )),
+            Meta::List(list) => {
+                let text = list
+                    .path
+                    .get_ident()
+                    .map(|p| p.to_string())
+                    .unwrap_or("".to_string());
+
+                match text.as_str() {
+                    "packed" => {
+                        let lit = syn::parse2(list.tokens)?;
+                        Ok(Self::Packed(list.path, Some(lit)))
+                    }
+                    "align" => {
+                        let lit = syn::parse2(list.tokens)?;
+                        Ok(Self::Align(list.path, lit))
+                    }
+                    _ => Err(Error::new(list.span(), "invalid `repr` kind")),
+                }
+            }
+            _ => Err(Error::new(meta.span(), "invalid `repr` kind")),
         }
     }
 }
@@ -1191,12 +1246,22 @@ impl Parse for ReprKind {
 impl ToTokens for ReprKind {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
-            ReprKind::C => tokens.append_all(quote!(C)),
-            ReprKind::Rust => tokens.append_all(quote!(Rust)),
-            ReprKind::Transparent => tokens.append_all(quote!(transparent)),
+            ReprKind::C(path)
+            | ReprKind::Rust(path)
+            | ReprKind::Transparent(path)
+            | ReprKind::Integer(path)
+            | ReprKind::Packed(path, None) => tokens.append_all(quote!(#path)),
+
+            ReprKind::Packed(path, Some(lit_int)) | ReprKind::Align(path, lit_int) => {
+                tokens.append_all(quote!(#path(#lit_int)))
+            }
         }
     }
 }
+
+const VALID_REPR_INT: &[&str] = &[
+    "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64", "i128", "u128",
+];
 
 /// Recursively check if a expression can be simplified to a simple wrap of `Self(<expr>)`.
 ///
