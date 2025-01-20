@@ -283,7 +283,7 @@ impl Bitflag {
                 .iter()
                 .filter(|attr| !attr.path().is_ident("doc") && !attr.path().is_ident("default"));
 
-            all_flags.push(quote!(Self::#var_name));
+            all_flags.push(quote!(#name::#var_name));
             all_flags_names.push(syn::LitStr::new(&var_name.to_string(), var_name.span()));
             all_variants.push(var_name.clone());
             all_attrs.push(filtered_attrs.clone().cloned().collect::<Vec<_>>());
@@ -597,19 +597,19 @@ impl ToTokens for Bitflag {
             where
                 #inner_ty: ::bitflag_attr::BitsPrimitive;
 
+            #[doc(hidden)]
+            #[allow(clippy::unused_unit)]
+            const _: () = {
+                {
+                    // Original enum
+                    // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
+                    #orig_enum
+                }
+                ()
+            };
+
             #[allow(non_upper_case_globals)]
             impl #name {
-                #[doc(hidden)]
-                #[allow(clippy::unused_unit)]
-                const __OG: () = {
-                    {
-                        // Original enum
-                        // This is a hack to make LSP coloring to still sees the original enum variant as a Enum variant token.
-                        #orig_enum
-                    }
-                    ()
-                };
-
                 #(#flags)*
             }
 
