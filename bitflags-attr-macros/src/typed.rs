@@ -549,7 +549,7 @@ impl ToTokens for Bitflag {
                         } else {
                             let bits = #inner_ty::deserialize(deserializer)?;
 
-                            Ok(#name::from_bits_retain(bits))
+                            ::core::result::Result::Ok(#name::from_bits_retain(bits))
                         }
                     }
                 }
@@ -623,13 +623,13 @@ impl ToTokens for Bitflag {
 
                 /// Converts from a `bits` value. Returning [`None`] is any unknown bits are set.
                 #[inline]
-                pub const fn from_bits(bits: #inner_ty) -> Option<Self> {
+                pub const fn from_bits(bits: #inner_ty) -> ::core::option::Option<Self> {
                     let truncated = Self::from_bits_truncate(bits).0;
 
                     if truncated == bits {
-                        Some(Self(bits))
+                        ::core::option::Option::Some(Self(bits))
                     } else {
-                        None
+                        ::core::option::Option::None
                     }
                 }
 
@@ -647,13 +647,13 @@ impl ToTokens for Bitflag {
 
                 /// Convert from a flag `name`.
                 #[inline]
-                pub fn from_flag_name(name: &str) -> Option<Self> {
+                pub fn from_flag_name(name: &str) -> ::core::option::Option<Self> {
                     match name {
                         #(
                             #(#all_attrs)*
-                            #all_flags_names => Some(#all_flags),
+                            #all_flags_names => ::core::option::Option::Some(#all_flags),
                         )*
-                        _ => None
+                        _ => ::core::option::Option::None
                     }
                 }
 
