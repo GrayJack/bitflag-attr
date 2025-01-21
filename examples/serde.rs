@@ -1,5 +1,4 @@
 use bitflag_attr::bitflag;
-use serde::{Deserialize, Serialize};
 
 #[bitflag(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Deserialize, Serialize)]
