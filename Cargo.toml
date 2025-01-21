@@ -15,37 +15,13 @@ exclude = ["/tests", "/.github"]
 [dependencies]
 bitflags-attr-macros = { version = "=0.9.0", path = "bitflags-attr-macros" }
 
-[[test]]
-name = "tests"
-path = "tests/progress.rs"
-
-[[test]]
-name = "generated_api_tests"
-path = "tests/api.rs"
-
-[[test]]
-name = "bitflags_imported_tests"
-path = "tests/bitflags.rs"
-
-[[test]]
-name = "arbitrary_tests"
-path = "tests/arbitrary.rs"
-required-features = ["arbitrary"]
-
-[[test]]
-name = "bytemuck_tests"
-path = "tests/bytemuck.rs"
-required-features = ["bytemuck"]
-
-[[example]]
-name = "serde"
-required-features = ["serde"]
-
 [dev-dependencies]
 trybuild = "1.0"
 serde = "1.0"
 arbitrary = "1.0"
 bytemuck = "1.0"
+serde_json = "1.0"
+serde_test = "1.0.19"
 
 [features]
 default = []
@@ -69,3 +45,34 @@ const-mut-ref = ["bitflags-attr-macros/const-mut-ref"]
 
 [workspace]
 members = ["bitflags-attr-macros"]
+
+[[test]]
+name = "tests"
+path = "tests/progress.rs"
+
+[[test]]
+name = "generated_api_tests"
+path = "tests/api.rs"
+
+[[test]]
+name = "bitflags_imported_tests"
+path = "tests/bitflags.rs"
+
+[[test]]
+name = "serde_tests"
+path = "tests/serde.rs"
+required-features = ["serde"]
+
+[[test]]
+name = "arbitrary_tests"
+path = "tests/arbitrary.rs"
+required-features = ["arbitrary"]
+
+[[test]]
+name = "bytemuck_tests"
+path = "tests/bytemuck.rs"
+required-features = ["bytemuck"]
+
+[[example]]
+name = "serde"
+required-features = ["serde"]
