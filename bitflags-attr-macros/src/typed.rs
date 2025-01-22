@@ -568,12 +568,18 @@ impl ToTokens for Bitflag {
         });
 
         let pod_impl = (cfg!(feature = "bytemuck") && *impl_pod).then(|| {
+            let error_str = LitStr::new(
+                &format!(
+                    "`bitflag` error: type `{name}` not compatible with the `bytemuck::Pod` trait."
+                ),
+                name.span(),
+            );
             quote! {
                 /// Extra static check for the Pod implementation
                 #[doc(hidden)]
                 const _: () = {
                     if ::core::mem::size_of::<#name>() != ::core::mem::size_of::<#inner_ty>() {
-                        ::core::panic!("`bitflag` error: type `{}` not compatible with the `bytemuck::Pod` trait.", ::core::stringify!(#name));
+                        ::core::panic!(#error_str);
                     }
                 };
                 #[automatically_derived]
