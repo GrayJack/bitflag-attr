@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toolchain: ["stable", "nightly"]
+        toolchain: ["1.81.0", "stable", "nightly"]
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
