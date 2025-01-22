@@ -11,6 +11,9 @@ mod typed;
 ///
 /// The attribute requires that the [`Clone`] and [`Copy`] traits are derived for the type.
 ///
+/// [`Clone`]: ::core::clone::Clone
+/// [`Copy`]: ::core::marker::Copy
+///
 /// ## Examples
 ///
 /// Generate a flags type using `u8` as the bits type:
@@ -165,6 +168,9 @@ mod typed;
 ///
 /// The custom [`Default`] implementation will only be generated if it is included in the
 /// `#[derive(...)]` parameters.
+///
+/// [`IntoIterator`]: core::iter::IntoIterator
+/// [`Default`]: core::default::Default
 ///
 /// ### Default derive
 ///
