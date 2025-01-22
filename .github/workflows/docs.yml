@@ -31,8 +31,8 @@ jobs:
 
     - name: Build Rust Documentation
       env:
-        RUSTDOCFLAGS: --cfg _doc
-      run: cargo doc -Zrustdoc-map
+        RUSTDOCFLAGS: --cfg _doc -Zunstable-options --show-type-layout --enable-index-page
+      run: cargo doc --features std,bytemuck,arbitrary,serde -Zrustdoc-map -Zrustdoc-scrape-examples
 
     - name: Deploy Docs
       uses: peaceiris/actions-gh-pages@v3
