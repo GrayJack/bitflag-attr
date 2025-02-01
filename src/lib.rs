@@ -102,10 +102,10 @@
 //! libraries are currently supported:
 //!
 //! - `serde`: Support `#[derive(Serialize, Deserialize)]`, using text for human-readable formats,
-//!     and a raw number for binary formats.
+//!   and a raw number for binary formats.
 //! - `arbitrary`: Support `#[derive(Arbitrary)]`, only generating flags values with known bits.
 //! - `bytemuck`: Support `#[derive(Pod, Zeroable)]`, for casting between flags values and their
-//!     underlying bits values.
+//!   underlying bits values.
 //!
 //! ### Adding custom methods
 //!
