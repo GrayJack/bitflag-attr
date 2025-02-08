@@ -25,7 +25,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitflag-attr = "0.9.0"
+bitflag-attr = "0.10.0"
 ```
 
 and this to your source code:
@@ -90,9 +90,11 @@ enum Flags {
 - [X] Use enum native syntax to define individual known flags
 - [X] Discriminant values must be defined
 - [X] Generated end-user API almost entirely the same to `bitflags` crate
-- [X] Most of the generated type-associated API is `const`-compatible (entirely if `const-mut-ref` feature flag enabled)
+- [X] Most of the generated type-associated API is `const`-compatible (entirely if `const-mut-ref` feature flag enabled and Rust version is 1.83.0 or superior)
 - [X] Debug formatter outputs both the binary representation and named flag representation
 - [X] Optional support for serialization with the `serde` feature flag
+- [X] Optional support for bytemuck's casting between flags values and their underlying bits values with the `bytemuck` feature flag
+- [X] Optional support for generating structured data with the `arbitrary` feature flag
 - [X] Compatible with `#[no_std]`
 
 ### Implemented traits
@@ -156,7 +158,7 @@ If you are on Rust version 1.83.0 or superior, you can enable the `const-mut-ref
 ## Alternatives
 
 - [bitflags](https://crates.io/crates/bitflags): The OG of Rust ecosystem
-- [enumflags2](https://crates.io/crates/enumflags2):
+- [enumflags2](https://crates.io/crates/enumflags2): Bitflag enums
 
 ## Rust Version Support
 
