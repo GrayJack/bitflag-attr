@@ -113,6 +113,7 @@ The macro will also implement some traits for bitwise operations and formatting.
 - [X] core::ops::Sub
 - [X] core::ops::SubAssign
 - [X] core::fmt::Debug (if on the derive macro list)
+- [X] core::default::Default (if on the derive macro list)
 - [X] core::fmt::Binary
 - [X] core::fmt::UpperHex
 - [X] core::fmt::LowerHex
