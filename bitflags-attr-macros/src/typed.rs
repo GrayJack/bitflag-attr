@@ -13,7 +13,7 @@ pub struct Bitflag {
     name: Ident,
     inner_ty: Path,
     repr_attr: Option<ReprAttr>,
-    derived_traits: Vec<Ident>,
+    derived_traits: Vec<Path>,
     impl_debug: bool,
     impl_default: bool,
     impl_serialize: bool,
@@ -133,33 +133,35 @@ impl Bitflag {
 
         for derive in derives {
             derive.parse_nested_meta(|meta| {
-                if let Some(ident) = meta.path.get_ident() {
-                    if ident == "Debug" {
+                let s = meta.path.to_token_stream().to_string().replace(" ", "");
+                match s.as_str() {
+                    "Debug" => {
                         impl_debug = true;
                         return Ok(());
                     }
-
-                    if ident == "Default" {
+                    "Default" => {
                         impl_default = true;
                         return Ok(());
                     }
-
-                    if ident == "Serialize" && cfg!(feature = "serde") {
+                    "Serialize" | "serde::Serialize" | "::serde::Serialize"
+                        if cfg!(feature = "serde") =>
+                    {
                         impl_serialize = true;
                         return Ok(());
                     }
-
-                    if ident == "Deserialize" && cfg!(feature = "serde") {
+                    "Deserialize" | "serde::Deserialize" | "::serde::Deserialize"
+                        if cfg!(feature = "serde") =>
+                    {
                         impl_deserialize = true;
                         return Ok(());
                     }
-
-                    if ident == "Arbitrary" && cfg!(feature = "arbitrary") {
+                    "Arbitrary" | "arbitrary::Arbitrary" | "::arbitrary::Arbitrary"
+                        if cfg!(feature = "arbitrary") =>
+                    {
                         impl_arbitrary = true;
                         return Ok(());
                     }
-
-                    if ident == "Pod" && cfg!(feature = "bytemuck") {
+                    "Pod" | "bytemuck::Pod" | "::bytemuck::Pod" if cfg!(feature = "bytemuck") => {
                         // Our types are repr(transparent) by default, and that is compatible with
                         // the constrains required by `Pod` trait.
                         if repr_attr.is_none() {
@@ -193,21 +195,23 @@ impl Bitflag {
                             }
                         }
                     }
-
-                    if ident == "Zeroable" && cfg!(feature = "bytemuck") {
+                    "Zeroable" | "bytemuck::Zeroable" | "::bytemuck::Zeroable"
+                        if cfg!(feature = "bytemuck") =>
+                    {
                         impl_zeroable = true;
                         return Ok(());
                     }
+                    path => {
+                        if path == "Clone" {
+                            clone_found = true;
+                        }
 
-                    if ident == "Clone" {
-                        clone_found = true;
+                        if path == "Copy" {
+                            copy_found = true;
+                        }
+
+                        derived_traits.push(meta.path);
                     }
-
-                    if ident == "Copy" {
-                        copy_found = true;
-                    }
-
-                    derived_traits.push(ident.clone());
                 }
                 Ok(())
             })?;
