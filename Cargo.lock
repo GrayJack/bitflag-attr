@@ -10,7 +10,7 @@ checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
 
 [[package]]
 name = "bitflag-attr"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "arbitrary",
  "bitflags-attr-macros",
@@ -23,7 +23,7 @@ dependencies = [
 
 [[package]]
 name = "bitflags-attr-macros"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "proc-macro2",
  "quote",
