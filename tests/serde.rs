@@ -3,7 +3,7 @@ use bitflag_attr::bitflag;
 use serde_test::{assert_tokens, Configure, Token::*};
 
 #[bitflag(u32)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, serde::Deserialize)]
 enum SerdeFlags {
     A = 1,
     B = 2,
