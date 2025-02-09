@@ -567,7 +567,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(self.bits() & !other.bits())
     }
 
-    /// TReturns the symmetric difference from this value with `other`..
+    /// Returns the symmetric difference from this value with `other`..
     #[must_use]
     fn symmetric_difference(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() ^ other.bits())
@@ -589,7 +589,7 @@ pub trait Flags: Sized + Copy + 'static {
         *self = Self::from_bits_retain(self.bits()).union(other);
     }
 
-    /// /// Unset the flags bits in `other` in the value.
+    /// Unset the flags bits in `other` in the value.
     ///
     /// This method is not equivalent to `self & !other` when `other` has unknown bits set.
     /// `remove` won't truncate `other`, but the `!` operator will.
