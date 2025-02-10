@@ -16,6 +16,7 @@ pub struct IterNames<B: 'static> {
 }
 
 impl<B: Flags> IterNames<B> {
+    #[inline]
     pub(crate) fn new(flags: &B) -> Self {
         Self {
             flags: B::KNOWN_FLAGS,
@@ -32,11 +33,13 @@ impl<B: 'static> IterNames<B> {
     /// Once the iterator has finished, this method can be used to
     /// check whether or not there are any bits that didn't correspond
     /// to a contained, defined, named flag remaining.
+    #[inline]
     pub const fn remaining(&self) -> &B {
         &self.remaining
     }
 
     #[doc(hidden)]
+    #[inline]
     pub const fn __private_const_new(
         flags: &'static [(&'static str, B)],
         source: B,
@@ -94,6 +97,7 @@ pub struct Iter<B: 'static> {
 }
 
 impl<B: Flags> Iter<B> {
+    #[inline]
     pub fn new(flags: &B) -> Self {
         Self {
             inner: IterNames::new(flags),
@@ -105,6 +109,7 @@ impl<B: Flags> Iter<B> {
 impl<B: 'static> Iter<B> {
     // Used by the `bitflags` macro
     #[doc(hidden)]
+    #[inline]
     pub const fn __private_const_new(
         flags: &'static [(&'static str, B)],
         source: B,
