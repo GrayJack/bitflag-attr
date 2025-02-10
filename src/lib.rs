@@ -252,7 +252,6 @@
 //!
 //! [`example_generated`]: crate::example_generated::ExampleFlags
 #![no_std]
-#![warn(clippy::missing_inline_in_public_items)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -563,6 +562,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Returns the intersection from this value with `other`.
     #[must_use]
     #[inline]
+    #[doc(alias = "and")]
     fn intersection(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() & other.bits())
     }
@@ -570,6 +570,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Returns the union from this value with `other`.
     #[must_use]
     #[inline]
+    #[doc(alias = "or")]
     fn union(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() | other.bits())
     }
@@ -589,6 +590,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Returns the symmetric difference from this value with `other`..
     #[must_use]
     #[inline]
+    #[doc(alias = "xor")]
     fn symmetric_difference(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() ^ other.bits())
     }
@@ -598,12 +600,14 @@ pub trait Flags: Sized + Copy + 'static {
     /// This is very similar to the `not` operation, but truncates non used bits.
     #[must_use]
     #[inline]
+    #[doc(alias = "not")]
     fn complement(self) -> Self {
         Self::from_bits_truncate(!self.bits())
     }
 
     /// Set the flags in `other` in the value.
     #[inline]
+    #[doc(alias = "insert")]
     fn set(&mut self, other: Self)
     where
         Self: Sized,
@@ -616,6 +620,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// This method is not equivalent to `self & !other` when `other` has unknown bits set.
     /// `remove` won't truncate `other`, but the `!` operator will.
     #[inline]
+    #[doc(alias = "remove")]
     fn unset(&mut self, other: Self)
     where
         Self: Sized,
