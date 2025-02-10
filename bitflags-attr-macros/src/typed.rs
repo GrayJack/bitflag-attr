@@ -458,12 +458,27 @@ impl ToTokens for Bitflag {
                             }
                         }
 
+                        #[inline]
+                        pub const fn octal_width() -> usize {
+                            match #inner_ty::BITS as usize {
+                                8 => 3,
+                                16 => 6,
+                                32 => 11,
+                                64 => 22,
+                                128 => 43,
+                                // Not probable to happens, but if it does, do an approximation
+                                x =>  x/3 + x%3
+                            }
+                        }
+
                         let name = ::core::stringify!(#name);
 
                         f.debug_struct(name)
                             .field("flags", &HumanReadable(self))
                             // The width `2 +` is to account for the 0b printed before the binary number
                             .field("bits", &::core::format_args!("{:#0width$b}", self.0, width = 2 + #inner_ty::BITS as usize))
+                            .field("octal", &::core::format_args!("{:#0width$o}", self.0, width = 2 + const { octal_width() }))
+                            .field("hex", &::core::format_args!("{:#0width$X}", self.0, width = 2 + const {#inner_ty::BITS as usize/4}))
                             .finish()
                     }
                 }

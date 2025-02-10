@@ -91,7 +91,7 @@ enum Flags {
 - [X] Discriminant values must be defined
 - [X] Generated end-user API almost entirely the same to `bitflags` crate
 - [X] Most of the generated type-associated API is `const`-compatible (entirely if `const-mut-ref` feature flag enabled and Rust version is 1.83.0 or superior)
-- [X] Debug formatter outputs both the binary representation and named flag representation
+- [X] Debug formatter outputs both the binary, octal, hexadecimal and named flag representations
 - [X] Optional support for serialization with the `serde` feature flag
 - [X] Optional support for bytemuck's casting between flags values and their underlying bits values with the `bytemuck` feature flag
 - [X] Optional support for generating structured data with the `arbitrary` feature flag
