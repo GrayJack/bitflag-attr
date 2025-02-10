@@ -913,7 +913,7 @@ impl ToTokens for Bitflag {
             impl ::core::ops::BitAndAssign for #name {
                 #[inline]
                 fn bitand_assign(&mut self, rhs: Self) {
-                    ::core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
+                    *self = self.and(rhs)
                 }
             }
 
@@ -921,7 +921,7 @@ impl ToTokens for Bitflag {
             impl ::core::ops::BitOrAssign for #name {
                 #[inline]
                 fn bitor_assign(&mut self, rhs: Self) {
-                    ::core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
+                    *self = self.or(rhs)
                 }
             }
 
@@ -929,7 +929,7 @@ impl ToTokens for Bitflag {
             impl ::core::ops::BitXorAssign for #name {
                 #[inline]
                 fn bitxor_assign(&mut self, rhs: Self) {
-                    ::core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
+                    *self = self.xor(rhs)
                 }
             }
 
