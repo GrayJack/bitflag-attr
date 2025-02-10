@@ -861,6 +861,12 @@ impl ToTokens for Bitflag {
                 pub #const_mut fn toggle(&mut self, other: Self) {
                     self.0 = self.xor(other).0
                 }
+
+                /// Resets the flags to a empty state.
+                #[inline]
+                pub #const_mut fn clear(&mut self) {
+                    self.0 = 0
+                }
             }
 
             #[automatically_derived]
