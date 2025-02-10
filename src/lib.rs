@@ -637,6 +637,12 @@ pub trait Flags: Sized + Copy + 'static {
         *self = Self::from_bits_retain(self.bits()).symmetric_difference(other);
     }
 
+    /// Resets the flags to a empty state.
+    #[inline]
+    fn clear(&mut self) {
+        *self = Self::empty()
+    }
+
     /// Yield a set of contained flags values.
     ///
     /// Each yielded flags value will correspond to a defined named flag. Any unknown bits
