@@ -169,9 +169,6 @@ mod typed;
 /// The custom [`Default`] implementation will only be generated if it is included in the
 /// `#[derive(...)]` parameters.
 ///
-/// [`IntoIterator`]: core::iter::IntoIterator
-/// [`Default`]: core::default::Default
-///
 /// ### Default derive
 ///
 /// The `bitflag` macro handles the [`Default`] if specified in the derive list. Without specifying
@@ -362,6 +359,10 @@ mod typed;
 /// [`fmt::Octal`]: core::fmt::Octal
 /// [`From`]: From
 /// [`FromStr`]: core::str::FromStr
+/// [`Default`]: core::default::Default
+/// [`IntoIterator`]: core::iter::IntoIterator
+/// [`Extend`]: core::iter::Extend
+/// [`FromIterator`]: core::iter::FromIterator
 #[proc_macro_attribute]
 pub fn bitflag(attr: TokenStream, item: TokenStream) -> TokenStream {
     match bitflag_impl(attr, item) {
