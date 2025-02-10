@@ -252,6 +252,7 @@
 //!
 //! [`example_generated`]: crate::example_generated::ExampleFlags
 #![no_std]
+#![warn(clippy::missing_inline_in_public_items)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -308,6 +309,7 @@ macro_rules! impl_primitive {
                 const ALL: Self = !0;
             }
             impl $crate::parser::ParseHex for $ty {
+                #[inline]
                 fn parse_hex(input: &str) -> Result<Self, $crate::parser::ParseError>
                 where
                     Self: Sized
@@ -410,6 +412,7 @@ pub trait Flags: Sized + Copy + 'static {
     fn from_bits_retain(bits: Self::Bits) -> Self;
 
     /// Converts from a `bits` value. Returning [`None`] is any unknown bits are set.
+    #[inline]
     fn from_bits(bits: Self::Bits) -> Option<Self> {
         let truncated = Self::from_bits_truncate(bits);
 
@@ -421,6 +424,7 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Convert from `bits` value, unsetting any unknown bits.
+    #[inline]
     fn from_bits_truncate(bits: Self::Bits) -> Self {
         Self::from_bits_retain(bits & Self::all().bits())
     }
@@ -443,6 +447,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This method will return `None` if `name` is empty or doesn't
     /// correspond to any named flag.
+    #[inline]
     fn from_name(name: &str) -> Option<Self> {
         // Don't parse empty names as empty flags
         if name.is_empty() {
@@ -459,11 +464,13 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Construct a flag value with all bits unset.
+    #[inline]
     fn empty() -> Self {
         Self::from_bits_retain(Self::Bits::EMPTY)
     }
 
     /// Returns `true` if the flag value has all bits unset.
+    #[inline]
     fn is_empty(&self) -> bool {
         self.bits() == Self::Bits::EMPTY
     }
@@ -472,6 +479,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This will include bits that do not have any flags/meaning.
     /// Use [`all`](Flags::all) if you want only the specified flags set.
+    #[inline]
     fn all_bits() -> Self {
         Self::from_bits_retain(Self::Bits::ALL)
     }
@@ -480,6 +488,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This will check for all bits.
     /// Use [`is_all`](Flags::is_all) if you want to check for all specified flags.
+    #[inline]
     fn is_all_bits(&self) -> bool {
         self.bits() == Self::Bits::ALL
     }
@@ -487,6 +496,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Construct a flag value with all known flags set.
     ///
     /// This will only set the flags specified as associated constant.
+    #[inline]
     fn all() -> Self {
         let mut truncated = Self::Bits::EMPTY;
 
@@ -500,6 +510,7 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Whether all known bits in this flags value are set.
+    #[inline]
     fn is_all(&self) -> bool {
         // NOTE: We check against `Self::all` here, not `Self::Bits::ALL`
         // because the set of all flags may not use all bits
@@ -507,11 +518,13 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Returns `true` if there are any unknown bits set in the flag value.
+    #[inline]
     fn contains_unknown_bits(&self) -> bool {
         Self::all().bits() & self.bits() != self.bits()
     }
 
     /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
+    #[inline]
     fn truncated(&self) -> Self {
         Self::from_bits_retain(self.bits() & Self::all().bits())
     }
@@ -519,6 +532,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Returns `true` if this flag value intersects with any value in `other`.
     ///
     /// This is equivalent to `(self & other) != Self::empty()`
+    #[inline]
     fn intersects(&self, other: Self) -> bool
     where
         Self: Sized,
@@ -529,6 +543,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// Returns `true` if this flag value contains all values of `other`.
     ///
     /// This is equivalent to `(self & other) == other`
+    #[inline]
     fn contains(&self, other: Self) -> bool
     where
         Self: Sized,
@@ -537,6 +552,7 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Remove any unknown bits from the flags.
+    #[inline]
     fn truncate(&mut self)
     where
         Self: Sized,
@@ -546,12 +562,14 @@ pub trait Flags: Sized + Copy + 'static {
 
     /// Returns the intersection from this value with `other`.
     #[must_use]
+    #[inline]
     fn intersection(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() & other.bits())
     }
 
     /// Returns the union from this value with `other`.
     #[must_use]
+    #[inline]
     fn union(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() | other.bits())
     }
@@ -563,12 +581,14 @@ pub trait Flags: Sized + Copy + 'static {
     /// This method is not equivalent to `self & !other` when `other` has unknown bits set.
     /// `difference` won't truncate `other`, but the `!` operator will.
     #[must_use]
+    #[inline]
     fn difference(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() & !other.bits())
     }
 
     /// Returns the symmetric difference from this value with `other`..
     #[must_use]
+    #[inline]
     fn symmetric_difference(self, other: Self) -> Self {
         Self::from_bits_retain(self.bits() ^ other.bits())
     }
@@ -577,11 +597,13 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This is very similar to the `not` operation, but truncates non used bits.
     #[must_use]
+    #[inline]
     fn complement(self) -> Self {
         Self::from_bits_truncate(!self.bits())
     }
 
     /// Set the flags in `other` in the value.
+    #[inline]
     fn set(&mut self, other: Self)
     where
         Self: Sized,
@@ -593,6 +615,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This method is not equivalent to `self & !other` when `other` has unknown bits set.
     /// `remove` won't truncate `other`, but the `!` operator will.
+    #[inline]
     fn unset(&mut self, other: Self)
     where
         Self: Sized,
@@ -601,6 +624,7 @@ pub trait Flags: Sized + Copy + 'static {
     }
 
     /// Toggle the flags in `other` in the value.
+    #[inline]
     fn toggle(&mut self, other: Self)
     where
         Self: Sized,
@@ -612,6 +636,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// Each yielded flags value will correspond to a defined named flag. Any unknown bits
     /// will be yielded together as a final flags value.
+    #[inline]
     fn iter(&self) -> iter::Iter<Self> {
         iter::Iter::new(self)
     }
@@ -620,6 +645,7 @@ pub trait Flags: Sized + Copy + 'static {
     ///
     /// This method is like [`Flags::iter`], except only yields bits in contained named flags.
     /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
+    #[inline]
     fn iter_names(&self) -> iter::IterNames<Self> {
         iter::IterNames::new(self)
     }
