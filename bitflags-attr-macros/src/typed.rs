@@ -984,6 +984,7 @@ impl ToTokens for Bitflag {
             impl ::core::str::FromStr for #name {
                 type Err = ::bitflag_attr::parser::ParseError;
 
+                #[inline]
                 fn from_str(input: &str) -> ::core::result::Result<Self, Self::Err> {
                     ::bitflag_attr::parser::from_text(input)
                 }
@@ -1004,10 +1005,12 @@ impl ToTokens for Bitflag {
 
                 type Bits = #inner_ty;
 
+                #[inline]
                 fn bits(&self) -> Self::Bits {
                     self.0
                 }
 
+                #[inline]
                 fn from_bits_retain(bits: Self::Bits) -> Self {
                     Self(bits)
                 }
@@ -1065,6 +1068,7 @@ impl ToTokens for Bitflag {
                 type Item = Self;
                 type IntoIter = ::bitflag_attr::iter::Iter<Self>;
 
+                #[inline]
                 fn into_iter(self) -> Self::IntoIter {
                     self.iter()
                 }
@@ -1075,6 +1079,7 @@ impl ToTokens for Bitflag {
                 type Item = #name;
                 type IntoIter = ::bitflag_attr::iter::Iter<#name>;
 
+                #[inline]
                 fn into_iter(self) -> Self::IntoIter {
                     self.iter()
                 }
