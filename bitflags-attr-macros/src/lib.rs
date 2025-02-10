@@ -286,7 +286,8 @@ mod typed;
 /// If the crate is compiled with the `custom-types` feature, it allows to use more than the types
 /// defined in Rust `core` (`i8`,`u8`,`i16`,`u16`,`i32`,`u32`,`i64`,`u64`,`i128`,`u128`,`isize`,
 /// `usize`,`c_char`,`c_schar`,`c_uchar`,`c_short`,`c_ushort`,`c_int`,`c_uint`,`c_long`,`c_ulong`,
-/// `c_longlong`,`c_ulonglong`) as long as it is a type alias to one of those types.
+/// `c_longlong`,`c_ulonglong`) and the unix types alias in the `libc` crate as long as it is a type
+/// alias to one of those types.
 ///
 /// The reason it is behind a feature flag is that to ensure the validity of such constrain, we have
 /// to pay the price of having much worse error messages. With this feature enabled, a invalid type
