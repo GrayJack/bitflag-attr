@@ -723,7 +723,8 @@ impl ToTokens for Bitflag {
 
                 /// Construct a flag value with all known flags set.
                 ///
-                /// This will only set the flags specified as associated constant.
+                /// This will only set the flags specified as associated constant and the defined
+                /// extra valid bits.
                 #[inline]
                 pub const fn all() -> Self {
                     let mut all = 0;
@@ -743,6 +744,29 @@ impl ToTokens for Bitflag {
                 #[inline]
                 pub const fn is_all(&self) -> bool {
                     Self::all().0 | self.0 == self.0
+                }
+
+                /// Construct a flag value with all known named flags set.
+                ///
+                /// This will only set the flags specified as associated constant without the defined
+                /// extra valid bits.
+                #[inline]
+                pub const fn all_named() -> Self {
+                    let mut all = 0;
+
+                    #(
+                        #(#all_attrs)*{
+                            all |= #all_flags.0;
+                        }
+                    )*
+
+                    Self(all)
+                }
+
+                /// Returns `true` if the flag value contais all known named flags.
+                #[inline]
+                pub const fn is_all_named(&self) -> bool {
+                    Self::all_named().0 | self.0 == self.0
                 }
 
                 /// Returns `true` if there are any unknown bits set in the flag value.
