@@ -1,0 +1,5 @@
+error: the type for `bitflag` must be a `enum` (that will be turned into a `struct`)
+ --> tests/09-invalid_typekind:5:12
+  |
+5 | pub struct Test {}
+  |            ^^^^

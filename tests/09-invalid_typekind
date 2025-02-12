@@ -1,0 +1,7 @@
+use bitflag_attr::bitflag;
+
+#[bitflag(u8)]
+#[derive(Clone, Copy)]
+pub struct Test {}
+
+fn main() {}

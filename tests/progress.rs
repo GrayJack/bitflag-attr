@@ -11,4 +11,5 @@ fn tests() {
     // Re-enable after bumping to Rust 1.85
     // t.compile_fail("tests/07-invalid_default");
     // t.compile_fail("tests/08-serde_helper");
+    t.compile_fail("tests/09-invalid_typekind");
 }
