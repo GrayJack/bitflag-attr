@@ -1,0 +1,259 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An attribute macro that transforms an C-like enum into a bitflag struct type implementing an API similar to the `bitflags` crate, and implementing many helpful traits (listed in more details below)."><title>bitflag in bitflags_attr_macros - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-cf3c48c1.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="bitflags_attr_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0-nightly (92bedea1c 2025-02-11)" data-channel="nightly" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../static.files/storage-3a5871a4.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../bitflags_attr_macros/index.html">bitflags_<wbr>attr_<wbr>macros</a><span class="version">0.11.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">bitflag</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#known-and-unknown-flags" title="Known and unknown flags">Known and unknown flags</a></li><li><a href="#externally-defined-flags" title="Externally defined flags">Externally defined flags</a></li><li><a href="#type-representation" title="Type representation">Type representation</a></li><li><a href="#generated-trait-implementations" title="Generated trait implementations">Generated trait implementations</a><ul><li><a href="#default-derive" title="Default derive">Default derive</a></li><li><a href="#serde-feature" title="Serde feature">Serde feature</a></li><li><a href="#arbitrary-feature" title="Arbitrary feature">Arbitrary feature</a></li><li><a href="#bytemuck-feature" title="Bytemuck feature">Bytemuck feature</a></li><li><a href="#const-mut-ref-feature" title="`const-mut-ref` feature"><code>const-mut-ref</code> feature</a></li><li><a href="#custom-types-feature" title="Custom types feature">Custom types feature</a></li></ul></li><li><a href="#more-examples" title="More Examples">More Examples</a></li><li><a href="#syntax" title="Syntax">Syntax</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate bitflags_<wbr>attr_<wbr>macros</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">bitflags_attr_macros</a></div><h1>Attribute Macro <span class="attr">bitflag</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/bitflags_attr_macros/lib.rs.html#368-373">Source</a> </span></div><pre class="rust item-decl"><code>#[bitflag]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An attribute macro that transforms an C-like enum into a bitflag struct type implementing an API
+similar to the <code>bitflags</code> crate, and implementing many helpful traits (listed in more details
+below).</p>
+<p>The attribute requires that the <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone"><code>Clone</code></a> and <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy"><code>Copy</code></a> traits are derived for the type.</p>
+<h3 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h3>
+<p>Generate a flags type using <code>u8</code> as the bits type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">0b0000_0100</span>,
+}</code></pre></div>
+<p>Flags may refer to other flags using their names:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">0b0000_0100</span>,
+    AB = A | B,
+}</code></pre></div>
+<p>Flags may also refer to other flags using their <code>bits</code> method value, like <code>bitflags</code> crate:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">0b0000_0100</span>,
+    AB = Flags::A.bits() | Flags::B.bits(),
+}</code></pre></div>
+<p>It’s possible to use more derives and attributes by simply adding them</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, ExternalDerive)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">0b0000_0100</span>,
+    AB = Flags::A.bits() | Flags::B.bits(),
+}</code></pre></div>
+<h3 id="known-and-unknown-flags"><a class="doc-anchor" href="#known-and-unknown-flags">§</a>Known and unknown flags</h3>
+<p>The variant of the enum are flags. They will be expanded to type-associated constants. Every
+variant value is a known flag, while every not specified value is a unknown flag.</p>
+<p>There are operation that will truncate out the unknown values. But tha can be configured if
+desired; more on that on <a href="#externally-defined-flags">Externally defined flags</a></p>
+<h3 id="externally-defined-flags"><a class="doc-anchor" href="#externally-defined-flags">§</a>Externally defined flags</h3>
+<p>If you’re generating flags types for an external source, such as a C API, you can use the
+<code>non_exhaustive</code> attribute to communicate to the bitflags macro that there may be more valid
+flags then the known flags.</p>
+<p>Without extra configuration, it defaults to <code>!0</code> (all bits set) as a mask of all bits the
+external source may ever set, i.e. all bits are considered as possible values.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[non_exhaustive] </span><span class="comment">// All bits are considered as possible values.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<p>But you can also configure it using the helper attribute <code>extra_valid_bits</code> with the value of
+valid bits that the external source may ever set.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[non_exhaustive] </span><span class="comment">// Communicate there is more potential valid flags than the known flags
+</span><span class="attr">#[extra_valid_bits = <span class="number">0b001001111</span>] </span><span class="comment">// Specify the extra bits to take into consideration.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<p>Why should you do this? Generated methods like <code>all</code> and truncating operators like <code>!</code> only
+consider bits in defined flags. Adding an unnamed flag makes those methods consider additional
+bits, without generating additional constants for them. It helps compatibility when the external
+source may start setting additional bits at any time.</p>
+<h3 id="type-representation"><a class="doc-anchor" href="#type-representation">§</a>Type representation</h3>
+<p>By default, the generated flag type will be <code>#[repr(transparent)]</code>, but you can explicit it on
+the definition as long is one of the supported ones (<code>C</code>, <code>Rust</code> and <code>transparent</code>):</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[repr(C)]
+#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>,
+}</code></pre></div>
+<h3 id="generated-trait-implementations"><a class="doc-anchor" href="#generated-trait-implementations">§</a>Generated trait implementations</h3>
+<p>This macro generates some trait implementations: <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Not.html" title="trait core::ops::bit::Not"><code>ops:Not</code></a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAnd.html" title="trait core::ops::bit::BitAnd"><code>ops:BitAnd</code></a>,
+<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOr.html" title="trait core::ops::bit::BitOr"><code>ops:BitOr</code></a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXor.html" title="trait core::ops::bit::BitXor"><code>ops:BitXor</code></a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitAndAssign.html" title="trait core::ops::bit::BitAndAssign"><code>ops:BitAndAssign</code></a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitOrAssign.html" title="trait core::ops::bit::BitOrAssign"><code>ops:BitOrAssign</code></a>, <a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.BitXorAssign.html" title="trait core::ops::bit::BitXorAssign"><code>ops:BitXorAssign</code></a>,
+<a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Binary.html" title="trait core::fmt::Binary"><code>fmt::Binary</code></a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.LowerHex.html" title="trait core::fmt::LowerHex"><code>fmt::LowerHex</code></a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.UpperHex.html" title="trait core::fmt::UpperHex"><code>fmt::UpperHex</code></a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Octal.html" title="trait core::fmt::Octal"><code>fmt::Octal</code></a>, <a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From"><code>From</code></a>, <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html" title="trait core::iter::traits::collect::Extend"><code>Extend</code></a>,
+<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html" title="trait core::iter::traits::collect::FromIterator"><code>FromIterator</code></a>, <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html" title="trait core::str::traits::FromStr"><code>FromStr</code></a> and <a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator"><code>IntoIterator</code></a>.</p>
+<p>The custom <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug"><code>fmt::Debug</code></a> implementation will only be generated if it is included in the
+<code>#[derive(...)]</code> parameters.</p>
+<p>The custom <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default"><code>Default</code></a> implementation will only be generated if it is included in the
+<code>#[derive(...)]</code> parameters.</p>
+<h4 id="default-derive"><a class="doc-anchor" href="#default-derive">§</a>Default derive</h4>
+<p>The <code>bitflag</code> macro handles the <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default"><code>Default</code></a> if specified in the derive list. Without specifying
+a default variant, the default implementation is the same as a empty flag:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy, Default)] </span><span class="comment">// Default is the same as `Flags::empty()`
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>,
+}</code></pre></div>
+<p>But it can be specified like deriving <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default"><code>Default</code></a> on enum, using the <code>#[default]</code> helper attribute:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy, Default)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    <span class="attr">#[default] </span><span class="comment">// `Flags::C` are the default value returned by `Default::default()`
+    </span>C = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>,
+}</code></pre></div>
+<h4 id="serde-feature"><a class="doc-anchor" href="#serde-feature">§</a>Serde feature</h4>
+<p>If the crate is compiled with the <code>serde</code> feature, this crate will generate implementations for
+the <code>serde::{Serialize, Deserialize}</code> traits if they are included in the <code>#[derive(...)]</code>
+parameters, but it will not import/re-export these traits, your project must have <code>serde</code> as
+a direct dependency.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+<span class="kw">use </span>serde::{Serialize, Deserialize};
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<h4 id="arbitrary-feature"><a class="doc-anchor" href="#arbitrary-feature">§</a>Arbitrary feature</h4>
+<p>If the crate is compiled with the <code>arbitrary</code> feature, this crate will generate implementations for
+the <code>arbitrary::Arbitrary</code> traits if they are included in the <code>#[derive(...)]</code>
+parameters, but it will not import/re-export these traits, your project must have <code>arbitrary</code> as
+a direct dependency.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+<span class="kw">use </span>arbitrary::Arbitrary;
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Clone, Copy, Arbitrary)]
+</span><span class="kw">enum </span>Color {
+    RED = <span class="number">0x1</span>,
+    GREEN = <span class="number">0x02</span>,
+    BLUE = <span class="number">0x4</span>,
+}</code></pre></div>
+<h4 id="bytemuck-feature"><a class="doc-anchor" href="#bytemuck-feature">§</a>Bytemuck feature</h4>
+<p>If the crate is compiled with the <code>bytemuck</code> feature, this crate will generate implementations for
+the <code>bytemuck::{Pod, Zeroable}</code> traits if they are included in the <code>#[derive(...)]</code>
+parameters, but it will not import/re-export these traits, your project must have <code>bytemuck</code> as
+a direct dependency.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+<span class="kw">use </span>bytemuck::{Pod, Zeroable};
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Debug, Clone, Copy, Pod, Zeroable)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<h4 id="const-mut-ref-feature"><a class="doc-anchor" href="#const-mut-ref-feature">§</a><code>const-mut-ref</code> feature</h4>
+<p>If the crate is compiled with the <code>const-mut-ref</code> feature, all type-associated API that takes
+<code>&amp;mut self</code> will be generated as <strong>const-fn</strong>, meaning they can be used on <code>const</code> context.</p>
+<p><strong>Note:</strong> <code>&amp;mut</code> on const function was stabilized on Rust 1.83.0, so using this feature flag on
+Rust versions below that will cause compilation errors</p>
+<h4 id="custom-types-feature"><a class="doc-anchor" href="#custom-types-feature">§</a>Custom types feature</h4>
+<p>If the crate is compiled with the <code>custom-types</code> feature, it allows to use more than the types
+defined in Rust <code>core</code> (<code>i8</code>,<code>u8</code>,<code>i16</code>,<code>u16</code>,<code>i32</code>,<code>u32</code>,<code>i64</code>,<code>u64</code>,<code>i128</code>,<code>u128</code>,<code>isize</code>,
+<code>usize</code>,<code>c_char</code>,<code>c_schar</code>,<code>c_uchar</code>,<code>c_short</code>,<code>c_ushort</code>,<code>c_int</code>,<code>c_uint</code>,<code>c_long</code>,<code>c_ulong</code>,
+<code>c_longlong</code>,<code>c_ulonglong</code>) and the unix types alias in the <code>libc</code> crate as long as it is a type
+alias to one of those types.</p>
+<p>The reason it is behind a feature flag is that to ensure the validity of such constrain, we have
+to pay the price of having much worse error messages. With this feature enabled, a invalid type
+will cause a massive wall of error message.</p>
+<h2 id="more-examples"><a class="doc-anchor" href="#more-examples">§</a>More Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<p>Without generating <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug"><code>fmt::Debug</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<h2 id="syntax"><a class="doc-anchor" href="#syntax">§</a>Syntax</h2><div class="example-wrap"><pre class="language-text"><code>#[bitflag($ty)]
+$visibility enum $StructName {
+    FlagOne = flag1_value_expr,
+    FlagTwo = flag2_value_expr,
+    // ...
+    FlagN = flagn_value_expr,
+}</code></pre></div></div></details></section></div></main></body></html>
