@@ -1,6 +1,6 @@
 use syn::{
-    parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren, Attribute, Error, Expr,
-    Ident, ItemConst, ItemEnum, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
+    parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren, Attribute, DeriveInput,
+    Error, Expr, Ident, ItemConst, ItemEnum, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -34,8 +34,9 @@ impl Bitflag {
     pub fn parse(args: Args, item: proc_macro::TokenStream) -> syn::Result<Self> {
         let ty = args.ty;
 
-        let item: ItemEnum = syn::parse(item)?;
+        let item: DeriveInput = syn::parse(item)?;
         let item_span = item.span();
+        let ident_span = item.ident.span();
         let og_attrs = item.attrs.iter().filter(|att| {
             !att.path().is_ident("derive")
                 && !att.path().is_ident("extra_valid_bits")
@@ -224,7 +225,15 @@ impl Bitflag {
             ));
         }
 
-        let number_flags = item.variants.len();
+        let enun = if let syn::Data::Enum(e) = item.data {
+            e
+        } else {
+            return Err(syn::Error::new(
+                ident_span,
+                "the type for `bitflag` must be a `enum` (that will be turned into a `struct`)",
+            ));
+        };
+        let number_flags = enun.variants.len();
 
         let mut all_attrs = Vec::with_capacity(number_flags);
         let mut all_flags = Vec::with_capacity(number_flags);
@@ -239,7 +248,7 @@ impl Bitflag {
         let mut flags = Vec::with_capacity(number_flags); // Associated constants
 
         // First generate the raw_flags
-        for variant in item.variants.iter() {
+        for variant in enun.variants.iter() {
             let var_attrs = &variant.attrs;
             let var_name = &variant.ident;
 
@@ -299,7 +308,7 @@ impl Bitflag {
             });
         }
 
-        for variant in item.variants.iter() {
+        for variant in enun.variants.iter() {
             let var_attrs = &variant.attrs;
             let var_name = &variant.ident;
 
