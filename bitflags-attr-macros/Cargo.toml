@@ -20,6 +20,7 @@ proc-macro = true
 syn = { version = "2", features = [
     "clone-impls",
     "full",
+    "derive",
     "parsing",
     "printing",
     "proc-macro",
