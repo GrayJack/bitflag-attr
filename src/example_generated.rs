@@ -140,12 +140,12 @@ impl ExampleFlags {
     }
     #[doc = r" Converts from a `bits` value. Returning [`None`] is any unknown bits are set."]
     #[inline]
-    pub const fn from_bits(bits: u32) -> Option<Self> {
+    pub const fn from_bits(bits: u32) -> ::core::option::Option<Self> {
         let truncated = Self::from_bits_truncate(bits).0;
         if truncated == bits {
-            Some(Self(bits))
+            ::core::option::Option::Some(Self(bits))
         } else {
-            None
+            ::core::option::Option::None
         }
     }
     #[doc = r" Convert from `bits` value, unsetting any unknown bits."]
@@ -160,21 +160,21 @@ impl ExampleFlags {
     }
     #[doc = r" Convert from a flag `name`."]
     #[inline]
-    pub fn from_flag_name(name: &str) -> Option<Self> {
+    pub fn from_flag_name(name: &str) -> ::core::option::Option<Self> {
         match name {
-            "Flag1" => Some(ExampleFlags::Flag1),
-            "Flag2" => Some(ExampleFlags::Flag2),
-            "Flag3" => Some(ExampleFlags::Flag3),
-            "Flag4" => Some(ExampleFlags::Flag4),
-            "Flag5" => Some(ExampleFlags::Flag5),
-            "Flag6" => Some(ExampleFlags::Flag6),
-            "Flag7" => Some(ExampleFlags::Flag7),
-            "Flag8" => Some(ExampleFlags::Flag8),
-            "Flag9" => Some(ExampleFlags::Flag9),
-            "Flag10" => Some(ExampleFlags::Flag10),
-            "Flag11" => Some(ExampleFlags::Flag11),
-            "Flag12" => Some(ExampleFlags::Flag12),
-            _ => None,
+            "Flag1" => ::core::option::Option::Some(ExampleFlags::Flag1),
+            "Flag2" => ::core::option::Option::Some(ExampleFlags::Flag2),
+            "Flag3" => ::core::option::Option::Some(ExampleFlags::Flag3),
+            "Flag4" => ::core::option::Option::Some(ExampleFlags::Flag4),
+            "Flag5" => ::core::option::Option::Some(ExampleFlags::Flag5),
+            "Flag6" => ::core::option::Option::Some(ExampleFlags::Flag6),
+            "Flag7" => ::core::option::Option::Some(ExampleFlags::Flag7),
+            "Flag8" => ::core::option::Option::Some(ExampleFlags::Flag8),
+            "Flag9" => ::core::option::Option::Some(ExampleFlags::Flag9),
+            "Flag10" => ::core::option::Option::Some(ExampleFlags::Flag10),
+            "Flag11" => ::core::option::Option::Some(ExampleFlags::Flag11),
+            "Flag12" => ::core::option::Option::Some(ExampleFlags::Flag12),
+            _ => ::core::option::Option::None,
         }
     }
     #[doc = r" Construct a flags value with all bits unset."]
@@ -205,7 +205,8 @@ impl ExampleFlags {
     }
     #[doc = r" Construct a flag value with all known flags set."]
     #[doc = r""]
-    #[doc = r" This will only set the flags specified as associated constant."]
+    #[doc = r" This will only set the flags specified as associated constant and the defined"]
+    #[doc = r" extra valid bits."]
     #[inline]
     pub const fn all() -> Self {
         let mut all = 0;
@@ -252,10 +253,65 @@ impl ExampleFlags {
     pub const fn is_all(&self) -> bool {
         Self::all().0 | self.0 == self.0
     }
+    #[doc = r" Construct a flag value with all known named flags set."]
+    #[doc = r""]
+    #[doc = r" This will only set the flags specified as associated constant without the defined"]
+    #[doc = r" extra valid bits."]
+    #[inline]
+    pub const fn all_named() -> Self {
+        let mut all = 0;
+        {
+            all |= ExampleFlags::Flag1.0;
+        }
+        {
+            all |= ExampleFlags::Flag2.0;
+        }
+        {
+            all |= ExampleFlags::Flag3.0;
+        }
+        {
+            all |= ExampleFlags::Flag4.0;
+        }
+        {
+            all |= ExampleFlags::Flag5.0;
+        }
+        {
+            all |= ExampleFlags::Flag6.0;
+        }
+        {
+            all |= ExampleFlags::Flag7.0;
+        }
+        {
+            all |= ExampleFlags::Flag8.0;
+        }
+        {
+            all |= ExampleFlags::Flag9.0;
+        }
+        {
+            all |= ExampleFlags::Flag10.0;
+        }
+        {
+            all |= ExampleFlags::Flag11.0;
+        }
+        {
+            all |= ExampleFlags::Flag12.0;
+        }
+        Self(all)
+    }
+    #[doc = r" Returns `true` if the flag value contais all known named flags."]
+    #[inline]
+    pub const fn is_all_named(&self) -> bool {
+        Self::all_named().0 | self.0 == self.0
+    }
     #[doc = r" Returns `true` if there are any unknown bits set in the flag value."]
     #[inline]
     pub const fn contains_unknown_bits(&self) -> bool {
         Self::all().0 & self.0 != self.0
+    }
+    #[doc = r" Returns `true` if there are any unnamed known bits set in the flag value."]
+    #[inline]
+    pub const fn contains_unnamed_bits(&self) -> bool {
+        Self::all_named().0 & self.0 != self.0
     }
     #[doc = r" Returns a bit flag that only has bits corresponding to the specified flags as associated constant."]
     #[inline]
@@ -361,6 +417,11 @@ impl ExampleFlags {
     pub fn toggle(&mut self, other: Self) {
         self.0 = self.xor(other).0
     }
+    #[doc = r" Resets the flags to a empty state."]
+    #[inline]
+    pub fn clear(&mut self) {
+        self.0 = 0
+    }
 }
 #[automatically_derived]
 impl ::core::ops::Not for ExampleFlags {
@@ -398,21 +459,21 @@ impl ::core::ops::BitXor for ExampleFlags {
 impl ::core::ops::BitAndAssign for ExampleFlags {
     #[inline]
     fn bitand_assign(&mut self, rhs: Self) {
-        ::core::ops::BitAndAssign::bitand_assign(&mut self.0, rhs.0)
+        *self = self.and(rhs)
     }
 }
 #[automatically_derived]
 impl ::core::ops::BitOrAssign for ExampleFlags {
     #[inline]
     fn bitor_assign(&mut self, rhs: Self) {
-        ::core::ops::BitOrAssign::bitor_assign(&mut self.0, rhs.0)
+        *self = self.or(rhs)
     }
 }
 #[automatically_derived]
 impl ::core::ops::BitXorAssign for ExampleFlags {
     #[inline]
     fn bitxor_assign(&mut self, rhs: Self) {
-        ::core::ops::BitXorAssign::bitxor_assign(&mut self.0, rhs.0)
+        *self = self.xor(rhs)
     }
 }
 #[automatically_derived]
@@ -477,6 +538,7 @@ impl ::core::fmt::Octal for ExampleFlags {
 #[automatically_derived]
 impl ::core::str::FromStr for ExampleFlags {
     type Err = crate::parser::ParseError;
+    #[inline]
     fn from_str(input: &str) -> ::core::result::Result<Self, Self::Err> {
         crate::parser::from_text(input)
     }
@@ -495,12 +557,35 @@ impl ::core::fmt::Debug for ExampleFlags {
                 }
             }
         }
+        #[inline]
+        pub const fn octal_width() -> usize {
+            match u32::BITS as usize {
+                8 => 3,
+                16 => 6,
+                32 => 11,
+                64 => 22,
+                128 => 43,
+                x => x / 3 + x % 3,
+            }
+        }
         let name = "ExampleFlags";
         f.debug_struct(name)
             .field("flags", &HumanReadable(self))
             .field(
                 "bits",
                 &::core::format_args!("{:#0width$b}", self.0, width = 2 + u32::BITS as usize),
+            )
+            .field(
+                "octal",
+                &::core::format_args!("{:#0width$o}", self.0, width = 2 + const { octal_width() }),
+            )
+            .field(
+                "hex",
+                &::core::format_args!(
+                    "{:#0width$X}",
+                    self.0,
+                    width = 2 + const { u32::BITS as usize / 4 }
+                ),
             )
             .finish()
     }
@@ -562,9 +647,11 @@ impl crate::Flags for ExampleFlags {
         all
     };
     type Bits = u32;
+    #[inline]
     fn bits(&self) -> Self::Bits {
         self.0
     }
+    #[inline]
     fn from_bits_retain(bits: Self::Bits) -> Self {
         Self(bits)
     }
@@ -624,6 +711,7 @@ impl ::core::iter::FromIterator<ExampleFlags> for ExampleFlags {
 impl ::core::iter::IntoIterator for ExampleFlags {
     type Item = Self;
     type IntoIter = crate::iter::Iter<Self>;
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -632,6 +720,7 @@ impl ::core::iter::IntoIterator for ExampleFlags {
 impl ::core::iter::IntoIterator for &ExampleFlags {
     type Item = ExampleFlags;
     type IntoIter = crate::iter::Iter<ExampleFlags>;
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
