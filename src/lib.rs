@@ -12,7 +12,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bitflag-attr = "0.10.1"
+//! bitflag-attr = "0.11.1"
 //! ```
 //!
 //! ## Generating flags type
