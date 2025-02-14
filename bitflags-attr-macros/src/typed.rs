@@ -775,6 +775,12 @@ impl ToTokens for Bitflag {
                     Self::all().0 & self.0 != self.0
                 }
 
+                /// Returns `true` if there are any unnamed known bits set in the flag value.
+                #[inline]
+                pub const fn contains_unnamed_bits(&self) -> bool {
+                    Self::all_named().0 & self.0 != self.0
+                }
+
                 /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
                 #[inline]
                 pub const fn truncated(&self) -> Self {
