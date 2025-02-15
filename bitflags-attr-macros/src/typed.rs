@@ -748,8 +748,8 @@ impl ToTokens for Bitflag {
 
                 /// Construct a flag value with all known named flags set.
                 ///
-                /// This will only set the flags specified as associated constant without the defined
-                /// extra valid bits.
+                /// This will only set the flags specified as associated constant **without** the
+                /// defined extra valid bits.
                 #[inline]
                 pub const fn all_named() -> Self {
                     let mut all = 0;
@@ -781,7 +781,7 @@ impl ToTokens for Bitflag {
                     Self::all_named().0 & self.0 != self.0
                 }
 
-                /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
+                /// Returns a bit flag with unknown bits removed from the original value.
                 #[inline]
                 pub const fn truncated(&self) -> Self {
                     Self(self.0 & Self::all().0)

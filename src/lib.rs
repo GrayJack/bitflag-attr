@@ -494,7 +494,8 @@ pub trait Flags: Sized + Copy + 'static {
 
     /// Construct a flag value with all known flags set.
     ///
-    /// This will only set the flags specified as associated constant.
+    /// This will only set the flags specified as associated constant and the defined extra valid
+    /// bits.
     #[inline]
     fn all() -> Self {
         let mut truncated = Self::Bits::EMPTY;
@@ -549,6 +550,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::all_named().bits() & self.bits() != self.bits()
     }
 
+    /// Returns a bit flag with unknown bits removed from the original value.
     #[inline]
     fn truncated(&self) -> Self {
         Self::from_bits_retain(self.bits() & Self::all().bits())
