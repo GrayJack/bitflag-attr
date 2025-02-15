@@ -85,7 +85,7 @@ mod typed;
 /// ## Externally defined flags
 ///
 /// If you're generating flags types for an external source, such as a C API, you can use the
-/// `non_exhaustive` attribute to communicate to the bitflags macro that there may be more valid
+/// `#[non_exhaustive]` attribute to communicate to the bitflags macro that there may be more valid
 /// flags then the known flags.
 ///
 /// Without extra configuration, it defaults to `!0` (all bits set) as a mask of all bits the
@@ -336,8 +336,12 @@ mod typed;
 ///
 /// # Syntax
 ///
-/// ```text
+/// ```rust,no_run
 /// #[bitflag($ty)]
+/// #[repr($repr_kind)] // optional: defaults to `repr(transparent)`
+/// #[non_exhaustive] // optional: If set, extra_valid_bits default to `!0`
+/// #[extra_valid_bits = $custom_extra_valid_expr] // optional
+/// #[derive(Clone, Copy, $other_derives)]
 /// $visibility enum $StructName {
 ///     FlagOne = flag1_value_expr,
 ///     FlagTwo = flag2_value_expr,

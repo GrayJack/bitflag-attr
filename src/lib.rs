@@ -19,7 +19,7 @@
 //!
 //! ## Generating flags type
 //!
-//! Use the [`bitflag`] attribute macro to generate flag types:
+//! Use the [`bitflag`] attribute macro to generate flags types:
 //!
 //! ```rust
 //! use bitflag_attr::bitflag;
