@@ -851,6 +851,7 @@ pub mod changelog {}
 ///
 /// This module is only available in the crate documentation.
 #[cfg(doc)]
+#[cfg(not(doctest))]
 #[doc = include_str!("../spec.md")]
 pub mod spec {}
 
