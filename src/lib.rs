@@ -254,6 +254,51 @@
 //! `Flags::A` or `Flags::B` even though it's still a known bit.
 //!
 //! [`example_generated`]: crate::example_generated::ExampleFlags
+//!
+//! # Crate Features
+//!
+//! ## Ecosystem features
+//!
+//! - **std** — When enabled, `bitflags-attr` will depend on the `std` crate. Currently no
+//!   particular usage and, for all intents and purposes, the same as the `alloc` feature.
+//! - **alloc** — When enabled, `bitflags-attr` will depend on the `alloc` crate. In particular,
+//!   this enables functionality that requires or greatly benefits from dynamic memory allocation.
+//!   If you can enable this, it is strongly encouraged that you do so. Without it, [parsing errors]
+//!   will contain less information for error reporting.
+//!
+//! [parsing errors]: crate::parser::ParseError
+//!
+//! ## Code generation features
+//!
+//! - **serde** — When enabled, the [`bitflag`] macro will handle specially the `Serialize` and
+//!   `Deserialize` traits passed to the enum's derive list and generate a custom implementation of
+//!   those traits taking into account the human-readable format for the generated flags type.
+//!   Without it, if these traits are listed in the derive list, they are passed forward to the
+//!   generated code, i.e. the default derive will be used. This feature does **not** add the
+//!   `serde` crate to your dependency tree, so your project must have it as a direct
+//!   dependency.
+//! - **arbitrary** — When enabled, the [`bitflag`] macro will handle specially the `Arbitrary` and
+//!   trait passed to the enum's derive list and generate a custom implementation of this trait
+//!   taking into account the known and unknown bits, erroring out on the later. Without it, if this
+//!   trait are listed in the derive list, they are passed forward to the generated code, i.e. the
+//!   default derive will be used. This feature does **not** add the `arbitrary` crate to your
+//!   dependency tree, so your project must have it as a direct dependency.
+//! - **bytemuck** — When enabled, the [`bitflag`] macro will handle specially the `Zeroable` and
+//!   `Pod` traits passed to the enum's derive list and generate a custom implementation of
+//!   those traits with static checks to ensure the correct marking. Without it, if these traits are
+//!   listed in the derive list, they are passed forward to the generated code, i.e. the default
+//!   derive will be used. This feature does **not** add the `bytemuck` crate to your dependency
+//!   tree, so your project must have it as a direct dependency.
+//! - **custom-types** — When enabled, the [`bitflag`] macro will allow the usage of types as
+//!   parameters that are not in the list of [allowed types] at the cost of worse error messages if
+//!   the used type does not satisfy the requirements for the usage.
+//! - **const-mut-ref** — When enabled, the [`bitflag`] macro will generate as `const-fn` all
+//!   generated methods that takes the flags value as mutable pointer. This is only allowed after
+//!   Rust 1.83.0, and enabling this feature with versions inferior to this number will cause
+//!   compilation errors. But if you satisfy this version limitation, it is strongly encouraged that
+//!   you do enable it.
+//!
+//! [allowed types]: crate::bitflag#custom-types-feature
 #![no_std]
 
 #[cfg(feature = "alloc")]

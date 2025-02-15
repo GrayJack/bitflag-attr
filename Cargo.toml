@@ -26,7 +26,7 @@ serde_test = "1.0.19"
 [features]
 default = []
 # Just to satisfy
-std = []
+std = ["alloc"]
 # Use string for more information for parse errors.
 alloc = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.

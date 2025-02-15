@@ -1,4 +1,5 @@
-//! Example of the generated code by the [`bitflag`](crate::bitflag) macro.
+//! A documentation module with a example of the generated code by the [`bitflag`](crate::bitflag)
+//! macro.
 //!
 //! This module is only available in the crate documentation.
 
