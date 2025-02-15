@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
 ### 🚀 Features
 
 - Add inline on some generated functions — ([3c1d446](https://github.com/GrayJack/bitflag-attr/commit/3c1d44651871021779d841fa58a3823201009957))
-- [**breaking**] Debug outputs octal and hex as well — ([c72b604](https://github.com/GrayJack/bitflag-attr/commit/c72b604bb6080fe818f65f72535eaac584f783b1))
+- [**BREAKING**] Debug outputs octal and hex as well — ([c72b604](https://github.com/GrayJack/bitflag-attr/commit/c72b604bb6080fe818f65f72535eaac584f783b1))
 - Add method `clear` for the generated type and the `Flags` trait — ([0e20342](https://github.com/GrayJack/bitflag-attr/commit/0e20342cdc763949f9165c73027216dfd87d1482))
 
 ### 🚜 Refactor
@@ -51,9 +51,9 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- [**breaking**] Specify all traits we use on generated code on `BitsPrimitive — ([387e82d](https://github.com/GrayJack/bitflag-attr/commit/387e82d4c59885f96ed0dd00316e3f9c53ccd907))
+- [**BREAKING**] Specify all traits we use on generated code on `BitsPrimitive — ([387e82d](https://github.com/GrayJack/bitflag-attr/commit/387e82d4c59885f96ed0dd00316e3f9c53ccd907))
 - Handle explicit `repr` on type definition — ([aec8085](https://github.com/GrayJack/bitflag-attr/commit/aec8085cb0172becc007433d160da51098e2d1e6))
-- [**breaking**] Handle `derive(Default)` on `bitflag` macro — ([cb0ee4e](https://github.com/GrayJack/bitflag-attr/commit/cb0ee4edbfdf3f88db26fb6ac06806b13342dccb))
+- [**BREAKING**] Handle `derive(Default)` on `bitflag` macro — ([cb0ee4e](https://github.com/GrayJack/bitflag-attr/commit/cb0ee4edbfdf3f88db26fb6ac06806b13342dccb))
 - Error on `#[serde]` helper attributes — ([61c217f](https://github.com/GrayJack/bitflag-attr/commit/61c217fbfb41319268b120a52cb2647677c93082))
 - Implement custom derive for `arbitrary::Arbitrary` for types using `bitflag` attribute macro — ([54113c4](https://github.com/GrayJack/bitflag-attr/commit/54113c4c9a05333dc37fa46ae353a31a64e8bcaa))
 - Simplify more paths — ([0ba0510](https://github.com/GrayJack/bitflag-attr/commit/0ba05106e95c33235f9f325654d04898d151acc8))
@@ -97,8 +97,8 @@ All notable changes to this project will be documented in this file.
 
 - Add ability to modify the all possible/valid bits. — ([e0ad46a](https://github.com/GrayJack/bitflag-attr/commit/e0ad46a3f7ec414708537471a8ee9cad56d3eed3))
 - Add way to configure the extra valid bits for externally defined flags — ([faec7f4](https://github.com/GrayJack/bitflag-attr/commit/faec7f4eb261b3a1cc24c3130e65f423d75e99b7))
-- [**breaking**] Move iterators and parsing from macro generated code to generic code in the `bitflag_attr` crate — ([b1b82b9](https://github.com/GrayJack/bitflag-attr/commit/b1b82b9272137c23448f408cb31e107f8e25e2d8))
-- [**breaking**] Make debug bits representation always show all bits — ([57db5d4](https://github.com/GrayJack/bitflag-attr/commit/57db5d44e55334f5c9cbb9c08091daba90180d5b))
+- [**BREAKING**] Move iterators and parsing from macro generated code to generic code in the `bitflag_attr` crate — ([b1b82b9](https://github.com/GrayJack/bitflag-attr/commit/b1b82b9272137c23448f408cb31e107f8e25e2d8))
+- [**BREAKING**] Make debug bits representation always show all bits — ([57db5d4](https://github.com/GrayJack/bitflag-attr/commit/57db5d44e55334f5c9cbb9c08091daba90180d5b))
 - More fine grained with `alloc` crate feature — ([d912abc](https://github.com/GrayJack/bitflag-attr/commit/d912abc0112819f06194ea5ae317812a10280fe0))
 - Implement the `bitflag_match!` macro — ([6ee32fd](https://github.com/GrayJack/bitflag-attr/commit/6ee32fd472a21e35360d66eae7e6b461de5218aa))
 
@@ -152,7 +152,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- [**breaking**] Use the type definition `#[define(...)]` arguments to check for required derives, and to decide if implement custom ones — ([aeb82a9](https://github.com/GrayJack/bitflag-attr/commit/aeb82a9f6249483ed23b2b1b3c6219a559be1747))
+- [**BREAKING**] Use the type definition `#[define(...)]` arguments to check for required derives, and to decide if implement custom ones — ([aeb82a9](https://github.com/GrayJack/bitflag-attr/commit/aeb82a9f6249483ed23b2b1b3c6219a559be1747))
 
 ### 💼 Other
 
@@ -252,7 +252,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- [**breaking**] Do not generate the the raw constants outside — ([8d48b33](https://github.com/GrayJack/bitflag-attr/commit/8d48b33d0d6594ed339ee300ce77fea025ef97f8))
+- [**BREAKING**] Do not generate the the raw constants outside — ([8d48b33](https://github.com/GrayJack/bitflag-attr/commit/8d48b33d0d6594ed339ee300ce77fea025ef97f8))
 
 ## [0.3.1](https://github.com/GrayJack/bitflag-attr/compare/v0.3.0..v0.3.1) — 2024-10-19
 

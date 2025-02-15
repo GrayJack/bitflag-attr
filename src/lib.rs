@@ -763,5 +763,12 @@ macro_rules! __bitflag_match {
     }
 }
 
+/// Changelog for the crate for documentation purposes.
+///
+/// This module is only available in the crate documentation.
+#[cfg(doc)]
+#[doc = include_str!("../CHANGELOG.md")]
+pub mod changelog {}
+
 #[cfg(doc)]
 pub mod example_generated;

@@ -1,4 +1,6 @@
 //! Example of the generated code by the [`bitflag`](crate::bitflag) macro.
+//!
+//! This module is only available in the crate documentation.
 
 const CONST1: u32 = 0b10;
 const CONST2: u32 = 0b100;
