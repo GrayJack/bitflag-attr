@@ -169,6 +169,24 @@ mod typed;
 /// The custom [`Default`] implementation will only be generated if it is included in the
 /// `#[derive(...)]` parameters.
 ///
+/// ### Debug derive
+///
+/// The `bitflag` macro handles the [`fmt::Debug`] if specified in the derive list. When specified,
+/// a customized implementation is produced by the macro where it outputs human-readable, binary,
+/// octal and hexadecimal outputs of the flags value.
+///
+/// ```
+/// # use bitflag_attr::bitflag;
+///
+/// #[bitflag(u32)]
+/// #[derive(Debug, Clone, Copy)]
+/// pub enum Flags {
+///     A = 0b00000001,
+///     B = 0b00000010,
+///     C = 0b00000100,
+/// }
+/// ```
+///
 /// ### Default derive
 ///
 /// The `bitflag` macro handles the [`Default`] if specified in the derive list. Without specifying
