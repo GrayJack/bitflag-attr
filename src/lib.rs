@@ -844,6 +844,7 @@ macro_rules! __bitflag_match {
 /// This module is only available in the crate documentation.
 #[cfg(doc)]
 #[doc = include_str!("../CHANGELOG.md")]
+#[allow(rustdoc::broken_intra_doc_links)]
 pub mod changelog {}
 
 /// A documentation module for in depth specification definition and terminology.
