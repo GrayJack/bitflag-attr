@@ -1056,7 +1056,7 @@ impl ToTokens for Bitflag {
 
             #[automatically_derived]
             impl ::bitflag_attr::Flags for #name {
-                const KNOWN_FLAGS: &'static [(&'static str, #name)] = &[#(
+                const NAMED_FLAGS: &'static [(&'static str, #name)] = &[#(
                     #(#all_attrs)*
                     (#all_flags_names , #all_flags) ,
                 )*];
@@ -1077,7 +1077,7 @@ impl ToTokens for Bitflag {
             }
 
             impl #name {
-                const KNOWN_FLAGS: &'static [(&'static str, #name)] = &[#(
+                const NAMED_FLAGS: &'static [(&'static str, #name)] = &[#(
                     #(#all_attrs)*
                     (#all_flags_names , #all_flags) ,
                 )*];
@@ -1088,7 +1088,7 @@ impl ToTokens for Bitflag {
                 /// will be yielded together as a final flags value.
                 #[inline]
                 pub const fn iter(&self) -> ::bitflag_attr::iter::Iter<Self> {
-                    ::bitflag_attr::iter::Iter::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
+                    ::bitflag_attr::iter::Iter::__private_const_new(Self::NAMED_FLAGS, *self, *self)
                 }
 
                 /// Yield a set of contained named flags values.
@@ -1097,7 +1097,7 @@ impl ToTokens for Bitflag {
                 /// Any unknown bits, or bits not corresponding to a contained flag will not be yielded.
                 #[inline]
                 pub const fn iter_names(&self) -> ::bitflag_attr::iter::IterNames<Self> {
-                    ::bitflag_attr::iter::IterNames::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
+                    ::bitflag_attr::iter::IterNames::__private_const_new(Self::NAMED_FLAGS, *self, *self)
                 }
             }
 

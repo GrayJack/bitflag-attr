@@ -19,7 +19,7 @@ impl<B: Flags> IterNames<B> {
     #[inline]
     pub(crate) fn new(flags: &B) -> Self {
         Self {
-            flags: B::KNOWN_FLAGS,
+            flags: B::NAMED_FLAGS,
             index: 0,
             source: B::from_bits_retain(flags.bits()),
             remaining: B::from_bits_retain(flags.bits()),

@@ -257,8 +257,8 @@ impl ExampleFlags {
     }
     #[doc = r" Construct a flag value with all known named flags set."]
     #[doc = r""]
-    #[doc = r" This will only set the flags specified as associated constant without the defined"]
-    #[doc = r" extra valid bits."]
+    #[doc = r" This will only set the flags specified as associated constant **without** the"]
+    #[doc = r" defined extra valid bits."]
     #[inline]
     pub const fn all_named() -> Self {
         let mut all = 0;
@@ -315,7 +315,7 @@ impl ExampleFlags {
     pub const fn contains_unnamed_bits(&self) -> bool {
         Self::all_named().0 & self.0 != self.0
     }
-    #[doc = r" Returns a bit flag that only has bits corresponding to the specified flags as associated constant."]
+    #[doc = r" Returns a bit flag with unknown bits removed from the original value."]
     #[inline]
     pub const fn truncated(&self) -> Self {
         Self(self.0 & Self::all().0)
@@ -594,7 +594,7 @@ impl ::core::fmt::Debug for ExampleFlags {
 }
 #[automatically_derived]
 impl crate::Flags for ExampleFlags {
-    const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
+    const NAMED_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
         ("Flag1", ExampleFlags::Flag1),
         ("Flag2", ExampleFlags::Flag2),
         ("Flag3", ExampleFlags::Flag3),
@@ -659,7 +659,7 @@ impl crate::Flags for ExampleFlags {
     }
 }
 impl ExampleFlags {
-    const KNOWN_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
+    const NAMED_FLAGS: &'static [(&'static str, ExampleFlags)] = &[
         ("Flag1", ExampleFlags::Flag1),
         ("Flag2", ExampleFlags::Flag2),
         ("Flag3", ExampleFlags::Flag3),
@@ -679,7 +679,7 @@ impl ExampleFlags {
     #[doc = r" will be yielded together as a final flags value."]
     #[inline]
     pub const fn iter(&self) -> crate::iter::Iter<Self> {
-        crate::iter::Iter::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
+        crate::iter::Iter::__private_const_new(Self::NAMED_FLAGS, *self, *self)
     }
     #[doc = r" Yield a set of contained named flags values."]
     #[doc = r""]
@@ -687,7 +687,7 @@ impl ExampleFlags {
     #[doc = r" Any unknown bits, or bits not corresponding to a contained flag will not be yielded."]
     #[inline]
     pub const fn iter_names(&self) -> crate::iter::IterNames<Self> {
-        crate::iter::IterNames::__private_const_new(Self::KNOWN_FLAGS, *self, *self)
+        crate::iter::IterNames::__private_const_new(Self::NAMED_FLAGS, *self, *self)
     }
 }
 #[automatically_derived]

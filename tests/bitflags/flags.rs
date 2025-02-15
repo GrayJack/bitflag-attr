@@ -4,7 +4,7 @@ use super::*;
 
 #[test]
 fn cases() {
-    let flags = TestFlags::KNOWN_FLAGS
+    let flags = TestFlags::NAMED_FLAGS
         .iter()
         .map(|(name, flag)| (*name, flag.bits()))
         .collect::<Vec<_>>();
@@ -19,7 +19,7 @@ fn cases() {
         flags,
     );
 
-    assert_eq!(0, TestEmpty::KNOWN_FLAGS.len());
+    assert_eq!(0, TestEmpty::NAMED_FLAGS.len());
 }
 
 mod external {
@@ -27,7 +27,7 @@ mod external {
 
     #[test]
     fn cases() {
-        let flags = TestExternal::KNOWN_FLAGS
+        let flags = TestExternal::NAMED_FLAGS
             .iter()
             .map(|(name, flag)| (*name, flag.bits()))
             .collect::<Vec<_>>();

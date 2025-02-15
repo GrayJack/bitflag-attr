@@ -349,7 +349,7 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// struct MyFlags(u8);
 ///
 /// impl Flags for MyFlags {
-///     const KNOWN_FLAGS: &'static [(&'static str, Self)] = &[
+///     const NAMED_FLAGS: &'static [(&'static str, Self)] = &[
 ///         ("A", MyFlags(1)),
 ///         ("B", MyFlags(1 << 1)),
 ///     ];
@@ -376,7 +376,7 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// ```
 /// # use bitflag_attr::{bitflag, Flags};
 /// fn defined_flags<F: Flags>() -> usize {
-///     F::KNOWN_FLAGS.iter().count()
+///     F::NAMED_FLAGS.iter().count()
 /// }
 ///
 /// #[bitflag(u8)]
@@ -392,11 +392,11 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 /// ```
 pub trait Flags: Sized + Copy + 'static {
     /// The set of named defined flags.
-    const KNOWN_FLAGS: &'static [(&'static str, Self)];
+    const NAMED_FLAGS: &'static [(&'static str, Self)];
 
     /// Extra possible bits values for the flags.
     ///
-    /// Useful for externally defined flags
+    /// Useful for externally defined flags.
     const EXTRA_VALID_BITS: Self::Bits;
 
     /// The underlying bits type.
@@ -436,7 +436,7 @@ pub trait Flags: Sized + Copy + 'static {
             return None;
         }
 
-        Self::KNOWN_FLAGS
+        Self::NAMED_FLAGS
             .iter()
             .find(|(s, _)| *s == name)
             .map(|(_, v)| Self::from_bits_retain(v.bits()))
@@ -453,7 +453,7 @@ pub trait Flags: Sized + Copy + 'static {
             return None;
         }
 
-        for (flag_name, flag) in Self::KNOWN_FLAGS {
+        for (flag_name, flag) in Self::NAMED_FLAGS {
             if *flag_name == name {
                 return Some(Self::from_bits_retain(flag.bits()));
             }
@@ -500,7 +500,7 @@ pub trait Flags: Sized + Copy + 'static {
     fn all() -> Self {
         let mut truncated = Self::Bits::EMPTY;
 
-        for (_, flag) in Self::KNOWN_FLAGS.iter() {
+        for (_, flag) in Self::NAMED_FLAGS.iter() {
             truncated |= flag.bits();
         }
 
@@ -525,7 +525,7 @@ pub trait Flags: Sized + Copy + 'static {
     fn all_named() -> Self {
         let mut truncated = Self::Bits::EMPTY;
 
-        for (_, flag) in Self::KNOWN_FLAGS.iter() {
+        for (_, flag) in Self::NAMED_FLAGS.iter() {
             truncated |= flag.bits();
         }
 
