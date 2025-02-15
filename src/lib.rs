@@ -516,13 +516,39 @@ pub trait Flags: Sized + Copy + 'static {
         Self::all().bits() | self.bits() == self.bits()
     }
 
+    /// Construct a flag value with all known named flags set.
+    ///
+    /// This will only set the flags specified as associated constant **without** the defined
+    /// extra valid bits.
+    #[inline]
+    fn all_named() -> Self {
+        let mut truncated = Self::Bits::EMPTY;
+
+        for (_, flag) in Self::KNOWN_FLAGS.iter() {
+            truncated |= flag.bits();
+        }
+
+        Self::from_bits_retain(truncated)
+    }
+
+    /// Returns `true` if the flag value contais all known named flags.
+    #[inline]
+    fn is_all_named(&self) -> bool {
+        Self::all_named().bits() | self.bits() == self.bits()
+    }
+
     /// Returns `true` if there are any unknown bits set in the flag value.
     #[inline]
     fn contains_unknown_bits(&self) -> bool {
         Self::all().bits() & self.bits() != self.bits()
     }
 
-    /// Returns a bit flag that only has bits corresponding to the specified flags as associated constant.
+    /// Returns `true` if there are any unnamed known bits set in the flag value.
+    #[inline]
+    fn contains_unnamed_bits(&self) -> bool {
+        Self::all_named().bits() & self.bits() != self.bits()
+    }
+
     #[inline]
     fn truncated(&self) -> Self {
         Self::from_bits_retain(self.bits() & Self::all().bits())
