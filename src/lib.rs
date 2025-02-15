@@ -1,11 +1,13 @@
-//! Generate types for C-style flags with ergonomic APIs using attribute macros and enums.
+//! Bitflags-attr is a library for Rust that allows to generate types for C-style bitflags with
+//! ergonomic APIs using attribute macros and enums.
+//!
 //!
 //! # Getting started
 //!
 //! Add `bitflag_attr` to your `Cargo.toml`:
 //!
 //! ```sh
-//! cargo add bitflag_attr
+//! cargo add bitflag-attr
 //! ```
 //!
 //! or
@@ -168,10 +170,11 @@
 //!
 //! See the [`parser`] module for more details.
 //!
-//! # Terminology
+//! # Specification and Terminology
 //!
-//! This crate and its documentation tries to follow the same terminology of the `bitflags` crate
-//! (the OG). Here we define some.
+//! The terminology and behavior of generated flags types is specified in the documentation module
+//! [`spec`]. Details are repeated in these docs where appropriate, but is exhaustively listed in
+//! the spec. Some things are worth calling out explicitly here.
 //!
 //! ## Flags types, flags values, flags
 //!
@@ -402,7 +405,7 @@ pub trait Flags: Sized + Copy + 'static {
     /// The underlying bits type.
     type Bits: BitsPrimitive;
 
-    /// Return the underlying bits of this bitflag.
+    /// Return the underlying bits value.
     ///
     /// The returned value is exactly the bits set in this flags value.
     fn bits(&self) -> Self::Bits;
@@ -462,19 +465,19 @@ pub trait Flags: Sized + Copy + 'static {
         None
     }
 
-    /// Construct a flag value with all bits unset.
+    /// Construct a flags value with all bits unset.
     #[inline]
     fn empty() -> Self {
         Self::from_bits_retain(Self::Bits::EMPTY)
     }
 
-    /// Returns `true` if the flag value has all bits unset.
+    /// Returns `true` if the flags value has all bits unset.
     #[inline]
     fn is_empty(&self) -> bool {
         self.bits() == Self::Bits::EMPTY
     }
 
-    /// Returns a flag value that contains all value.
+    /// Returns a flags value that contains all value.
     ///
     /// This will include bits that do not have any flags/meaning.
     /// Use [`all`](Flags::all) if you want only the specified flags set.
@@ -492,7 +495,7 @@ pub trait Flags: Sized + Copy + 'static {
         self.bits() == Self::Bits::ALL
     }
 
-    /// Construct a flag value with all known flags set.
+    /// Construct a flags value with all known flags set.
     ///
     /// This will only set the flags specified as associated constant and the defined extra valid
     /// bits.
@@ -517,7 +520,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::all().bits() | self.bits() == self.bits()
     }
 
-    /// Construct a flag value with all known named flags set.
+    /// Construct a flags value with all known named flags set.
     ///
     /// This will only set the flags specified as associated constant **without** the defined
     /// extra valid bits.
@@ -532,31 +535,31 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(truncated)
     }
 
-    /// Returns `true` if the flag value contais all known named flags.
+    /// Returns `true` if the flags value contais all known named flags.
     #[inline]
     fn is_all_named(&self) -> bool {
         Self::all_named().bits() | self.bits() == self.bits()
     }
 
-    /// Returns `true` if there are any unknown bits set in the flag value.
+    /// Returns `true` if there are any unknown bits set in the flags value.
     #[inline]
     fn contains_unknown_bits(&self) -> bool {
         Self::all().bits() & self.bits() != self.bits()
     }
 
-    /// Returns `true` if there are any unnamed known bits set in the flag value.
+    /// Returns `true` if there are any unnamed known bits set in the flags value.
     #[inline]
     fn contains_unnamed_bits(&self) -> bool {
         Self::all_named().bits() & self.bits() != self.bits()
     }
 
-    /// Returns a bit flag with unknown bits removed from the original value.
+    /// Returns a flags value with unknown bits removed from the original flags value.
     #[inline]
     fn truncated(&self) -> Self {
         Self::from_bits_retain(self.bits() & Self::all().bits())
     }
 
-    /// Returns `true` if this flag value intersects with any value in `other`.
+    /// Returns `true` if this flags value intersects with any value in `other`.
     ///
     /// This is equivalent to `(self & other) != Self::empty()`
     #[inline]
@@ -567,7 +570,7 @@ pub trait Flags: Sized + Copy + 'static {
         self.bits() & other.bits() != Self::Bits::EMPTY
     }
 
-    /// Returns `true` if this flag value contains all values of `other`.
+    /// Returns `true` if this flags value contains all values of `other`.
     ///
     /// This is equivalent to `(self & other) == other`
     #[inline]
@@ -587,7 +590,7 @@ pub trait Flags: Sized + Copy + 'static {
         *self = Self::from_bits_truncate(self.bits());
     }
 
-    /// Returns the intersection from this value with `other`.
+    /// Returns the intersection from this flags value with `other`.
     #[must_use]
     #[inline]
     #[doc(alias = "and")]
@@ -595,7 +598,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(self.bits() & other.bits())
     }
 
-    /// Returns the union from this value with `other`.
+    /// Returns the union from this flags value with `other`.
     #[must_use]
     #[inline]
     #[doc(alias = "or")]
@@ -603,7 +606,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(self.bits() | other.bits())
     }
 
-    /// Returns the difference from this value with `other`.
+    /// Returns the difference from this flags value with `other`.
     ///
     /// In other words, returns the intersection of this value with the negation of `other`.
     ///
@@ -615,7 +618,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(self.bits() & !other.bits())
     }
 
-    /// Returns the symmetric difference from this value with `other`..
+    /// Returns the symmetric difference from this flags value with `other`..
     #[must_use]
     #[inline]
     #[doc(alias = "xor")]
@@ -623,7 +626,7 @@ pub trait Flags: Sized + Copy + 'static {
         Self::from_bits_retain(self.bits() ^ other.bits())
     }
 
-    /// Returns the complement of the value.
+    /// Returns the complement of the flags value.
     ///
     /// This is very similar to the `not` operation, but truncates non used bits.
     #[must_use]
@@ -665,7 +668,7 @@ pub trait Flags: Sized + Copy + 'static {
         *self = Self::from_bits_retain(self.bits()).symmetric_difference(other);
     }
 
-    /// Resets the flags to a empty state.
+    /// Resets the flags value to a empty state.
     #[inline]
     fn clear(&mut self) {
         *self = Self::empty()
@@ -791,12 +794,19 @@ macro_rules! __bitflag_match {
     }
 }
 
-/// Changelog for the crate for documentation purposes.
+/// A documentation module for this crate changelog.
 ///
 /// This module is only available in the crate documentation.
 #[cfg(doc)]
 #[doc = include_str!("../CHANGELOG.md")]
 pub mod changelog {}
+
+/// A documentation module for in depth specification definition and terminology.
+///
+/// This module is only available in the crate documentation.
+#[cfg(doc)]
+#[doc = include_str!("../spec.md")]
+pub mod spec {}
 
 #[cfg(doc)]
 pub mod example_generated;
