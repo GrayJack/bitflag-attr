@@ -1315,6 +1315,7 @@ const VALID_REPR_INT: &[&str] = &[
     "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64", "i128", "u128",
 ];
 
+/// Flags of found derives that is handled specially by the macro.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct ImplFlags(u8);
 
