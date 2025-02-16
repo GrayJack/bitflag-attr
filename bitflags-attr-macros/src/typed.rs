@@ -14,13 +14,7 @@ pub struct Bitflag {
     inner_ty: Path,
     repr_attr: Option<ReprAttr>,
     derived_traits: Vec<Path>,
-    impl_debug: bool,
-    impl_default: bool,
-    impl_serialize: bool,
-    impl_deserialize: bool,
-    impl_arbitrary: bool,
-    impl_pod: bool,
-    impl_zeroable: bool,
+    impl_flags: ImplFlags,
     all_attrs: Vec<Vec<Attribute>>,
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
@@ -122,13 +116,7 @@ impl Bitflag {
             .filter(|att| att.path().is_ident("derive"));
 
         let mut derived_traits = Vec::new();
-        let mut impl_debug = false;
-        let mut impl_default = false;
-        let mut impl_serialize = false;
-        let mut impl_deserialize = false;
-        let mut impl_arbitrary = false;
-        let mut impl_pod = false;
-        let mut impl_zeroable = false;
+        let mut impl_flags = ImplFlags::empty();
         let mut clone_found = false;
         let mut copy_found = false;
 
@@ -137,36 +125,36 @@ impl Bitflag {
                 let s = meta.path.to_token_stream().to_string().replace(" ", "");
                 match s.as_str() {
                     "Debug" => {
-                        impl_debug = true;
+                        impl_flags |= ImplFlags::DEBUG;
                         return Ok(());
                     }
                     "Default" => {
-                        impl_default = true;
+                        impl_flags |= ImplFlags::DEFAULT;
                         return Ok(());
                     }
                     "Serialize" | "serde::Serialize" | "::serde::Serialize"
                         if cfg!(feature = "serde") =>
                     {
-                        impl_serialize = true;
+                        impl_flags |= ImplFlags::SERIALIZE;
                         return Ok(());
                     }
                     "Deserialize" | "serde::Deserialize" | "::serde::Deserialize"
                         if cfg!(feature = "serde") =>
                     {
-                        impl_deserialize = true;
+                        impl_flags |= ImplFlags::DESERIALIZE;
                         return Ok(());
                     }
                     "Arbitrary" | "arbitrary::Arbitrary" | "::arbitrary::Arbitrary"
                         if cfg!(feature = "arbitrary") =>
                     {
-                        impl_arbitrary = true;
+                        impl_flags |= ImplFlags::ARBITRARY;
                         return Ok(());
                     }
                     "Pod" | "bytemuck::Pod" | "::bytemuck::Pod" if cfg!(feature = "bytemuck") => {
                         // Our types are repr(transparent) by default, and that is compatible with
                         // the constrains required by `Pod` trait.
                         if repr_attr.is_none() {
-                            impl_pod = true;
+                            impl_flags |= ImplFlags::POD;
                             return Ok(());
                         }
 
@@ -181,7 +169,7 @@ impl Bitflag {
                                     Some(ReprKind::C(_)),
                                     Some(ReprKind::Packed(_, _) | ReprKind::Align(_, _)),
                                 ) => {
-                                    impl_pod = true;
+                                    impl_flags |= ImplFlags::POD;
                                     return Ok(());
                                 }
                                 _ => {
@@ -199,7 +187,7 @@ impl Bitflag {
                     "Zeroable" | "bytemuck::Zeroable" | "::bytemuck::Zeroable"
                         if cfg!(feature = "bytemuck") =>
                     {
-                        impl_zeroable = true;
+                        impl_flags |= ImplFlags::ZEROABLE;
                         return Ok(());
                     }
                     path => {
@@ -276,7 +264,7 @@ impl Bitflag {
                 .find(|attr| attr.path().is_ident("default"));
 
             if let Some(default) = default_attr {
-                if !impl_debug {
+                if !impl_flags.contains(ImplFlags::DEFAULT) {
                     return Err(Error::new(
                         default.span(),
                         "`default` attribute without `#[derive(Default)]`",
@@ -345,8 +333,8 @@ impl Bitflag {
             flags.push(syn::parse2(generated)?);
         }
 
-        let og_derive =
-            (impl_default && default_value.is_some()).then(|| quote!(#[derive(Default)]));
+        let og_derive = (impl_flags.contains(ImplFlags::DEFAULT) && default_value.is_some())
+            .then(|| quote!(#[derive(Default)]));
         let orig_enum = syn::parse2(quote! {
             #[allow(dead_code)]
             #(#og_attrs)*
@@ -376,13 +364,7 @@ impl Bitflag {
             inner_ty: ty,
             derived_traits,
             repr_attr,
-            impl_debug,
-            impl_default,
-            impl_serialize,
-            impl_deserialize,
-            impl_arbitrary,
-            impl_pod,
-            impl_zeroable,
+            impl_flags,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -403,13 +385,7 @@ impl ToTokens for Bitflag {
             inner_ty,
             repr_attr,
             derived_traits,
-            impl_debug,
-            impl_default,
-            impl_serialize,
-            impl_deserialize,
-            impl_arbitrary,
-            impl_pod,
-            impl_zeroable,
+            impl_flags,
             all_attrs,
             all_flags,
             all_flags_names,
@@ -450,7 +426,7 @@ impl ToTokens for Bitflag {
 
         let const_mut = cfg!(feature = "const-mut-ref").then(|| quote!(mut));
 
-        let debug_impl = impl_debug.then(|| {
+        let debug_impl = impl_flags.contains(ImplFlags::DEBUG).then(|| {
             quote! {
                 #[automatically_derived]
                 impl ::core::fmt::Debug for #name {
@@ -494,7 +470,7 @@ impl ToTokens for Bitflag {
             }
         });
 
-        let default_impl = impl_default.then(|| {
+        let default_impl = impl_flags.contains(ImplFlags::DEFAULT).then(|| {
             if let Some(expr) = default_value {
                 quote! {
                     #[automatically_derived]
@@ -518,7 +494,7 @@ impl ToTokens for Bitflag {
             }
         });
 
-        let serialize_impl = (cfg!(feature = "serde") && *impl_serialize).then(|| {
+        let serialize_impl = (cfg!(feature = "serde") && impl_flags.contains(ImplFlags::SERIALIZE)).then(|| {
             quote! {
                 #[automatically_derived]
                 impl ::serde::Serialize for #name {
@@ -547,7 +523,7 @@ impl ToTokens for Bitflag {
             }
         });
 
-        let deserialize_impl = (cfg!(feature = "serde") && *impl_deserialize).then(|| {
+        let deserialize_impl = (cfg!(feature = "serde") && impl_flags.contains(ImplFlags::DESERIALIZE)).then(|| {
             quote! {
                 #[automatically_derived]
                 impl<'de> ::serde::Deserialize<'de> for #name {
@@ -584,7 +560,7 @@ impl ToTokens for Bitflag {
             }
         });
 
-        let arbitrary_impl = (cfg!(feature = "arbitrary") && *impl_arbitrary).then(|| {
+        let arbitrary_impl = (cfg!(feature = "arbitrary") && impl_flags.contains(ImplFlags::ARBITRARY)).then(|| {
             quote! {
                 #[automatically_derived]
                 impl<'a> ::arbitrary::Arbitrary<'a> for #name {
@@ -595,32 +571,34 @@ impl ToTokens for Bitflag {
             }
         });
 
-        let pod_impl = (cfg!(feature = "bytemuck") && *impl_pod).then(|| {
-            let error_str = LitStr::new(
-                &format!(
+        let pod_impl =
+            (cfg!(feature = "bytemuck") && impl_flags.contains(ImplFlags::POD)).then(|| {
+                let error_str = LitStr::new(
+                    &format!(
                     "`bitflag` error: type `{name}` not compatible with the `bytemuck::Pod` trait."
                 ),
-                name.span(),
-            );
-            quote! {
-                /// Extra static check for the Pod implementation
-                #[doc(hidden)]
-                const _: () = {
-                    if ::core::mem::size_of::<#name>() != ::core::mem::size_of::<#inner_ty>() {
-                        ::core::panic!(#error_str);
-                    }
-                };
-                #[automatically_derived]
-                unsafe impl ::bytemuck::Pod for #name {}
-            }
-        });
+                    name.span(),
+                );
+                quote! {
+                    /// Extra static check for the Pod implementation
+                    #[doc(hidden)]
+                    const _: () = {
+                        if ::core::mem::size_of::<#name>() != ::core::mem::size_of::<#inner_ty>() {
+                            ::core::panic!(#error_str);
+                        }
+                    };
+                    #[automatically_derived]
+                    unsafe impl ::bytemuck::Pod for #name {}
+                }
+            });
 
-        let zeroable_impl = (cfg!(feature = "bytemuck") && *impl_zeroable).then(|| {
-            quote! {
-                #[automatically_derived]
-                unsafe impl ::bytemuck::Zeroable for #name {}
-            }
-        });
+        let zeroable_impl =
+            (cfg!(feature = "bytemuck") && impl_flags.contains(ImplFlags::ZEROABLE)).then(|| {
+                quote! {
+                    #[automatically_derived]
+                    unsafe impl ::bytemuck::Zeroable for #name {}
+                }
+            });
 
         let doc_from_iter = format!("Create a `{name}` from a iterator of flags.");
         let generated = quote! {
@@ -1336,6 +1314,84 @@ impl ToTokens for ReprKind {
 const VALID_REPR_INT: &[&str] = &[
     "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64", "i128", "u128",
 ];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct ImplFlags(u8);
+
+impl ImplFlags {
+    pub const DEBUG: Self = Self(1);
+    pub const DEFAULT: Self = Self(1 << 1);
+    pub const SERIALIZE: Self = Self(1 << 2);
+    pub const DESERIALIZE: Self = Self(1 << 3);
+    pub const ARBITRARY: Self = Self(1 << 4);
+    pub const ZEROABLE: Self = Self(1 << 5);
+    pub const POD: Self = Self(1 << 6);
+
+    pub const fn empty() -> Self {
+        Self(0)
+    }
+
+    pub const fn contains(&self, other: Self) -> bool {
+        (self.0 & other.0) == other.0
+    }
+}
+
+impl core::ops::Not for ImplFlags {
+    type Output = Self;
+
+    #[inline]
+    fn not(self) -> Self::Output {
+        Self(!self.0)
+    }
+}
+
+impl core::ops::BitAnd for ImplFlags {
+    type Output = Self;
+
+    #[inline]
+    fn bitand(self, rhs: Self) -> Self::Output {
+        Self(self.0 & rhs.0)
+    }
+}
+
+impl core::ops::BitOr for ImplFlags {
+    type Output = Self;
+
+    #[inline]
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+
+impl core::ops::BitXor for ImplFlags {
+    type Output = Self;
+
+    #[inline]
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Self(self.0 ^ rhs.0)
+    }
+}
+
+impl core::ops::BitAndAssign for ImplFlags {
+    #[inline]
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = Self(self.0 & rhs.0)
+    }
+}
+
+impl core::ops::BitOrAssign for ImplFlags {
+    #[inline]
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = Self(self.0 | rhs.0)
+    }
+}
+
+impl core::ops::BitXorAssign for ImplFlags {
+    #[inline]
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = Self(self.0 ^ rhs.0)
+    }
+}
 
 /// Recursively check if a expression can be simplified to a simple wrap of `Self(<expr>)`.
 ///
