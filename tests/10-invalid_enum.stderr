@@ -1,0 +1,11 @@
+error: an enum with `bitflag` attribute can not have a field
+ --> tests/10-invalid_enum:6:6
+  |
+6 |     A(u32) = 1,
+  |      ^^^^^
+
+error: an enum with `bitflag` attribute can not have a field
+  --> tests/10-invalid_enum:13:7
+   |
+13 |     A { field: i32 } = 1,
+   |       ^^^^^^^^^^^^^^

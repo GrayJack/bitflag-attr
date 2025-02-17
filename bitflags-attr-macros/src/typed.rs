@@ -240,6 +240,14 @@ impl Bitflag {
             let var_attrs = &variant.attrs;
             let var_name = &variant.ident;
 
+            if !variant.fields.is_empty() {
+                let span = variant.fields.span();
+                return Err(Error::new(
+                    span,
+                    "an enum with `bitflag` attribute can not have a field",
+                ));
+            }
+
             let expr = match variant.discriminant.as_ref() {
                 Some((_, expr)) => expr,
                 None => {

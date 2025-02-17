@@ -1,0 +1,17 @@
+use bitflag_attr::bitflag;
+
+#[bitflag(u8)]
+#[derive(Clone, Copy)]
+pub enum Test {
+    A(u32) = 1,
+    B = 2,
+}
+
+#[bitflag(u8)]
+#[derive(Clone, Copy)]
+pub enum Test {
+    A { field: i32 } = 1,
+    B = 2,
+}
+
+fn main() {}
