@@ -143,7 +143,8 @@ A bit in any defined flag.
 In the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0001,
     B = 0b0000_0010,
@@ -166,7 +167,8 @@ A bit not in any defined flag.
 In the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0001,
     B = 0b0000_0010,
@@ -269,7 +271,8 @@ Whether all defined flags are contained in a flags value.
 Given a flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A   = 0b0000_0001,
     B   = 0b0000_0010,
@@ -289,7 +292,8 @@ the following flags values all satisfy all:
 Examples in this section all use the given flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0001,
     B = 0b0000_0010,
@@ -320,7 +324,8 @@ the result of truncation will be:
 Truncating doesn't guarantee that a non-empty result will contain any defined flags. Given the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0101,
 }
@@ -343,7 +348,8 @@ which intersects the flag `A`, but doesn't contain it.
 This behavior is possible even when only operating with flags values containing defined flags. Given the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0101,
     B = 0b0000_0001,
@@ -443,7 +449,8 @@ To be most useful, each yielded flags value should set exactly the bits of a def
 Given the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A  = 0b0000_0001,
     B  = 0b0000_0010,
@@ -477,7 +484,8 @@ It may also yield a flags value for `AB`, then a final flag with the unknown bit
 Given the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A = 0b0000_0011,
 }
@@ -516,7 +524,8 @@ Text that is empty or whitespace is an empty flags value.
 Given the following flags type:
 
 ```rust
-#[bitflags_attr::bitflag(u8)]
+#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
 enum Flags {
     A  = 0b0000_0001,
     B  = 0b0000_0010,

@@ -1,5 +1,6 @@
 //! Parsing flags from text.
 //!
+//! # Grammar
 //! Format and parse a flags value as text using the following grammar:
 //!
 //! - _Flags:_ (_Whitespace_ _Flag_ _Whitespace_)`|`*
@@ -7,6 +8,74 @@
 //! - _Name:_ The name of any defined flag
 //! - _Hex Number_: `0x`([0-9a-fA-F])*
 //! - _Whitespace_: (\s)*
+//!
+//! Flags values can be formatted as _Flags_ by iterating over them, formatting each yielded flags
+//! value as a _Flag_. Any yielded flags value that sets exactly the bits of a defined flag with a
+//! name should be formatted as a _Name_. Otherwise it must be formatted as a _Hex Number_.
+//!
+//! Text that is empty or whitespace is an empty flags value.
+//!
+//! ## Modes
+//! Formatting and parsing supports three modes:
+//!
+//! - **Retain**: Formatting and parsing roundtrips exactly the bits of the source flags value.
+//!   This is the default behavior.
+//! - **Truncate**: Flags values are truncated before formatting, and truncated after parsing.
+//! - **Strict**: A _Flag_ may only be formatted and parsed as a _Name_. _Hex numbers_ are not
+//!   allowed. A consequence of this is that unknown bits and any bits that aren't in a contained
+//!   named flag will be ignored. This is recommended for flags values serialized across API
+//!   boundaries, like web services.
+//!
+//! Given the following flags type:
+//!
+//! ```rust
+//! # use bitflag_attr::bitflag;
+//! #[bitflag(u8)]
+//! #[derive(Clone, Copy)]
+//! enum Flags {
+//!     A  = 0b0000_0001,
+//!     B  = 0b0000_0010,
+//!     AB = 0b0000_0011,
+//!     C  = 0b0000_1100,
+//! }
+//! ```
+//!
+//! The following are examples of how flags values can be formatted using any mode:
+//!
+//! ```rust,ignore
+//! 0b0000_0000 = ""
+//! 0b0000_0001 = "A"
+//! 0b0000_0010 = "B"
+//! 0b0000_0011 = "A | B"
+//! 0b0000_0011 = "AB"
+//! 0b0000_1111 = "A | B | C"
+//! ```
+//!
+//! Truncate mode will unset any unknown bits:
+//!
+//! ```rust,ignore
+//! 0b1000_0000 = ""
+//! 0b1111_1111 = "A | B | C"
+//! 0b0000_1000 = "0x8"
+//! ```
+//!
+//! Retain mode will include any unknown bits as a final _Flag_:
+//!
+//! ```rust,ignore
+//! 0b1000_0000 = "0x80"
+//! 0b1111_1111 = "A | B | C | 0xf0"
+//! 0b0000_1000 = "0x8"
+//! ```
+//!
+//! Strict mode will unset any unknown bits, as well as bits not contained in any defined named flags:
+//!
+//! ```rust,ignore
+//! 0b1000_0000 = ""
+//! 0b1111_1111 = "A | B | C"
+//! 0b0000_1000 = ""
+//! ```
+//!
+//! # Example
 //!
 //! As an example, this is how `Flags::A | Flags::B | 0x0c` can be represented as text:
 //!
@@ -20,7 +89,7 @@
 //! A|B|0x0C
 //! ```
 //!
-//! Note that identifiers are *case-sensitive*, so the following is *not equivalent*:
+//! Note that identifiers are *case-sensitive*, so the following is **not equivalent**:
 //!
 //! ```text
 //! a|b|0x0C
