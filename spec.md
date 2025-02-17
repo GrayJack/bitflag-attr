@@ -1,22 +1,22 @@
-# Bitflags-attr specs
+# bitflag-attr specs
 
-`bitflags-attr` generates bitflags type from enums with well-defined semantics and ergonomic end-user APIs.
+`bitflag-attr` generates bitflags type from enums with well-defined semantics and ergonomic end-user APIs.
 
-You can use `bitflags-attr` to:
+You can use `bitflag-attr` to:
 
 - provide more user-friendly bindings to C APIs where flags may or may not be fully known in advance.
 - generate efficient options types with string parsing and formatting support.
 
-You can't use `bitflags-attr` to:
+You can't use `bitflag-attr` to:
 
-- guarantee only bits corresponding to defined flags will ever be set. `bitflags-attr` allows access to the underlying bits type so arbitrary bits may be set.
-- define bitfields. `bitflags-attr` only generates types where set bits denote the presence of some combination of flags.
+- guarantee only bits corresponding to defined flags will ever be set. `bitflag-attr` allows access to the underlying bits type so arbitrary bits may be set.
+- define bitfields. `bitflag-attr` only generates types where set bits denote the presence of some combination of flags.
 
 ## Definitions and Terminology
 
-This section formally defines the terminology and semantics of `bitflags-attr`. It's organized so more fundamental concepts are introduced before those that build on them. It may be helpful to start from the bottom of the section and refer back up to concepts defined earlier.
+This section formally defines the terminology and semantics of `bitflag-attr`. It's organized so more fundamental concepts are introduced before those that build on them. It may be helpful to start from the bottom of the section and refer back up to concepts defined earlier.
 
-Examples use `bitflags-attr` syntax with `u8` as the bits type.
+Examples use `bitflag-attr` syntax with `u8` as the bits type.
 
 ### Bits type
 

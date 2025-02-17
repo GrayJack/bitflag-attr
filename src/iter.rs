@@ -38,6 +38,7 @@ impl<B: 'static> IterNames<B> {
         &self.remaining
     }
 
+    // Used by the `bitflag` macro
     #[doc(hidden)]
     #[inline]
     pub const fn __private_const_new(
@@ -107,7 +108,7 @@ impl<B: Flags> Iter<B> {
 }
 
 impl<B: 'static> Iter<B> {
-    // Used by the `bitflags` macro
+    // Used by the `bitflag` macro
     #[doc(hidden)]
     #[inline]
     pub const fn __private_const_new(

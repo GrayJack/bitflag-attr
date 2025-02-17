@@ -1,10 +1,58 @@
-//! Bitflags-attr is a library for Rust that allows to generate types for C-style bitflags with
+//! Bitflag-attr is a library for Rust that allows to generate types for C-style bitflags with
 //! ergonomic APIs using attribute macros and enums.
 //!
+//! # Overview
 //!
-//! # Getting started
+//! The primary item of this crate is the [`bitflag`] macro. This attribute macro allows to define a
+//! flags type from a Rust C-style enum definition, turning it into a struct with the flags as
+//! associated constants.
 //!
-//! Add `bitflag_attr` to your `Cargo.toml`:
+//! The remainder of this documentation is organized as follows:
+//!
+//! - [Features](#features) gives a very brief summary of the features `bitflag-attr` does and does not
+//!   support.
+//! - [Usage](#usage) shows how to add `bitflag-attr` to your Rust project.
+//! - [Formatting and parsing](#formatting-and-parsing) documents the human-readable format used to
+//!   parse form and format into strings
+//! - [Specification and Terminology](#specification-and-terminology) documents about the
+//!   specification and the terminology used by this crate.
+//! - [Crate features](#crate-features) documents the Cargo features that can be enabled or disabled
+//!   for this crate.
+//!
+//! Also, these sub-modules serve to provide longer form documentation:
+//!
+//! - [Changelog](crate::changelog)
+//! - [Specification and Terminology](crate::spec)
+//! - [Example of a generated code by the macro](crate::example_generated)
+//!
+//! # Features
+//!
+//! Here is a non-exhaustive list of the things that `bitflag-attr` supports:
+//!
+//! - `no_std` support with opt-in options to use `alloc` and `std`
+//! - Ergonomically create a flags type from native enum syntax
+//! - Generate ergonomic API for the generated flags type
+//! - Generated methods are almost entirely const-compatible
+//! - Generated flags type auto-implements several convenient traits (complete list in the
+//!   [`bitflag`] documentation)
+//! - Generated [`fmt::Debug`] implementation outputs human-readable, binary, octal and hexadecimal
+//!   representation of the flags value for better debugging inspection.
+//! - Support to the enum syntax for deriving [`Default`] by using `#[default]` to choose the
+//!   default flags value
+//! - Support to use all integer types and type alias in `core` and `std` as well as most common
+//!   integer type alias of `libc` with opt-in option to use [other type alias as well as custom
+//!   type alias](#code-generation-features)
+//! - Opt-in support for generating `serde::Serialize` and `serde::Deserialize` by using the `serde`
+//!   [crate feature]
+//! - Opt-in support for generating `arbitrary::Arbitrary` by using the `arbitrary` [crate feature]
+//! - Opt-in support for generating `bytemuck::Zeroable` and `bytemuck::Pod` by using the `bytemuck`
+//!   [crate feature]
+//!
+//! # Usage
+//!
+//! The `bitflag-attr` project is [on crates.io](https://crates.io/crates/bitflag-attr) and can be
+//! used by adding `bitflag-attr` to your dependencies in your project's `Cargo.toml`.
+//! Or more simply, by using `cargo add`.
 //!
 //! ```sh
 //! cargo add bitflag-attr
@@ -29,7 +77,7 @@
 //! enum Flags {
 //!     A = 0b00000001,
 //!     B = 0b00000010,
-//!     C = 0b00000100
+//!     C = 0b00000100,
 //! }
 //! ```
 //!
@@ -100,6 +148,7 @@
 //! [known and unknown bits](#known-and-unknown-bits) section has more details on this behavior.
 //!
 //! ### Custom derives
+//!
 //! You can derive some traits on generated flags types if you enable Cargo features. The following
 //! libraries are currently supported:
 //!
@@ -123,7 +172,7 @@
 //! enum Flags {
 //!     A = 0b00000001,
 //!     B = 0b00000010,
-//!     C = 0b00000100
+//!     C = 0b00000100,
 //! }
 //!
 //! // Impl blocks can be added to flags types normally
@@ -145,7 +194,7 @@
 //! # enum Flags {
 //! #     A = 0b00000001,
 //! #     B = 0b00000010,
-//! #     C = 0b00000100
+//! #     C = 0b00000100,
 //! # }
 //! #
 //! // union
@@ -166,7 +215,8 @@
 //!
 //! # Formatting and parsing
 //!
-//! `bitflags` defines a text format that can be used to convert any flags value to and from strings.
+//! `bitflag-attr` defines a text format that can be used to convert any flags value to and from
+//! strings.
 //!
 //! See the [`parser`] module for more details.
 //!
@@ -193,7 +243,7 @@
 //! #[derive(Clone, Copy)]
 //! enum FlagsType {
 //! //   --------- Flags type
-//!     A = 1
+//!     A = 1,
 //! //  ----- Flag
 //! }
 //!
@@ -259,9 +309,9 @@
 //!
 //! ## Ecosystem features
 //!
-//! - **std** — When enabled, `bitflags-attr` will depend on the `std` crate. Currently no
+//! - **std** — When enabled, `bitflag-attr` will depend on the `std` crate. Currently no
 //!   particular usage and, for all intents and purposes, the same as the `alloc` feature.
-//! - **alloc** — When enabled, `bitflags-attr` will depend on the `alloc` crate. In particular,
+//! - **alloc** — When enabled, `bitflag-attr` will depend on the `alloc` crate. In particular,
 //!   this enables functionality that requires or greatly benefits from dynamic memory allocation.
 //!   If you can enable this, it is strongly encouraged that you do so. Without it, [parsing errors]
 //!   will contain less information for error reporting.
@@ -299,6 +349,7 @@
 //!   you do enable it.
 //!
 //! [allowed types]: crate::bitflag#custom-types-feature
+//! [crate feature]: #crate-features
 #![no_std]
 
 #[cfg(feature = "alloc")]
