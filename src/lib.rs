@@ -23,14 +23,14 @@
 //!
 //! - [Changelog](crate::changelog)
 //! - [Specification and Terminology](crate::spec)
-//! - [Example of a generated code by the macro](crate::example_generated)
+//! - [Example of a generated code by the `bitflag` macro](crate::example_generated)
 //!
 //! # Features
 //!
 //! Here is a non-exhaustive list of the things that `bitflag-attr` supports:
 //!
 //! - `no_std` support with opt-in options to use `alloc` and `std`
-//! - Ergonomically create a flags type from native enum syntax
+//! - Ergonomically create a flags type from native C-like enum syntax
 //! - Generate ergonomic API for the generated flags type
 //! - Generated methods are almost entirely const-compatible
 //! - Generated flags type auto-implements several convenient traits (complete list in the
