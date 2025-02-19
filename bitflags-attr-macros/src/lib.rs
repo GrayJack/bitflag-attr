@@ -5,9 +5,9 @@ use typed::{Args, Bitflag};
 
 mod typed;
 
-/// An attribute macro that transforms an C-like enum into a bitflag struct type implementing an API
-/// similar to the `bitflags` crate, and implementing many helpful traits (listed in more details
-/// below).
+/// An attribute macro that transforms an C-like enum into a bitflag struct type implementing an
+/// ergonomic end-user API, similar to the `bitflags` crate, and implementing many helpful traits
+/// (listed in more details below).
 ///
 /// The attribute requires that the [`Clone`] and [`Copy`] traits are derived for the type.
 ///
