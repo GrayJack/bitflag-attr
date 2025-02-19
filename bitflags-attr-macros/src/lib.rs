@@ -84,7 +84,7 @@ mod typed;
 ///
 /// ## Externally defined flags
 ///
-/// If you're generating flags types for an external source, such as a C API, you can use the
+/// If you're generating flags types from an external source, such as a C API, you can use the
 /// `#[non_exhaustive]` attribute to communicate to the bitflags macro that there may be more valid
 /// flags then the known flags.
 ///

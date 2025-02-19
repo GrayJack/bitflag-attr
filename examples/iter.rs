@@ -1,8 +1,6 @@
 use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
-#[non_exhaustive]
-#[extra_valid_bits = 0b001001111]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum SimpleFlag {
     Flag1 = 1 << 9,
@@ -12,9 +10,7 @@ pub enum SimpleFlag {
 }
 
 fn main() {
-    let mut flag = SimpleFlag::Flag1 | SimpleFlag::Flag2 | SimpleFlag::Flag3;
-
-    flag.set(SimpleFlag::from_bits_retain(1 << 5));
+    let flag = SimpleFlag::Flag1 | SimpleFlag::Flag2 | SimpleFlag::Flag3;
 
     println!("{:#?}", flag);
 
