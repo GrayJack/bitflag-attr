@@ -29,15 +29,15 @@ impl Flags for ManualFlags {
         ("FLAG4", Self::FLAG4),
     ];
 
-    // Here you can define a value of extra (or even all) bits that can be used used but are not
+    // Here you can define a value of the reserved bits that can be used used but are not
     // necessarily named. This affect what bits the methods consider to do truncating operations.
     //
     // If all named flags are all flags that should be considered, the value can be zero (`0`). Or,
     // if you prefer, the same as the union of your named flags.
     //
     // But if your flag type represents an external flag (C FFI for example), you can define a value
-    // that matches the bits that could be set. Most uses it is `!0` (i.e. all bits could be set
-    // externally)
+    // that matches the bits that could be set. For most cases, it is `!0` (i.e. all bits could be
+    // set externally)
     const RESERVED_BITS: Self::Bits = 0;
 
     type Bits = u32;

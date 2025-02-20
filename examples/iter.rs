@@ -2,7 +2,7 @@ use bitflag_attr::bitflag;
 
 #[bitflag(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub enum SimpleFlag {
+pub enum SimpleFlags {
     Flag1 = 1 << 9,
     Flag2 = 1 << 12,
     Flag3 = 1,
@@ -10,7 +10,7 @@ pub enum SimpleFlag {
 }
 
 fn main() {
-    let flag = SimpleFlag::Flag1 | SimpleFlag::Flag2 | SimpleFlag::Flag3;
+    let flag = SimpleFlags::Flag1 | SimpleFlags::Flag2 | SimpleFlags::Flag3;
 
     println!("{:#?}", flag);
 

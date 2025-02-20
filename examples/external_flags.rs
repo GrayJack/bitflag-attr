@@ -12,7 +12,7 @@ use bitflag_attr::bitflag;
 #[non_exhaustive]
 #[reserved_bits = 0b001001111]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub enum SimpleFlag {
+pub enum ExternalFlags {
     A = 1,
     B = 1 << 1,
     C = 1 << 2,
@@ -23,10 +23,10 @@ pub enum SimpleFlag {
 
 fn main() {
     // A flag with only named flags
-    let mut flag = SimpleFlag::A | SimpleFlag::B | SimpleFlag::C;
+    let mut flag = ExternalFlags::A | ExternalFlags::B | ExternalFlags::C;
 
     // We added a potential external value
-    flag.set(SimpleFlag::from_bits_retain(1 << 6));
+    flag.set(ExternalFlags::from_bits_retain(1 << 6));
 
     println!("{:#?}", flag);
 
