@@ -609,7 +609,7 @@ impl crate::Flags for ExampleFlags {
         ("Flag11", ExampleFlags::Flag11),
         ("Flag12", ExampleFlags::Flag12),
     ];
-    const EXTRA_VALID_BITS: u32 = {
+    const RESERVED_BITS: u32 = {
         let mut all = 0;
         {
             all |= ExampleFlags::Flag1.0;

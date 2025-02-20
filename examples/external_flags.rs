@@ -7,10 +7,10 @@ use bitflag_attr::bitflag;
 //
 // Without extra configuration, it defaults to `!0` (all bits set) as a mask of all bits the
 /// external source may ever set, i.e. all bits are considered as possible values. But a value can
-/// be defined using the `#[extra_valid_bits = <value>]` helper attribute.
+/// be defined using the `#[reserved_bits = <value>]` helper attribute.
 #[bitflag(u32)]
 #[non_exhaustive]
-#[extra_valid_bits = 0b001001111]
+#[reserved_bits = 0b001001111]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum SimpleFlag {
     A = 1,

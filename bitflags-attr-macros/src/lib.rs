@@ -110,7 +110,7 @@ mod typed;
 /// }
 /// ```
 ///
-/// But you can also configure it using the helper attribute `extra_valid_bits` with the value of
+/// But you can also configure it using the helper attribute `reserved_bits` with the value of
 /// valid bits that the external source may ever set.
 ///
 /// ```
@@ -118,7 +118,7 @@ mod typed;
 ///
 /// #[bitflag(u32)]
 /// #[non_exhaustive] // Communicate there is more potential valid flags than the known flags
-/// #[extra_valid_bits = 0b001001111] // Specify the extra bits to take into consideration.
+/// #[reserved_bits = 0b001001111] // Specify the reserved bits to take into consideration.
 /// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 /// pub enum Flags {
 ///     /// The value `A`, at bit position `0`.
@@ -357,8 +357,8 @@ mod typed;
 /// ```rust,no_run
 /// #[bitflag($ty)]
 /// #[repr($repr_kind)] // optional: defaults to `repr(transparent)`
-/// #[non_exhaustive] // optional: If set, extra_valid_bits default to `!0`
-/// #[extra_valid_bits = $custom_extra_valid_expr] // optional
+/// #[non_exhaustive] // optional: If set, reserved_bits default to `!0`
+/// #[reserved_bits = $custom_extra_valid_expr] // optional
 /// #[derive(Clone, Copy, $other_derives)]
 /// $visibility enum $StructName {
 ///     FlagOne = flag1_value_expr,

@@ -33,7 +33,7 @@ impl Bitflag {
         let ident_span = item.ident.span();
         let og_attrs = item.attrs.iter().filter(|att| {
             !att.path().is_ident("derive")
-                && !att.path().is_ident("extra_valid_bits")
+                && !att.path().is_ident("reserved_bits")
                 && !att.path().is_ident("repr")
                 && !att.path().is_ident("serde")
         });
@@ -61,7 +61,7 @@ impl Bitflag {
             .iter()
             .filter(|att| {
                 !att.path().is_ident("derive")
-                    && !att.path().is_ident("extra_valid_bits")
+                    && !att.path().is_ident("reserved_bits")
                     && !att.path().is_ident("repr")
             })
             .cloned()
@@ -108,7 +108,7 @@ impl Bitflag {
         let valid_bits_attr = item
             .attrs
             .iter()
-            .find(|att| att.path().is_ident("extra_valid_bits"));
+            .find(|att| att.path().is_ident("reserved_bits"));
 
         let derives = item
             .attrs
@@ -403,11 +403,11 @@ impl ToTokens for Bitflag {
             orig_enum,
         } = self;
 
-        let extra_valid_bits = custom_known_bits
+        let reserved_bits = custom_known_bits
             .as_ref()
             .map(|expr| quote! {all |= #expr;});
 
-        let extra_valid_bits_value = if let Some(expr) = custom_known_bits {
+        let reserved_bits_value = if let Some(expr) = custom_known_bits {
             quote! {#expr}
         } else {
             quote! {
@@ -721,7 +721,7 @@ impl ToTokens for Bitflag {
                         }
                     )*
 
-                    #extra_valid_bits
+                    #reserved_bits
 
                     Self(all)
                 }
@@ -1047,7 +1047,7 @@ impl ToTokens for Bitflag {
                     (#all_flags_names , #all_flags) ,
                 )*];
 
-                const EXTRA_VALID_BITS: #inner_ty = #extra_valid_bits_value;
+                const RESERVED_BITS: #inner_ty = #reserved_bits_value;
 
                 type Bits = #inner_ty;
 
@@ -1169,10 +1169,10 @@ impl ExtraValidBits {
     fn from_meta(meta: &Meta) -> syn::Result<Self> {
         match meta {
             Meta::NameValue(m) => {
-                if !m.path.is_ident("extra_valid_bits") {
+                if !m.path.is_ident("reserved_bits") {
                     return Err(Error::new(
                         m.span(),
-                        "not a valid `extra_valid_bits` attribute",
+                        "not a valid `reserved_bits` attribute",
                     ));
                 }
 
@@ -1180,7 +1180,7 @@ impl ExtraValidBits {
             }
             _ => Err(Error::new(
                 meta.span(),
-                "extra_valid_bits must follow the syntax `extra_valid_bits = <expr>`",
+                "reserved_bits must follow the syntax `reserved_bits = <expr>`",
             )),
         }
     }
@@ -1190,8 +1190,8 @@ impl Parse for ExtraValidBits {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let meta: MetaNameValue = input.parse()?;
 
-        if !meta.path.is_ident("extra_valid_bits") {
-            return Err(Error::new(meta.span(), "not a extra_valid_bits attribute"));
+        if !meta.path.is_ident("reserved_bits") {
+            return Err(Error::new(meta.span(), "not a `reserved_bits` attribute"));
         }
 
         Ok(Self(meta.value))

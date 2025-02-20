@@ -38,7 +38,7 @@ impl Flags for ManualFlags {
     // But if your flag type represents an external flag (C FFI for example), you can define a value
     // that matches the bits that could be set. Most uses it is `!0` (i.e. all bits could be set
     // externally)
-    const EXTRA_VALID_BITS: Self::Bits = 0;
+    const RESERVED_BITS: Self::Bits = 0;
 
     type Bits = u32;
 

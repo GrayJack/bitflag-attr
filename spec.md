@@ -89,7 +89,7 @@ A flag without a name.
 The following is an unnamed flag:
 
 ```rust
-#[extra_valid_bits = 0b0000_0001];
+#[reserved_bits = 0b0000_0001];
 ```
 
 #### Zero-bit flag

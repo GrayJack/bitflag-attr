@@ -118,7 +118,7 @@
 //! }
 //! ```
 //!
-//! But you can also configure this value by using the helper attribute `extra_valid_bits` with a
+//! But you can also configure this value by using the helper attribute `reserved_bits` with a
 //! desired value of valid bits that the external source may ever set.
 //!
 //! ```rust
@@ -126,7 +126,7 @@
 //!
 //! #[bitflag(u32)]
 //! #[non_exhaustive] // Communicate there is more potential valid flags than the known flags
-//! #[extra_valid_bits = 0b001001111] // Specify the extra bits to take into consideration.
+//! #[reserved_bits = 0b001001111] // Specify the extra bits to take into consideration.
 //! #[derive(Debug, Clone, Copy)]
 //! pub enum Flags {
 //!     /// The value `A`, at bit position `0`.
@@ -453,7 +453,7 @@ impl_primitive!(u8, u16, u32, u64, u128, usize);
 ///         ("B", MyFlags(1 << 1)),
 ///     ];
 ///
-///     const EXTRA_VALID_BITS: Self::Bits = 1 | (1 << 1);
+///     const RESERVED_BITS: Self::Bits = 1 | (1 << 1);
 ///
 ///     type Bits = u8;
 ///
@@ -493,10 +493,25 @@ pub trait Flags: Sized + Copy + 'static {
     /// The set of named defined flags.
     const NAMED_FLAGS: &'static [(&'static str, Self)];
 
-    /// Extra possible bits values for the flags.
+    /// All reserved bits values for the flags.
     ///
-    /// Useful for externally defined flags.
-    const EXTRA_VALID_BITS: Self::Bits;
+    /// The bits defined here can be named or unnamed and the values defined here will be considered
+    /// for the [`all`] method as a known value.
+    ///
+    /// This can be used for [externally defined flags](crate#externally-defined-flags) or even
+    /// reserving bits for future usage.
+    ///
+    /// Usually, the value of this constant can be either `0` or the bitor-ed bits values of the
+    /// named flags[^1]. For externally defined flags, the most common value is `!0`, i.e. all bits.
+    ///
+    /// [^1]: By pure logic, all bits from named flags are reserved bits. But alternatively,
+    /// "reserved bits" can be thought as only the extra bits to be reserved as known. For that
+    /// reason, the default implementation of the [`all`] method consider this value **and** the
+    /// values of [`NAMED_FLAGS`] to generate the resulting value.
+    ///
+    /// [`all`]: Flags::all
+    /// [`NAMED_FLAGS`]: Flags::NAMED_FLAGS
+    const RESERVED_BITS: Self::Bits;
 
     /// The underlying bits type.
     type Bits: BitsPrimitive;
@@ -603,7 +618,7 @@ pub trait Flags: Sized + Copy + 'static {
             truncated |= flag.bits();
         }
 
-        truncated |= Self::EXTRA_VALID_BITS;
+        truncated |= Self::RESERVED_BITS;
 
         Self::from_bits_retain(truncated)
     }
