@@ -2,15 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.12.0](https://github.com/GrayJack/bitflag-attr/compare/v0.11.1..v0.12.0) — 2025-02-21
 
 ### 🚀 Features
 
 - Add `all_named` and `is_all_named` to the `Flags` trait — ([b472ff5](https://github.com/GrayJack/bitflag-attr/commit/b472ff5403c221467655951a7a15f5dbae33d17b))
+- Add custom error for when the enum have fields — ([4be6862](https://github.com/GrayJack/bitflag-attr/commit/4be6862ca6b02cb0f96281a3bc16f46e144c4fab))
 
 ### 🚜 Refactor
 
 - (**BREAKING**) Rename `Flags::KNOWN_FLAGS` to `Flags::NAMED_FLAGS` — ([8d298d9](https://github.com/GrayJack/bitflag-attr/commit/8d298d93fab1567bcc1b92737326c180cfea4e01))
+- Reduce a bit the size of the macro typed information — ([c5b79d5](https://github.com/GrayJack/bitflag-attr/commit/c5b79d5f5e1d6338fd55fdb67d9cdf1b9c949c94))
+- (**BREAKING**) Rename `extra_valid_bits` to `reserved_bits` — ([9a703a2](https://github.com/GrayJack/bitflag-attr/commit/9a703a2e2bc503c5b7da43cb22ebf8c5d576ce20))
 
 ### 📚 Documentation
 
@@ -18,6 +21,20 @@ All notable changes to this project will be documented in this file.
 - A few rewording — ([e35bf5f](https://github.com/GrayJack/bitflag-attr/commit/e35bf5f13085a3e584e514fa9baba5a5690adf1f))
 - Add specification documentation — ([67c5cde](https://github.com/GrayJack/bitflag-attr/commit/67c5cded79a683bde30e9b274a6553adaddf1fc9))
 - Add proper documentation for the crate features. — ([68d2f5b](https://github.com/GrayJack/bitflag-attr/commit/68d2f5b6d352cab3613615bef7ad272b5a203dab))
+- Modify the changelog format a bit to avoid rustdoc `unresolved link` issues — ([f418c2b](https://github.com/GrayJack/bitflag-attr/commit/f418c2b491b58a8f246ff62816724aa6b140df88))
+- Do not run doctest on the spec file — ([4ab8cc4](https://github.com/GrayJack/bitflag-attr/commit/4ab8cc4f7f200a22d9f2862410e5ba4329f6c7e8))
+- Update syntax section of `bitflag` macro and fix some typos — ([87c021d](https://github.com/GrayJack/bitflag-attr/commit/87c021d2189b0689798720c5056022da8588fdda))
+- Document the custom `Debug` implementation on the `bitflag` macro — ([4e094f0](https://github.com/GrayJack/bitflag-attr/commit/4e094f05c072f8f83f211c77e9b33842ecfd41ec))
+- Clarify internal item — ([17a6fb8](https://github.com/GrayJack/bitflag-attr/commit/17a6fb8f7b426ed067e73e1d2d48f57e29b351e0))
+- Expand the crate entry documentation — ([7958b99](https://github.com/GrayJack/bitflag-attr/commit/7958b99371e386a5f0536c985cdfab666771251f))
+- Expand parser module documentation — ([773be5a](https://github.com/GrayJack/bitflag-attr/commit/773be5a168ba6707524c197ded9f98a73a3c7e43))
+- Clarify some parts — ([3b2eac6](https://github.com/GrayJack/bitflag-attr/commit/3b2eac6dd3a9a56fe5fac2eea26ce98ab0cda0b6))
+- Add example without using the `bitflag` macro — ([561a362](https://github.com/GrayJack/bitflag-attr/commit/561a362478e35cb89822593d3180204164807c9c))
+- Re-organize some example code — ([189a86b](https://github.com/GrayJack/bitflag-attr/commit/189a86b43416c00fa1d39352d56e96ce7afc4b3e))
+- Add a example for deriving Default — ([f566240](https://github.com/GrayJack/bitflag-attr/commit/f566240dc5fc592edbdc135d4eac82822ee4a6cc))
+- Example for external flags — ([777caf6](https://github.com/GrayJack/bitflag-attr/commit/777caf6c4dfffc4bd907dd03b9d81da75aed9895))
+- Small tweaks — ([fdf7562](https://github.com/GrayJack/bitflag-attr/commit/fdf75622b6d76b112ef116b755df57ab514c9bc2))
+- Better naming on examples — ([d6114b3](https://github.com/GrayJack/bitflag-attr/commit/d6114b3f8a9ffe35026ca91830262aa56a3513ec))
 
 ## [0.11.1](https://github.com/GrayJack/bitflag-attr/compare/v0.11.0..v0.11.1) — 2025-02-14
 
