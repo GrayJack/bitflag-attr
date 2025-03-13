@@ -432,7 +432,7 @@ impl ToTokens for Bitflag {
             None => quote! {#[repr(transparent)]},
         };
 
-        let const_mut = cfg!(feature = "const-mut-ref").then(|| quote!(mut));
+        let const_mut = cfg!(feature = "const-mut-ref").then(|| quote!(const));
 
         let debug_impl = impl_flags.contains(ImplFlags::DEBUG).then(|| {
             quote! {
