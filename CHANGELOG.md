@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.1](https://github.com/GrayJack/bitflag-attr/compare/v0.12.0..v0.12.1) — 2025-03-13
+
+### 🐞 Bug Fixes
+
+- Fix code produced with `const-mut-ref` feature — ([4148b4a](https://github.com/GrayJack/bitflag-attr/commit/4148b4a80d9e3a4f17933618f14ef78eabec2a1f))
+
 ## [0.12.0](https://github.com/GrayJack/bitflag-attr/compare/v0.11.1..v0.12.0) — 2025-02-21
 
 ### 🚀 Features
@@ -36,7 +42,7 @@ All notable changes to this project will be documented in this file.
 - Small tweaks — ([fdf7562](https://github.com/GrayJack/bitflag-attr/commit/fdf75622b6d76b112ef116b755df57ab514c9bc2))
 - Better naming on examples — ([d6114b3](https://github.com/GrayJack/bitflag-attr/commit/d6114b3f8a9ffe35026ca91830262aa56a3513ec))
 
-## [0.11.1](https://github.com/GrayJack/bitflag-attr/compare/v0.11.0..v0.11.1) — 2025-02-14
+## [0.11.1](https://github.com/GrayJack/bitflag-attr/compare/v0.11.0..v0.11.1) — 2025-02-15
 
 ### 🚀 Features
 
@@ -48,13 +54,19 @@ All notable changes to this project will be documented in this file.
 
 - Fix compilation issue on CI — ([b59475d](https://github.com/GrayJack/bitflag-attr/commit/b59475d3c4d131f6059619e34f70ef3b06426702))
 
-## [0.11.0](https://github.com/GrayJack/bitflag-attr/compare/v0.10.1..v0.11.0) — 2025-02-14
+## [0.11.0](https://github.com/GrayJack/bitflag-attr/compare/v0.10.0..v0.11.0) — 2025-02-14
 
 ### 🚀 Features
 
+- Handle full path of custom external derives — ([708097e](https://github.com/GrayJack/bitflag-attr/commit/708097eef7df4396f2aacbd906804cb7189a1405))
+- Accept more well known types and full-path — ([47b3dca](https://github.com/GrayJack/bitflag-attr/commit/47b3dca6eee898f27f931e3812f366ff3095c8ae))
 - Add inline on some generated functions — ([3c1d446](https://github.com/GrayJack/bitflag-attr/commit/3c1d44651871021779d841fa58a3823201009957))
 - (**BREAKING**) Debug outputs octal and hex as well — ([c72b604](https://github.com/GrayJack/bitflag-attr/commit/c72b604bb6080fe818f65f72535eaac584f783b1))
 - Add method `clear` for the generated type and the `Flags` trait — ([0e20342](https://github.com/GrayJack/bitflag-attr/commit/0e20342cdc763949f9165c73027216dfd87d1482))
+
+### 🐞 Bug Fixes
+
+- Process static assert error string in the macro — ([051fe86](https://github.com/GrayJack/bitflag-attr/commit/051fe86b7efe71a5eea79c6537669561068c5169))
 
 ### 🚜 Refactor
 
@@ -63,23 +75,20 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Fix links — ([e67f383](https://github.com/GrayJack/bitflag-attr/commit/e67f383377fc8547fdc42869634c49f855e7652d))
+- Fix lint — ([9b2b185](https://github.com/GrayJack/bitflag-attr/commit/9b2b1858bf3b2ede74c7179b6e7f90c7a5ec4650))
+- Update readme — ([c4959eb](https://github.com/GrayJack/bitflag-attr/commit/c4959ebf39f366a18645c50ce61e66f804812620))
+- Update README — ([a4eb9b7](https://github.com/GrayJack/bitflag-attr/commit/a4eb9b756aa13a9f5c8da8d730ae8bb1c59aa604))
 - Fix typos — ([15da0fb](https://github.com/GrayJack/bitflag-attr/commit/15da0fb9364cb36a8ba0c9b64ff2d23480ba002c))
 - Add some doc alias — ([1e16e82](https://github.com/GrayJack/bitflag-attr/commit/1e16e8272435dc931df47228d026b18f9a1ef398))
 - Fix missing links to `bitflags` macro docs — ([40387f9](https://github.com/GrayJack/bitflag-attr/commit/40387f9e00c29a62dd9bebb96eb8526467d5446d))
 - Document newly accepted types in the bitflag attribute — ([c79c418](https://github.com/GrayJack/bitflag-attr/commit/c79c4183902904dfc3a644c5427d320a989a4332))
 
-## [0.10.1](https://github.com/GrayJack/bitflag-attr/compare/v0.10.0..v0.10.1) — 2025-02-14
+### ⚙️ Continuous Integration
 
-### 🚀 Features
-
-- Handle full path of custom external derives — ([708097e](https://github.com/GrayJack/bitflag-attr/commit/708097eef7df4396f2aacbd906804cb7189a1405))
-- Accept more well known types and full-path — ([47b3dca](https://github.com/GrayJack/bitflag-attr/commit/47b3dca6eee898f27f931e3812f366ff3095c8ae))
-
-### 📚 Documentation
-
-- Fix lint — ([9b2b185](https://github.com/GrayJack/bitflag-attr/commit/9b2b1858bf3b2ede74c7179b6e7f90c7a5ec4650))
-- Update readme — ([c4959eb](https://github.com/GrayJack/bitflag-attr/commit/c4959ebf39f366a18645c50ce61e66f804812620))
-- Update README — ([a4eb9b7](https://github.com/GrayJack/bitflag-attr/commit/a4eb9b756aa13a9f5c8da8d730ae8bb1c59aa604))
+- Check all features — ([5f77b41](https://github.com/GrayJack/bitflag-attr/commit/5f77b412c8209891ba22995ff61937f706f8a592))
+- Fix testing toolchain versions — ([0dea689](https://github.com/GrayJack/bitflag-attr/commit/0dea6899d2c65f03723f654d7841f39849aa5dcc))
+- Update docs flags — ([ccdfe4f](https://github.com/GrayJack/bitflag-attr/commit/ccdfe4fd299256336c8b253e598a67ff131b1bd2))
 
 ## [0.10.0](https://github.com/GrayJack/bitflag-attr/compare/v0.9.0..v0.10.0) — 2025-02-14
 
@@ -101,7 +110,6 @@ All notable changes to this project will be documented in this file.
 - Fix check — ([4f4fa48](https://github.com/GrayJack/bitflag-attr/commit/4f4fa4861774b0f312be5c36a25880f608d83b02))
 - Pass external custom derives to the struct when without feature enabled — ([64e8263](https://github.com/GrayJack/bitflag-attr/commit/64e82638f9baeeb6d8b66ee1e3ef9c9017a1a133))
 - Use full namespace for `Option`and `Result` on generated code — ([7df850d](https://github.com/GrayJack/bitflag-attr/commit/7df850dcd06b6d1c9c2d22601a1f7835145dec01))
-- Process static assert error string in the macro — ([051fe86](https://github.com/GrayJack/bitflag-attr/commit/051fe86b7efe71a5eea79c6537669561068c5169))
 
 ### 🚜 Refactor
 
@@ -112,18 +120,11 @@ All notable changes to this project will be documented in this file.
 
 - Fix typo — ([381ae8e](https://github.com/GrayJack/bitflag-attr/commit/381ae8ecce213370a247a4a07cccaed620be9ce5))
 - Update generated, fix links — ([9c14e15](https://github.com/GrayJack/bitflag-attr/commit/9c14e158b88056973918ba1fd75142cfba032845))
-- Fix links — ([e67f383](https://github.com/GrayJack/bitflag-attr/commit/e67f383377fc8547fdc42869634c49f855e7652d))
 
 ### 🧪 Testing
 
 - Another compilation error rest annoying difference of span reporting between stable and nightly — ([fbb3d70](https://github.com/GrayJack/bitflag-attr/commit/fbb3d707f7f50d6515d152b8ac553b6e5a935ba7))
 - Add better tests for serde feature — ([2c57bd5](https://github.com/GrayJack/bitflag-attr/commit/2c57bd5ff4f6a149fd2babb818e0b3c9b934b37f))
-
-### ⚙️ Continuous Integration
-
-- Check all features — ([5f77b41](https://github.com/GrayJack/bitflag-attr/commit/5f77b412c8209891ba22995ff61937f706f8a592))
-- Fix testing toolchain versions — ([0dea689](https://github.com/GrayJack/bitflag-attr/commit/0dea6899d2c65f03723f654d7841f39849aa5dcc))
-- Update docs flags — ([ccdfe4f](https://github.com/GrayJack/bitflag-attr/commit/ccdfe4fd299256336c8b253e598a67ff131b1bd2))
 
 ## [0.9.0](https://github.com/GrayJack/bitflag-attr/compare/v0.8.2..v0.9.0) — 2025-02-14
 
@@ -245,6 +246,8 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Make sure trait implementation uses `core` traits — ([74f84cd](https://github.com/GrayJack/bitflag-attr/commit/74f84cd6127bc890b7b4df7b5057798b9c6c2cd0))
+- Allow 128 bit integers as types — ([c7969c5](https://github.com/GrayJack/bitflag-attr/commit/c7969c50cd9df0a2077fa24794d946dae5d6dfb5))
 - Implement generating iterators — ([0553788](https://github.com/GrayJack/bitflag-attr/commit/0553788ef5d7c6249fd098ca1447b7587337b2ed))
 - Add helpers for formatting — ([6ac7b14](https://github.com/GrayJack/bitflag-attr/commit/6ac7b14e1f81e5a0c9466a0cb3314f06c2b1be7c))
 - Implement `serde` feature — ([70a8de0](https://github.com/GrayJack/bitflag-attr/commit/70a8de049b71f4d94748c323c651d02131f23f91))
@@ -264,6 +267,9 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Clarify — ([5f09260](https://github.com/GrayJack/bitflag-attr/commit/5f09260b4d7e75c3ec3f881dfb20e48ab9a536d5))
+- Fix typos; clarify a few points — ([6e36418](https://github.com/GrayJack/bitflag-attr/commit/6e36418026cb40b47878f93ec02e133afbd25c57))
+- Add doc-alias to `set` and `unset` — ([b88a75e](https://github.com/GrayJack/bitflag-attr/commit/b88a75e35f0e5fb3dd6c7ef92fa7d06514d385c0))
 - Update docs — ([0cda2e4](https://github.com/GrayJack/bitflag-attr/commit/0cda2e4c2d8a0c82e34cb98aa9f615e5b23b2b6e))
 
 ## [0.5.0](https://github.com/GrayJack/bitflag-attr/compare/v0.4.0..v0.5.0) — 2025-02-14
@@ -273,14 +279,6 @@ All notable changes to this project will be documented in this file.
 - Add `#[automatically_derived]` to generated `impl Trait` blocks — ([242abac](https://github.com/GrayJack/bitflag-attr/commit/242abacc03ea417d2b0c36523377dc76e5cb8e10))
 - Add option to not generate the `Debug` impl — ([a3059e7](https://github.com/GrayJack/bitflag-attr/commit/a3059e7e43e3b27bd989026ad86a0c76a556a7e7))
 - Improve error message on parameters being repeated — ([9fd17d8](https://github.com/GrayJack/bitflag-attr/commit/9fd17d8a87cf259233a91a880c60dca6c362715a))
-- Make sure trait implementation uses `core` traits — ([74f84cd](https://github.com/GrayJack/bitflag-attr/commit/74f84cd6127bc890b7b4df7b5057798b9c6c2cd0))
-- Allow 128 bit integers as types — ([c7969c5](https://github.com/GrayJack/bitflag-attr/commit/c7969c50cd9df0a2077fa24794d946dae5d6dfb5))
-
-### 📚 Documentation
-
-- Clarify — ([5f09260](https://github.com/GrayJack/bitflag-attr/commit/5f09260b4d7e75c3ec3f881dfb20e48ab9a536d5))
-- Fix typos; clarify a few points — ([6e36418](https://github.com/GrayJack/bitflag-attr/commit/6e36418026cb40b47878f93ec02e133afbd25c57))
-- Add doc-alias to `set` and `unset` — ([b88a75e](https://github.com/GrayJack/bitflag-attr/commit/b88a75e35f0e5fb3dd6c7ef92fa7d06514d385c0))
 
 ## [0.4.0](https://github.com/GrayJack/bitflag-attr/compare/v0.3.1..v0.4.0) — 2025-02-14
 
