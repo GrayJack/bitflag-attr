@@ -19,7 +19,6 @@ proc-macro = true
 [dependencies]
 syn = { version = "2", features = [
     "clone-impls",
-    "full",
     "derive",
     "parsing",
     "printing",

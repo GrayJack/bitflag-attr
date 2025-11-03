@@ -1,6 +1,6 @@
 use syn::{
     parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren, Attribute, DeriveInput,
-    Error, Expr, Ident, ItemConst, ItemEnum, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
+    Error, Expr, Ident, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
 };
 
 use proc_macro2::TokenStream;
@@ -18,10 +18,10 @@ pub struct Bitflag {
     all_attrs: Vec<Vec<Attribute>>,
     all_flags: Vec<TokenStream>,
     all_flags_names: Vec<LitStr>,
-    flags: Vec<ItemConst>,
+    flags: Vec<TokenStream>,
     default_value: Option<Expr>,
     custom_known_bits: Option<Expr>,
-    orig_enum: ItemEnum,
+    orig_enum: TokenStream,
 }
 
 impl Bitflag {
@@ -338,12 +338,12 @@ impl Bitflag {
                 }
             };
 
-            flags.push(syn::parse2(generated)?);
+            flags.push(generated);
         }
 
         let og_derive = (impl_flags.contains(ImplFlags::DEFAULT) && default_value.is_some())
             .then(|| quote!(#[derive(Default)]));
-        let orig_enum = syn::parse2(quote! {
+        let orig_enum = quote! {
             #[allow(dead_code)]
             #(#og_attrs)*
             #og_derive
@@ -353,7 +353,7 @@ impl Bitflag {
                     #all_variants,
                 )*
             }
-        })?;
+        };
 
         let custom_known_bits: Option<Expr> = if let Some(attr) = valid_bits_attr {
             let parsed = ExtraValidBits::from_meta(&attr.meta)?;
