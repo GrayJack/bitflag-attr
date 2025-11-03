@@ -505,10 +505,10 @@ impl ToTokens for Bitflag {
         let serialize_impl = (cfg!(feature = "serde") && impl_flags.contains(ImplFlags::SERIALIZE)).then(|| {
             quote! {
                 #[automatically_derived]
-                impl ::serde::Serialize for #name {
+                impl ::bitflag_attr::external::Serialize for #name {
                     fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                     where
-                        S: ::serde::Serializer
+                        S: ::bitflag_attr::external::Serializer
                     {
                         struct AsDisplay<'a>(&'a #name);
 
@@ -534,15 +534,15 @@ impl ToTokens for Bitflag {
         let deserialize_impl = (cfg!(feature = "serde") && impl_flags.contains(ImplFlags::DESERIALIZE)).then(|| {
             quote! {
                 #[automatically_derived]
-                impl<'de> ::serde::Deserialize<'de> for #name {
+                impl<'de> ::bitflag_attr::external::Deserialize<'de> for #name {
                     fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                     where
-                        D: ::serde::Deserializer<'de>
+                        D: ::bitflag_attr::external::Deserializer<'de>
                     {
                         if deserializer.is_human_readable() {
                             struct HelperVisitor(::core::marker::PhantomData<#name>);
 
-                            impl<'de> ::serde::de::Visitor<'de> for HelperVisitor {
+                            impl<'de> ::bitflag_attr::external::de::Visitor<'de> for HelperVisitor {
                                 type Value = #name;
 
                                 fn expecting(&self,  f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
@@ -551,7 +551,7 @@ impl ToTokens for Bitflag {
 
                                 fn visit_str<E>(self, flags: &str) -> ::core::result::Result<Self::Value, E>
                                 where
-                                    E: ::serde::de::Error,
+                                    E: ::bitflag_attr::external::de::Error,
                                 {
                                     ::bitflag_attr::parser::from_text(flags).map_err(|e| E::custom(e))
                                 }

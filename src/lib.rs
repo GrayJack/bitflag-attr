@@ -368,6 +368,9 @@ pub use bitflags_attr_macros::bitflag;
 pub mod iter;
 pub mod parser;
 
+#[doc(hidden)]
+pub mod external;
+
 /// Primitive types that can be used with [`bitflag`] attribute implement this trait.
 pub trait BitsPrimitive:
     private::Sealed

@@ -14,6 +14,7 @@ exclude = ["/tests", "/.github"]
 
 [dependencies]
 bitflags-attr-macros = { version = "=0.12.1", path = "bitflags-attr-macros" }
+serde_core = { version = "1", default-features = false, optional = true }
 
 [dev-dependencies]
 trybuild = "1.0"
@@ -31,7 +32,7 @@ std = ["alloc"]
 alloc = []
 # Implement `Serialize` and `Deserialize` for the type with the bitflag attribute.
 # This do not add `serde` in your dependency tree
-serde = ["bitflags-attr-macros/serde"]
+serde = ["bitflags-attr-macros/serde", "dep:serde_core"]
 # Implement `Arbitrary` for the type with the bitflag attribute.
 # This do not add `arbitrary` in your dependency tree
 arbitrary = ["bitflags-attr-macros/arbitrary"]

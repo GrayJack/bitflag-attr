@@ -16,6 +16,7 @@ dependencies = [
  "bitflags-attr-macros",
  "bytemuck",
  "serde",
+ "serde_core",
  "serde_json",
  "serde_test",
  "trybuild",

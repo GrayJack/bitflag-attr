@@ -223,8 +223,7 @@ mod typed;
 ///
 /// If the crate is compiled with the `serde` feature, this crate will generate implementations for
 /// the `serde::{Serialize, Deserialize}` traits if they are included in the `#[derive(...)]`
-/// parameters, but it will not import/re-export these traits, your project must have `serde` as
-/// a direct dependency.
+/// parameters.
 ///
 /// ```no_run
 /// use bitflag_attr::bitflag;
