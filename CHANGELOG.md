@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0](https://github.com/GrayJack/bitflag-attr/compare/v0.12.1..v0.13.0) — 2025-11-03
+
+### 🚀 Features
+
+- Re-export `serde_core` items and use on them on the generated code — ([3e3b2bc](https://github.com/GrayJack/bitflag-attr/commit/3e3b2bc5dd534ed49c15e8c1a7ad42d81f3d0539))
+
+### 🚜 Refactor
+
+- Refactor attribute macro to not depend on the `full` feature of `syn` — ([1d47355](https://github.com/GrayJack/bitflag-attr/commit/1d47355c9841cb4ee69c73f55fb601b451a6d9b3))
+
 ## [0.12.1](https://github.com/GrayJack/bitflag-attr/compare/v0.12.0..v0.12.1) — 2025-03-13
 
 ### 🐞 Bug Fixes
