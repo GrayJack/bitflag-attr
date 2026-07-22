@@ -17,7 +17,7 @@ Do not use directly, use the reexport in the `bitflags` crate. This allows for b
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = [
+syn = { version = "3", features = [
     "clone-impls",
     "derive",
     "parsing",
