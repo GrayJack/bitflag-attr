@@ -1,13 +1,13 @@
 [package]
 name = "bitflags-attr-macros"
 version = "0.13.1"
-edition = "2021"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 keywords = ["bit", "bitmask", "bitflags", "flags"]
 categories = ["no-std"]
 repository = "https://github.com/GrayJack/bitflag-attr"
 homepage = "https://github.com/GrayJack/bitflag-attr"
-rust-version = "1.75.0"
+rust-version = "1.85.0"
 description = """
 Attribute macro implementation for bitflags-attr.
 Do not use directly, use the reexport in the `bitflags` crate. This allows for better compatibility across versions.

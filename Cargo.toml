@@ -2,14 +2,14 @@
 name = "bitflag-attr"
 authors = ["GrayJack <gr41.j4ck@gmail.com>"]
 version = "0.13.1"
-edition = "2021"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A macro to generate bitflags structures from C-like enums"
 keywords = ["bit", "bitmask", "bitflags", "flags", "enum"]
 categories = ["data-structures", "no-std"]
 repository = "https://github.com/GrayJack/bitflag-attr"
 homepage = "https://github.com/GrayJack/bitflag-attr"
-rust-version = "1.81.0"
+rust-version = "1.85.0"
 exclude = ["/tests", "/.github"]
 
 [dependencies]
@@ -25,7 +25,7 @@ serde_json = "1.0"
 serde_test = "1.0.19"
 
 [features]
-default = []
+default = ["const-mut-ref"]
 # Just to satisfy
 std = ["alloc"]
 # Use string for more information for parse errors.
