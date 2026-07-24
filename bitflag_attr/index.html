@@ -1,0 +1,265 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Bitflag-attr is a library for Rust that allows to generate types for C-style bitflags with ergonomic APIs using attribute macros and enums."><title>bitflag_attr - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-ddecd707.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="bitflag_attr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (89c61a754 2026-07-23)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate bitflag_attr</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../bitflag_attr/index.html">bitflag_<wbr>attr</a><span class="version">0.14.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#overview" title="Overview">Overview</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#usage" title="Usage">Usage</a><ul><li><a href="#generating-flags-type" title="Generating flags type">Generating flags type</a></li><li><a href="#working-with-flags-values" title="Working with flags values">Working with flags values</a></li></ul></li><li><a href="#formatting-and-parsing" title="Formatting and parsing">Formatting and parsing</a></li><li><a href="#specification-and-terminology" title="Specification and Terminology">Specification and Terminology</a><ul><li><a href="#flags-types-flags-values-flags" title="Flags types, flags values, flags">Flags types, flags values, flags</a></li><li><a href="#known-and-unknown-bits" title="Known and unknown bits">Known and unknown bits</a></li><li><a href="#zero-bit-flags" title="Zero-bit flags">Zero-bit flags</a></li><li><a href="#multi-bit-flags" title="Multi-bit flags">Multi-bit flags</a></li></ul></li><li><a href="#crate-features" title="Crate Features">Crate Features</a><ul><li><a href="#ecosystem-features" title="Ecosystem features">Ecosystem features</a></li><li><a href="#code-generation-features" title="Code generation features">Code generation features</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>bitflag_<wbr>attr</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/bitflag_attr/lib.rs.html#1-928">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Bitflag-attr is a library for Rust that allows to generate types for C-style bitflags with
+ergonomic APIs using attribute macros and enums.</p>
+<h2 id="overview"><a class="doc-anchor" href="#overview">§</a>Overview</h2>
+<p>The primary item of this crate is the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro. This attribute macro allows to define a
+flags type from a Rust C-style enum definition, turning it into a struct with the flags as
+associated constants.</p>
+<p>The remainder of this documentation is organized as follows:</p>
+<ul>
+<li><a href="#features">Features</a> gives a very brief summary of the features <code>bitflag-attr</code> does and does not
+support.</li>
+<li><a href="#usage">Usage</a> shows how to add <code>bitflag-attr</code> to your Rust project.</li>
+<li><a href="#formatting-and-parsing">Formatting and parsing</a> documents the human-readable format used to
+parse form and format into strings</li>
+<li><a href="#specification-and-terminology">Specification and Terminology</a> documents about the
+specification and the terminology used by this crate.</li>
+<li><a href="#crate-features">Crate features</a> documents the Cargo features that can be enabled or disabled
+for this crate.</li>
+</ul>
+<p>Also, these sub-modules serve to provide longer form documentation:</p>
+<ul>
+<li><a href="changelog/index.html" title="mod bitflag_attr::changelog">Changelog</a></li>
+<li><a href="spec/index.html" title="mod bitflag_attr::spec">Specification and Terminology</a></li>
+<li><a href="example_generated/index.html" title="mod bitflag_attr::example_generated">Example of a generated code by the <code>bitflag</code> macro</a></li>
+</ul>
+<h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
+<p>Here is a non-exhaustive list of the things that <code>bitflag-attr</code> supports:</p>
+<ul>
+<li>Ergonomically create a flags type from native C-like enum syntax</li>
+<li><code>no_std</code> support with opt-in options to use <code>alloc</code> and <code>std</code></li>
+<li>Generate ergonomic API for the generated flags type</li>
+<li>Generated methods are almost entirely const-compatible</li>
+<li>Generated flags type auto-implements several convenient traits (complete list in the
+<a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> documentation)</li>
+<li>Generated <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug"><code>fmt::Debug</code></a> implementation outputs human-readable, binary, octal and hexadecimal
+representation of the flags value for better debugging inspection.</li>
+<li>Support to the enum syntax for deriving <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default"><code>Default</code></a> by using <code>#[default]</code> to choose the
+default flags value</li>
+<li>Support to use all integer types and type alias in <code>core</code> and <code>std</code> as well as most common
+integer type alias of <code>libc</code> with opt-in option to use <a href="#code-generation-features">other type alias as well as custom
+type alias</a></li>
+<li>Opt-in support for generating <code>serde::Serialize</code> and <code>serde::Deserialize</code> by using the <code>serde</code>
+<a href="#crate-features">crate feature</a></li>
+<li>Opt-in support for generating <code>arbitrary::Arbitrary</code> by using the <code>arbitrary</code> <a href="#crate-features">crate feature</a></li>
+<li>Opt-in support for generating <code>bytemuck::Zeroable</code> and <code>bytemuck::Pod</code> by using the <code>bytemuck</code>
+<a href="#crate-features">crate feature</a></li>
+</ul>
+<h2 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h2>
+<p>The <code>bitflag-attr</code> project is <a href="https://crates.io/crates/bitflag-attr">on crates.io</a> and can be
+used by adding <code>bitflag-attr</code> to your dependencies in your project’s <code>Cargo.toml</code>.
+Or more simply, by using <code>cargo add</code>.</p>
+<div class="example-wrap"><pre class="language-sh"><code>cargo add bitflag-attr</code></pre></div>
+<p>or</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+bitflag-attr = &quot;0.11.1&quot;</code></pre></div><h3 id="generating-flags-type"><a class="doc-anchor" href="#generating-flags-type">§</a>Generating flags type</h3>
+<p>Use the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> attribute macro to generate flags types:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b00000001</span>,
+    B = <span class="number">0b00000010</span>,
+    C = <span class="number">0b00000100</span>,
+}</code></pre></div>
+<p>Deriving <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone"><code>Clone</code></a> and <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy"><code>Copy</code></a> for the type is mandatory.</p>
+<p>The generated type is a <strong>struct</strong> wrapping the chosen primitive type.</p>
+<p>See the docs for the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro for the full syntax.</p>
+<p>Also see the <a href="example_generated/struct.ExampleFlags.html" title="struct bitflag_attr::example_generated::ExampleFlags"><code>example_generated</code></a> module for an example of what the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro generates
+for a flags type.</p>
+<h4 id="externally-defined-flags"><a class="doc-anchor" href="#externally-defined-flags">§</a>Externally defined flags</h4>
+<p>If you’re generating flags types for an external source, such as a C API, you can use the
+<code>non_exhaustive</code> attribute to communicate to the bitflags macro that there may be more valid
+flags than the known flags.</p>
+<p>Without extra configuration, it defaults to <code>!0</code> (all bits set) as a mask of all bits the
+external source may ever set, i.e. all bits are considered as possible values.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[non_exhaustive] </span><span class="comment">// All bits are considered as possible values.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<p>But you can also configure this value by using the helper attribute <code>reserved_bits</code> with a
+desired value of valid bits that the external source may ever set.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitflag_attr::bitflag;
+
+<span class="attr">#[bitflag(u32)]
+#[non_exhaustive] </span><span class="comment">// Communicate there is more potential valid flags than the known flags
+</span><span class="attr">#[reserved_bits = <span class="number">0b001001111</span>] </span><span class="comment">// Specify the extra bits to take into consideration.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>Flags {
+    <span class="doccomment">/// The value `A`, at bit position `0`.
+    </span>A = <span class="number">0b00000001</span>,
+    <span class="doccomment">/// The value `B`, at bit position `1`.
+    </span>B = <span class="number">0b00000010</span>,
+    <span class="doccomment">/// The value `C`, at bit position `2`.
+    </span>C = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// The combination of `A`, `B`, and `C`.
+    </span>ABC = A | B | C,
+}</code></pre></div>
+<p>Why should you do this? Generated methods like <code>all</code> and truncating operators like <code>!</code> only
+consider bits in defined flags. Adding an unnamed flag makes those methods consider additional
+bits, without generating additional constants for them. It helps compatibility when the external
+source may start setting additional bits at any time. The
+<a href="#known-and-unknown-bits">known and unknown bits</a> section has more details on this behavior.</p>
+<h4 id="custom-derives"><a class="doc-anchor" href="#custom-derives">§</a>Custom derives</h4>
+<p>You can derive some traits on generated flags types if you enable Cargo features. The following
+libraries are currently supported:</p>
+<ul>
+<li><code>serde</code>: Support <code>#[derive(Serialize, Deserialize)]</code>, using text for human-readable formats,
+and a raw number for binary formats.</li>
+<li><code>arbitrary</code>: Support <code>#[derive(Arbitrary)]</code>, only generating flags values with known bits.</li>
+<li><code>bytemuck</code>: Support <code>#[derive(Pod, Zeroable)]</code>, for casting between flags values and their
+underlying bits values.</li>
+</ul>
+<h4 id="adding-custom-methods"><a class="doc-anchor" href="#adding-custom-methods">§</a>Adding custom methods</h4>
+<p>The <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro supports any attributes on generated flags types within the macro itself,
+while <code>impl</code> blocks can be added normally:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag(u32)]
+</span><span class="comment">// Attributes can be applied to flags types
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b00000001</span>,
+    B = <span class="number">0b00000010</span>,
+    C = <span class="number">0b00000100</span>,
+}
+
+<span class="comment">// Impl blocks can be added to flags types normally
+</span><span class="kw">impl </span>Flags {
+    <span class="kw">pub fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.bits() <span class="kw">as </span>u64
+    }
+}</code></pre></div><h3 id="working-with-flags-values"><a class="doc-anchor" href="#working-with-flags-values">§</a>Working with flags values</h3>
+<p>Use generated constants and standard bitwise operators to interact with flags values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// union
+</span><span class="kw">let </span>ab = Flags::A | Flags::B;
+
+<span class="comment">// intersection
+</span><span class="kw">let </span>a = ab &amp; Flags::A;
+
+<span class="comment">// difference
+</span><span class="kw">let </span>b = ab - Flags::A;
+
+<span class="comment">// complement
+</span><span class="kw">let </span>c = !ab;</code></pre></div>
+<p>See the docs for the <a href="example_generated/struct.ExampleFlags.html" title="struct bitflag_attr::example_generated::ExampleFlags"><code>example_generated</code></a> module and the <a href="trait.Flags.html" title="trait bitflag_attr::Flags"><code>Flags</code></a> trait for more details on
+operators and how they behave.</p>
+<h2 id="formatting-and-parsing"><a class="doc-anchor" href="#formatting-and-parsing">§</a>Formatting and parsing</h2>
+<p><code>bitflag-attr</code> defines a text format that can be used to convert any flags value to and from
+strings.</p>
+<p>See the <a href="parser/index.html" title="mod bitflag_attr::parser"><code>parser</code></a> module for more details.</p>
+<h2 id="specification-and-terminology"><a class="doc-anchor" href="#specification-and-terminology">§</a>Specification and Terminology</h2>
+<p>The terminology and behavior of generated flags types is specified in the documentation module
+<a href="spec/index.html" title="mod bitflag_attr::spec"><code>spec</code></a>. Details are repeated in these docs where appropriate, but is exhaustively listed in
+the spec. Some things are worth calling out explicitly here.</p>
+<h3 id="flags-types-flags-values-flags"><a class="doc-anchor" href="#flags-types-flags-values-flags">§</a>Flags types, flags values, flags</h3>
+<p>Some terminology to refer to things in the bitflags domain:</p>
+<ul>
+<li><strong>Bits type</strong>: A type that defines a fixed number of bits at specific locations.</li>
+<li><strong>Flag</strong>: A set of bits in a bits type that may have a unique name.</li>
+<li><strong>Flags type</strong>: A set of defined flags over a specific bits type.</li>
+<li><strong>Flags value</strong>: An instance of a flags type using its specific bits value for storage.</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag(u8)]
+</span><span class="comment">//        -- Bits type
+</span><span class="attr">#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>FlagsType {
+<span class="comment">//   --------- Flags type
+    </span>A = <span class="number">1</span>,
+<span class="comment">//  ----- Flag
+</span>}
+
+<span class="kw">let </span>flag = FlagsType::A;
+<span class="comment">//  ---- Flags value</span></code></pre></div><h3 id="known-and-unknown-bits"><a class="doc-anchor" href="#known-and-unknown-bits">§</a>Known and unknown bits</h3>
+<p>Any bits in a flag you define are called <em>known bits</em>. Any other bits are <em>unknown bits</em>. In the
+following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+    C = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>,
+}</code></pre></div>
+<p>The known bits are <code>0b0000_0111</code> and the unknown bits are <code>0b1111_1000</code>.</p>
+<p><code>bitflag_attr</code> doesn’t guarantee that a flags value will only ever have known bits set, but some
+operators will unset any unknown bits they encounter.</p>
+<p>If you’re using <code>bitflags</code> for flags types defined externally, such as from C, you probably want
+all bits to be considered known, in case that external source changes. You can do this using an
+unnamed flag, as described in <a href="#externally-defined-flags">externally defined flags</a>.</p>
+<h3 id="zero-bit-flags"><a class="doc-anchor" href="#zero-bit-flags">§</a>Zero-bit flags</h3>
+<p>Flags with no bits set, in general, should be avoided because they interact strangely with
+<a href="trait.Flags.html#method.contains" title="method bitflag_attr::Flags::contains"><code>contains</code></a> and <a href="trait.Flags.html#method.intersects" title="method bitflag_attr::Flags::intersects"><code>intersects</code></a>. A zero-bit flag is always contained, but is never intersected. The
+names of zero-bit flags can be parsed, but are never formatted.</p>
+<h3 id="multi-bit-flags"><a class="doc-anchor" href="#multi-bit-flags">§</a>Multi-bit flags</h3>
+<p>Flags that set multiple bits should be avoided unless each bit is also in a single-bit flag.
+Take the following flags type as an example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">1</span>,
+    B = <span class="number">1 </span>| (<span class="number">1 </span>&lt;&lt; <span class="number">1</span>),
+}</code></pre></div>
+<p>The result of <code>Flags::A ^ Flags::B</code> is <code>0b0000_0010</code>, which doesn’t correspond to either
+<code>Flags::A</code> or <code>Flags::B</code> even though it’s still a known bit.</p>
+<h2 id="crate-features"><a class="doc-anchor" href="#crate-features">§</a>Crate Features</h2><h3 id="ecosystem-features"><a class="doc-anchor" href="#ecosystem-features">§</a>Ecosystem features</h3>
+<ul>
+<li><strong>std</strong> — When enabled, <code>bitflag-attr</code> will depend on the <code>std</code> crate. Currently no
+particular usage and, for all intents and purposes, the same as the <code>alloc</code> feature.</li>
+<li><strong>alloc</strong> — When enabled, <code>bitflag-attr</code> will depend on the <code>alloc</code> crate. In particular,
+this enables functionality that requires or greatly benefits from dynamic memory allocation.
+If you can enable this, it is strongly encouraged that you do so. Without it, <a href="parser/struct.ParseError.html" title="struct bitflag_attr::parser::ParseError">parsing errors</a>
+will contain less information for error reporting.</li>
+</ul>
+<h3 id="code-generation-features"><a class="doc-anchor" href="#code-generation-features">§</a>Code generation features</h3>
+<ul>
+<li><strong>serde</strong> — When enabled, the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro will handle specially the <code>Serialize</code> and
+<code>Deserialize</code> traits passed to the enum’s derive list and generate a custom implementation of
+those traits taking into account the human-readable format for the generated flags type.
+Without it, if these traits are listed in the derive list, they are passed forward to the
+generated code, i.e. the default derive will be used. This feature does <strong>not</strong> add the
+<code>serde</code> crate to your dependency tree, so your project must have it as a direct
+dependency.</li>
+<li><strong>arbitrary</strong> — When enabled, the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro will handle specially the <code>Arbitrary</code> and
+trait passed to the enum’s derive list and generate a custom implementation of this trait
+taking into account the known and unknown bits, erroring out on the later. Without it, if this
+trait are listed in the derive list, they are passed forward to the generated code, i.e. the
+default derive will be used. This feature does <strong>not</strong> add the <code>arbitrary</code> crate to your
+dependency tree, so your project must have it as a direct dependency.</li>
+<li><strong>bytemuck</strong> — When enabled, the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro will handle specially the <code>Zeroable</code> and
+<code>Pod</code> traits passed to the enum’s derive list and generate a custom implementation of
+those traits with static checks to ensure the correct marking. Without it, if these traits are
+listed in the derive list, they are passed forward to the generated code, i.e. the default
+derive will be used. This feature does <strong>not</strong> add the <code>bytemuck</code> crate to your dependency
+tree, so your project must have it as a direct dependency.</li>
+<li><strong>custom-types</strong> — When enabled, the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro will allow the usage of types as
+parameters that are not in the list of <a href="attr.bitflag.html#custom-types-feature" title="attr bitflag_attr::bitflag">allowed types</a> at the cost of worse error messages if
+the used type does not satisfy the requirements for the usage.</li>
+<li><strong>const-mut-ref</strong> — When enabled, the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> macro will generate as <code>const-fn</code> all
+generated methods that takes the flags value as mutable pointer. This is only allowed after
+Rust 1.83.0, and enabling this feature with versions inferior to this number will cause
+compilation errors. But if you satisfy this version limitation, it is strongly encouraged that
+you do enable it.</li>
+</ul>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="changelog/index.html" title="mod bitflag_attr::changelog">changelog</a></dt><dd>A documentation module for this crate changelog.</dd><dt><a class="mod" href="example_generated/index.html" title="mod bitflag_attr::example_generated">example_<wbr>generated</a></dt><dd>A documentation module with a example of the generated code by the <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a>
+macro.</dd><dt><a class="mod" href="iter/index.html" title="mod bitflag_attr::iter">iter</a></dt><dd>Yield the bits of a source flags value in a set of contained flags values.</dd><dt><a class="mod" href="parser/index.html" title="mod bitflag_attr::parser">parser</a></dt><dd>Parsing flags from text.</dd><dt><a class="mod" href="spec/index.html" title="mod bitflag_attr::spec">spec</a></dt><dd>A documentation module for in depth specification definition and terminology.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.bitflag_match.html" title="macro bitflag_attr::bitflag_match">bitflag_<wbr>match</a></dt><dd>A macro that matches flags values, similar to Rust’s <code>match</code> statement.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.BitsPrimitive.html" title="trait bitflag_attr::BitsPrimitive">Bits<wbr>Primitive</a></dt><dd>Primitive types that can be used with <a href="attr.bitflag.html" title="attr bitflag_attr::bitflag"><code>bitflag</code></a> attribute implement this trait.</dd><dt><a class="trait" href="trait.Flags.html" title="trait bitflag_attr::Flags">Flags</a></dt><dd>A set of defined flags using a bits type as storage.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.bitflag.html" title="attr bitflag_attr::bitflag">bitflag</a></dt><dd>An attribute macro that transforms an C-like enum into a bitflag struct type implementing an
+ergonomic end-user API, similar to the <code>bitflags</code> crate, and implementing many helpful traits
+(listed in more details below).</dd></dl></section></div></main></body></html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A documentation module for in depth specification definition and terminology."><title>bitflag_attr::spec - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ddecd707.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bitflag_attr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (89c61a754 2026-07-23)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module spec</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../bitflag_attr/index.html">bitflag_<wbr>attr</a><span class="version">0.14.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module spec</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#bitflag-attr-specs" title="bitflag-attr specs">bitflag-attr specs</a><ul><li><a href="#definitions-and-terminology" title="Definitions and Terminology">Definitions and Terminology</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate bitflag_<wbr>attr</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">bitflag_attr</a></div><h1>Module <span>spec</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/bitflag_attr/lib.rs.html#925">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A documentation module for in depth specification definition and terminology.</p>
+<p>This module is only available in the crate documentation.</p>
+<h2 id="bitflag-attr-specs"><a class="doc-anchor" href="#bitflag-attr-specs">§</a>bitflag-attr specs</h2>
+<p><code>bitflag-attr</code> generates bitflags type from enums with well-defined semantics and ergonomic end-user APIs.</p>
+<p>You can use <code>bitflag-attr</code> to:</p>
+<ul>
+<li>provide more user-friendly bindings to C APIs where flags may or may not be fully known in advance.</li>
+<li>generate efficient options types with string parsing and formatting support.</li>
+</ul>
+<p>You can’t use <code>bitflag-attr</code> to:</p>
+<ul>
+<li>guarantee only bits corresponding to defined flags will ever be set. <code>bitflag-attr</code> allows access to the underlying bits type so arbitrary bits may be set.</li>
+<li>define bitfields. <code>bitflag-attr</code> only generates types where set bits denote the presence of some combination of flags.</li>
+</ul>
+<h3 id="definitions-and-terminology"><a class="doc-anchor" href="#definitions-and-terminology">§</a>Definitions and Terminology</h3>
+<p>This section formally defines the terminology and semantics of <code>bitflag-attr</code>. It’s organized so more fundamental concepts are introduced before those that build on them. It may be helpful to start from the bottom of the section and refer back up to concepts defined earlier.</p>
+<p>Examples use <code>bitflag-attr</code> syntax with <code>u8</code> as the bits type.</p>
+<h4 id="bits-type"><a class="doc-anchor" href="#bits-type">§</a>Bits type</h4>
+<p>A type that defines a fixed number of bits at specific locations.</p>
+<hr />
+<p>Bits types are typically fixed-width unsigned integers. For example, <code>u8</code> is a bits type that defines 8 bits; bit-0 through bit-7.</p>
+<h4 id="bits-value"><a class="doc-anchor" href="#bits-value">§</a>Bits value</h4>
+<p>An instance of a bits type where each bit may be set (<code>1</code>) or unset (<code>0</code>).</p>
+<hr />
+<p>Some examples of bits values for the bits type <code>u8</code> are:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0000
+0b1111_1111
+0b1010_0101</span></code></pre></div><h5 id="equality"><a class="doc-anchor" href="#equality">§</a>Equality</h5>
+<p>Two bits values are equal if their bits are in the same configuration; set bits in one are set in the other, and unset bits in one are unset in the other.</p>
+<h5 id="operations"><a class="doc-anchor" href="#operations">§</a>Operations</h5>
+<p>Bits values define the bitwise operators and (<code>&amp;</code>), or (<code>|</code>), exclusive-or (<code>^</code>), and negation (<code>!</code>) that apply to each of their bits.</p>
+<h4 id="flag"><a class="doc-anchor" href="#flag">§</a>Flag</h4>
+<p>A set of bits in a bits type that may have a unique name.</p>
+<hr />
+<p>Bits are not required to be exclusive to a flag. Bits are not required to be contiguous.</p>
+<p>The following is a flag for <code>u8</code> with the name <code>A</code> that includes bit-0:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>A = <span class="number">0b0000_0001</span>,</code></pre></div>
+<p>The following is a flag for <code>u8</code> with the name <code>B</code> that includes bit-0, and bit-5:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>B = <span class="number">0b0010_0001</span>,</code></pre></div><h5 id="named-flag"><a class="doc-anchor" href="#named-flag">§</a>Named flag</h5>
+<p>A flag with a name.</p>
+<hr />
+<p>The following is a named flag, where the name is <code>A</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>A = <span class="number">0b0000_0001</span>,</code></pre></div><h5 id="unnamed-flag"><a class="doc-anchor" href="#unnamed-flag">§</a>Unnamed flag</h5>
+<p>A flag without a name.</p>
+<hr />
+<p>The following is an unnamed flag:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[reserved_bits = <span class="number">0b0000_0001</span>]</span>;</code></pre></div><h5 id="zero-bit-flag"><a class="doc-anchor" href="#zero-bit-flag">§</a>Zero-bit flag</h5>
+<p>A flag with a set of zero bits.</p>
+<hr />
+<p>The following is a zero-bit flag:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>ZERO = <span class="number">0b0000_0000</span>,</code></pre></div><h5 id="single-bit-flag"><a class="doc-anchor" href="#single-bit-flag">§</a>Single-bit flag</h5>
+<p>A flag with a set of one bit.</p>
+<hr />
+<p>The following are single-bit flags:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>A = <span class="number">0b0000_0001</span>,
+B = <span class="number">0b0000_0010</span>,</code></pre></div><h5 id="multi-bit-flag"><a class="doc-anchor" href="#multi-bit-flag">§</a>Multi-bit flag</h5>
+<p>A flag with a set of more than one bit.</p>
+<hr />
+<p>The following are multi-bit flags:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>A = <span class="number">0b0000_0011</span>,
+B = <span class="number">0b1111_1111</span>,</code></pre></div><h4 id="flags-type"><a class="doc-anchor" href="#flags-type">§</a>Flags type</h4>
+<p>A set of defined flags over a specific bits type.</p>
+<h5 id="known-bit"><a class="doc-anchor" href="#known-bit">§</a>Known bit</h5>
+<p>A bit in any defined flag.</p>
+<hr />
+<p>In the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0001</span>,
+    B = <span class="number">0b0000_0010</span>,
+    C = <span class="number">0b0000_0100</span>,
+}</code></pre></div>
+<p>the known bits are:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0111</span></code></pre></div><h5 id="unknown-bit"><a class="doc-anchor" href="#unknown-bit">§</a>Unknown bit</h5>
+<p>A bit not in any defined flag.</p>
+<hr />
+<p>In the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0001</span>,
+    B = <span class="number">0b0000_0010</span>,
+    C = <span class="number">0b0000_0100</span>,
+}</code></pre></div>
+<p>the unknown bits are:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b1111_1000</span></code></pre></div><h4 id="flags-value"><a class="doc-anchor" href="#flags-value">§</a>Flags value</h4>
+<p>An instance of a flags type using its specific bits value for storage.</p>
+<p>The flags value of a flag is one where each of its bits is set, and all others are unset.</p>
+<h5 id="contains"><a class="doc-anchor" href="#contains">§</a>Contains</h5>
+<p>Whether all set bits in a source flags value are also set in a target flags value.</p>
+<hr />
+<p>Given the flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0011</span></code></pre></div>
+<p>the following flags values are contained:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0000
+0b0000_0010
+0b0000_0001
+0b0000_0011</span></code></pre></div>
+<p>but the following flags values are not contained:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_1000
+0b0000_0110</span></code></pre></div><h5 id="intersects"><a class="doc-anchor" href="#intersects">§</a>Intersects</h5>
+<p>Whether any set bits in a source flags value are also set in a target flags value.</p>
+<hr />
+<p>Given the flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0011</span></code></pre></div>
+<p>the following flags intersect:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0010
+0b0000_0001
+0b1111_1111</span></code></pre></div>
+<p>but the following flags values do not intersect:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0000
+0b1111_0000</span></code></pre></div><h5 id="empty"><a class="doc-anchor" href="#empty">§</a>Empty</h5>
+<p>Whether all bits in a flags value are unset.</p>
+<hr />
+<p>The following flags value is empty:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0000</span></code></pre></div>
+<p>The following flags values are not empty:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001
+0b0110_0000</span></code></pre></div><h5 id="all"><a class="doc-anchor" href="#all">§</a>All</h5>
+<p>Whether all defined flags are contained in a flags value.</p>
+<hr />
+<p>Given a flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A   = <span class="number">0b0000_0001</span>,
+    B   = <span class="number">0b0000_0010</span>,
+}</code></pre></div>
+<p>the following flags values all satisfy all:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0011
+0b1000_0011
+0b1111_1111</span></code></pre></div><h4 id="operations-1"><a class="doc-anchor" href="#operations-1">§</a>Operations</h4>
+<p>Examples in this section all use the given flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0001</span>,
+    B = <span class="number">0b0000_0010</span>,
+    C = <span class="number">0b0000_1100</span>,
+}</code></pre></div><h5 id="truncate"><a class="doc-anchor" href="#truncate">§</a>Truncate</h5>
+<p>Unset all unknown bits in a flags value.</p>
+<hr />
+<p>Given the flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b1111_1111</span></code></pre></div>
+<p>the result of truncation will be:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_1111</span></code></pre></div>
+<hr />
+<p>Truncating doesn’t guarantee that a non-empty result will contain any defined flags. Given the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0101</span>,
+}</code></pre></div>
+<p>and the following flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_1110</span>;</code></pre></div>
+<p>The result of truncation will be:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0100</span>;</code></pre></div>
+<p>which intersects the flag <code>A</code>, but doesn’t contain it.</p>
+<p>This behavior is possible even when only operating with flags values containing defined flags. Given the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0101</span>,
+    B = <span class="number">0b0000_0001</span>,
+}</code></pre></div>
+<p>The result of <code>A ^ B</code> is <code>0b0000_0100</code>, which also doesn’t contain any defined flag.</p>
+<hr />
+<p>If all known bits are in the set of at least one defined single-bit flag, then all operations that produce non-empty results will always contain defined flags.</p>
+<h5 id="union"><a class="doc-anchor" href="#union">§</a>Union</h5>
+<p>The bitwise or (<code>|</code>) of the bits in two flags values.</p>
+<hr />
+<p>The following are examples of the result of unioning flags values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001 </span>| <span class="number">0b0000_0010 </span>= <span class="number">0b0000_0011
+0b0000_0000 </span>| <span class="number">0b1111_1111 </span>= <span class="number">0b1111_1111</span></code></pre></div><h5 id="intersection"><a class="doc-anchor" href="#intersection">§</a>Intersection</h5>
+<p>The bitwise and (<code>&amp;</code>) of the bits in two flags values.</p>
+<hr />
+<p>The following are examples of the result of intersecting flags values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001 </span>&amp; <span class="number">0b0000_0010 </span>= <span class="number">0b0000_0000
+0b1111_1100 </span>&amp; <span class="number">0b1111_0111 </span>= <span class="number">0b1111_0100
+0b1111_1111 </span>&amp; <span class="number">0b1111_1111 </span>= <span class="number">0b1111_1111</span></code></pre></div><h5 id="symmetric-difference"><a class="doc-anchor" href="#symmetric-difference">§</a>Symmetric difference</h5>
+<p>The bitwise exclusive-or (<code>^</code>) of the bits in two flags values.</p>
+<hr />
+<p>The following are examples of the symmetric difference between two flags values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001 </span>^ <span class="number">0b0000_0010 </span>= <span class="number">0b0000_0011
+0b0000_1111 </span>^ <span class="number">0b0000_0011 </span>= <span class="number">0b0000_1100
+0b1100_0000 </span>^ <span class="number">0b0011_0000 </span>= <span class="number">0b1111_0000</span></code></pre></div><h5 id="complement"><a class="doc-anchor" href="#complement">§</a>Complement</h5>
+<p>The bitwise negation (<code>!</code>) of the bits in a flags value, truncating the result.</p>
+<hr />
+<p>The following are examples of the complement of a flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>!<span class="number">0b0000_0000 </span>= <span class="number">0b0000_1111
+</span>!<span class="number">0b0000_1111 </span>= <span class="number">0b0000_0000
+</span>!<span class="number">0b1111_1000 </span>= <span class="number">0b0000_0111</span></code></pre></div><h5 id="difference"><a class="doc-anchor" href="#difference">§</a>Difference</h5>
+<p>The bitwise union (<code>|</code>) of the bits in one flags value and the bitwise negation (<code>!</code>) of the bits in another.</p>
+<hr />
+<p>This operation is not equivalent to the intersection of one flags value with the complement of another (<code>&amp;!</code>).
+The former will truncate the result, where difference will not.</p>
+<hr />
+<p>The following are examples of the difference between two flags values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001 </span>&amp; !<span class="number">0b0000_0010 </span>= <span class="number">0b0000_0001
+0b0000_1101 </span>&amp; !<span class="number">0b0000_0011 </span>= <span class="number">0b0000_1100
+0b1111_1111 </span>&amp; !<span class="number">0b0000_0001 </span>= <span class="number">0b1111_1110</span></code></pre></div><h4 id="iteration"><a class="doc-anchor" href="#iteration">§</a>Iteration</h4>
+<p>Yield the bits of a source flags value in a set of contained flags values.</p>
+<hr />
+<p>To be most useful, each yielded flags value should set exactly the bits of a defined flag contained in the source. Any known bits that aren’t in the set of any contained flag should be yielded together as a final flags value.</p>
+<hr />
+<p>Given the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A  = <span class="number">0b0000_0001</span>,
+    B  = <span class="number">0b0000_0010</span>,
+    AB = <span class="number">0b0000_0011</span>,
+}</code></pre></div>
+<p>and the following flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_1111</span></code></pre></div>
+<p>When iterated it may yield a flags value for <code>A</code> and <code>B</code>, then a final flag with the unknown bits:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001
+0b0000_0010
+0b0000_1100</span></code></pre></div>
+<p>It may also yield a flags value for <code>AB</code>, then a final flag with the unknown bits:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0011
+0b0000_1100</span></code></pre></div>
+<hr />
+<p>Given the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A = <span class="number">0b0000_0011</span>,
+}</code></pre></div>
+<p>and the following flags value:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0001</span></code></pre></div>
+<p>When iterated it will still yield a flags value for the known bit <code>0b0000_0001</code> even though it doesn’t contain a flag.</p>
+<h4 id="formatting"><a class="doc-anchor" href="#formatting">§</a>Formatting</h4>
+<p>Format and parse a flags value as text using the following grammar:</p>
+<ul>
+<li><em>Flags:</em> (<em>Whitespace</em> <em>Flag</em> <em>Whitespace</em>)<code>|</code>*</li>
+<li><em>Flag:</em> <em>Name</em> | <em>Hex Number</em></li>
+<li><em>Name:</em> The name of any defined flag</li>
+<li><em>Hex Number</em>: <code>0x</code>([0-9a-fA-F])*</li>
+<li><em>Whitespace</em>: (\s)*</li>
+</ul>
+<p>Flags values can be formatted as <em>Flags</em> by iterating over them, formatting each yielded flags value as a <em>Flag</em>. Any yielded flags value that sets exactly the bits of a defined flag with a name should be formatted as a <em>Name</em>. Otherwise it must be formatted as a <em>Hex Number</em>.</p>
+<p>Formatting and parsing supports three modes:</p>
+<ul>
+<li><strong>Retain</strong>: Formatting and parsing roundtrips exactly the bits of the source flags value. This is the default behavior.</li>
+<li><strong>Truncate</strong>: Flags values are truncated before formatting, and truncated after parsing.</li>
+<li><strong>Strict</strong>: A <em>Flag</em> may only be formatted and parsed as a <em>Name</em>. <em>Hex numbers</em> are not allowed. A consequence of this is that unknown bits and any bits that aren’t in a contained named flag will be ignored. This is recommended for flags values serialized across API boundaries, like web services.</li>
+</ul>
+<p>Text that is empty or whitespace is an empty flags value.</p>
+<hr />
+<p>Given the following flags type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[bitflag_attr::bitflag(u8)]
+#[derive(Clone, Copy)]
+</span><span class="kw">enum </span>Flags {
+    A  = <span class="number">0b0000_0001</span>,
+    B  = <span class="number">0b0000_0010</span>,
+    AB = <span class="number">0b0000_0011</span>,
+    C  = <span class="number">0b0000_1100</span>,
+}</code></pre></div>
+<p>The following are examples of how flags values can be formatted using any mode:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b0000_0000 </span>= <span class="string">""
+</span><span class="number">0b0000_0001 </span>= <span class="string">"A"
+</span><span class="number">0b0000_0010 </span>= <span class="string">"B"
+</span><span class="number">0b0000_0011 </span>= <span class="string">"A | B"
+</span><span class="number">0b0000_0011 </span>= <span class="string">"AB"
+</span><span class="number">0b0000_1111 </span>= <span class="string">"A | B | C"</span></code></pre></div>
+<p>Truncate mode will unset any unknown bits:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b1000_0000 </span>= <span class="string">""
+</span><span class="number">0b1111_1111 </span>= <span class="string">"A | B | C"
+</span><span class="number">0b0000_1000 </span>= <span class="string">"0x8"</span></code></pre></div>
+<p>Retain mode will include any unknown bits as a final <em>Flag</em>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b1000_0000 </span>= <span class="string">"0x80"
+</span><span class="number">0b1111_1111 </span>= <span class="string">"A | B | C | 0xf0"
+</span><span class="number">0b0000_1000 </span>= <span class="string">"0x8"</span></code></pre></div>
+<p>Strict mode will unset any unknown bits, as well as bits not contained in any defined named flags:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="number">0b1000_0000 </span>= <span class="string">""
+</span><span class="number">0b1111_1111 </span>= <span class="string">"A | B | C"
+</span><span class="number">0b0000_1000 </span>= <span class="string">""</span></code></pre></div></div></details></section></div></main></body></html>
