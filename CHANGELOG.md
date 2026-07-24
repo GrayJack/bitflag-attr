@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0](https://github.com/GrayJack/bitflag-attr/compare/v0.13.0..v0.14.0) — 2026-07-24
+
+### 🚀 Features
+
+- Generated `From<$primitive>` uses `from_bits_truncate` or `from_bits_retain` based if it is `non_exhaustive` — ([d146be8](https://github.com/GrayJack/bitflag-attr/commit/d146be849183f531b960af8af7d762aeea409827))
+
+### 🏗️ Build Logic
+
+- Update macros to `syn` `3.0` — ([4f4b2ba](https://github.com/GrayJack/bitflag-attr/commit/4f4b2bac29e2d0fb12578e58fb3ee3aac94464f0))
+
 ## [0.13.0](https://github.com/GrayJack/bitflag-attr/compare/v0.12.1..v0.13.0) — 2025-11-03
 
 ### 🚀 Features
