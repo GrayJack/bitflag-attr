@@ -403,6 +403,10 @@ impl ToTokens for Bitflag {
             orig_enum,
         } = self;
 
+        let has_non_exhaustive = attrs
+            .iter()
+            .any(|att| att.path().is_ident("non_exhaustive"));
+
         let reserved_bits = custom_known_bits
             .as_ref()
             .map(|expr| quote! {all |= #expr;});
@@ -607,6 +611,28 @@ impl ToTokens for Bitflag {
                     unsafe impl ::bytemuck::Zeroable for #name {}
                 }
             });
+
+        let from_primitive_impl = if has_non_exhaustive {
+            quote! {
+                #[automatically_derived]
+                impl ::core::convert::From<#inner_ty> for #name {
+                    #[inline]
+                    fn from(val: #inner_ty) -> Self {
+                        Self::from_bits_retain(val)
+                    }
+                }
+            }
+        } else {
+            quote! {
+                #[automatically_derived]
+                impl ::core::convert::From<#inner_ty> for #name {
+                    #[inline]
+                    fn from(val: #inner_ty) -> Self {
+                        Self::from_bits_truncate(val)
+                    }
+                }
+            }
+        };
 
         let doc_from_iter = format!("Create a `{name}` from a iterator of flags.");
         let generated = quote! {
@@ -978,13 +1004,7 @@ impl ToTokens for Bitflag {
                 }
             }
 
-            #[automatically_derived]
-            impl ::core::convert::From<#inner_ty> for #name {
-                #[inline]
-                fn from(val: #inner_ty) -> Self {
-                    Self::from_bits_truncate(val)
-                }
-            }
+            #from_primitive_impl
 
             #[automatically_derived]
             impl ::core::convert::From<#name> for #inner_ty {
