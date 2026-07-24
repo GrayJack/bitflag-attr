@@ -76,7 +76,7 @@ impl fmt::Debug for ManualFlags {
         impl fmt::Debug for HumanReadable<'_> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 if self.0.is_empty() {
-                    write!(f, "{:#X}", self.0 .0)
+                    write!(f, "{:#X}", self.0.0)
                 } else {
                     bitflag_attr::parser::to_writer(self.0, f)
                 }

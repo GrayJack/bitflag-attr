@@ -1,11 +1,11 @@
 use syn::{
-    parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren, Attribute, DeriveInput,
-    Error, Expr, Ident, LitInt, LitStr, Meta, MetaNameValue, Path, Visibility,
+    Attribute, DeriveInput, Error, Expr, Ident, LitInt, LitStr, Meta, MetaNameValue, Path,
+    Visibility, parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren,
 };
 
 use proc_macro2::TokenStream;
 
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{ToTokens, TokenStreamExt, quote};
 
 pub struct Bitflag {
     vis: Visibility,
@@ -179,7 +179,7 @@ impl Bitflag {
                                             "bitflag: deriving `Pod` for `{}` is not compatible",
                                             repr_attr.to_token_stream()
                                         ),
-                                    ))
+                                    ));
                                 }
                             }
                         }
@@ -254,7 +254,7 @@ impl Bitflag {
                     return Err(Error::new_spanned(
                         variant,
                         "a discriminant must be defined",
-                    ))
+                    ));
                 }
             };
 
@@ -314,7 +314,7 @@ impl Bitflag {
                     return Err(Error::new_spanned(
                         variant,
                         "a discriminant must be defined",
-                    ))
+                    ));
                 }
             };
 

@@ -1,6 +1,6 @@
 use super::*;
 
-use bitflag_attr::{parser::*, Flags};
+use bitflag_attr::{Flags, parser::*};
 
 #[test]
 #[cfg(not(miri))] // Very slow in miri
@@ -104,23 +104,31 @@ mod from_text {
 
     #[test]
     fn invalid() {
-        assert!(from_text::<TestFlags>("a")
-            .unwrap_err()
-            .to_string()
-            .starts_with("unrecognized named flag"));
-        assert!(from_text::<TestFlags>("A & B")
-            .unwrap_err()
-            .to_string()
-            .starts_with("unrecognized named flag"));
+        assert!(
+            from_text::<TestFlags>("a")
+                .unwrap_err()
+                .to_string()
+                .starts_with("unrecognized named flag")
+        );
+        assert!(
+            from_text::<TestFlags>("A & B")
+                .unwrap_err()
+                .to_string()
+                .starts_with("unrecognized named flag")
+        );
 
-        assert!(from_text::<TestFlags>("0xg")
-            .unwrap_err()
-            .to_string()
-            .starts_with("invalid hex flag"));
-        assert!(from_text::<TestFlags>("0xffffffffffff")
-            .unwrap_err()
-            .to_string()
-            .starts_with("invalid hex flag"));
+        assert!(
+            from_text::<TestFlags>("0xg")
+                .unwrap_err()
+                .to_string()
+                .starts_with("invalid hex flag")
+        );
+        assert!(
+            from_text::<TestFlags>("0xffffffffffff")
+                .unwrap_err()
+                .to_string()
+                .starts_with("invalid hex flag")
+        );
     }
 }
 
@@ -269,27 +277,37 @@ mod from_text_strict {
 
     #[test]
     fn invalid() {
-        assert!(from_text_strict::<TestFlags>("a")
-            .unwrap_err()
-            .to_string()
-            .starts_with("unrecognized named flag"));
-        assert!(from_text_strict::<TestFlags>("A & B")
-            .unwrap_err()
-            .to_string()
-            .starts_with("unrecognized named flag"));
+        assert!(
+            from_text_strict::<TestFlags>("a")
+                .unwrap_err()
+                .to_string()
+                .starts_with("unrecognized named flag")
+        );
+        assert!(
+            from_text_strict::<TestFlags>("A & B")
+                .unwrap_err()
+                .to_string()
+                .starts_with("unrecognized named flag")
+        );
 
-        assert!(from_text_strict::<TestFlags>("0x1")
-            .unwrap_err()
-            .to_string()
-            .starts_with("invalid hex flag"));
-        assert!(from_text_strict::<TestFlags>("0xg")
-            .unwrap_err()
-            .to_string()
-            .starts_with("invalid hex flag"));
-        assert!(from_text_strict::<TestFlags>("0xffffffffffff")
-            .unwrap_err()
-            .to_string()
-            .starts_with("invalid hex flag"));
+        assert!(
+            from_text_strict::<TestFlags>("0x1")
+                .unwrap_err()
+                .to_string()
+                .starts_with("invalid hex flag")
+        );
+        assert!(
+            from_text_strict::<TestFlags>("0xg")
+                .unwrap_err()
+                .to_string()
+                .starts_with("invalid hex flag")
+        );
+        assert!(
+            from_text_strict::<TestFlags>("0xffffffffffff")
+                .unwrap_err()
+                .to_string()
+                .starts_with("invalid hex flag")
+        );
     }
 }
 

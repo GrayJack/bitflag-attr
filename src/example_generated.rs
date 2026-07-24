@@ -554,7 +554,7 @@ impl ::core::fmt::Debug for ExampleFlags {
         impl<'a> ::core::fmt::Debug for HumanReadable<'a> {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 if self.0.is_empty() {
-                    f.write_fmt(core::format_args!("{:#X}", self.0 .0))
+                    f.write_fmt(core::format_args!("{:#X}", self.0.0))
                 } else {
                     crate::parser::to_writer(self.0, f)
                 }
